@@ -139,16 +139,16 @@ function GalleyMapContent() {
     }
   };
 
-  const currentGalley = galleys[selectedGalley];
+  const currentGalley = galleys[selectedGalley as keyof typeof galleys];
 
-  const getCartTypeColor = (cartType) => {
-    switch (cartType) {
-      case 'Business Class Liquid Trolley': return 'bg-blue-500 border-blue-600';
-      case 'First Class Meal Service': return 'bg-purple-500 border-purple-600';
-      case 'Economy Snack Cart': return 'bg-green-500 border-green-600';
-      default: return 'bg-gray-500 border-gray-600';
-    }
-  };
+  const getCartTypeColor = (cartType: string) => {
+  switch (cartType) {
+    case 'Business Class Liquid Trolley': return 'bg-blue-500 border-blue-600';
+    case 'First Class Meal Service': return 'bg-purple-500 border-purple-600';
+    case 'Economy Snack Cart': return 'bg-green-500 border-green-600';
+    default: return 'bg-gray-500 border-gray-600';
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
