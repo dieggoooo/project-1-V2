@@ -32,7 +32,7 @@ export default function InventoryPage() {
     return 'text-red-600 bg-red-100';
   };
 
-  const getLevelBarColor = (level) => {
+  const getLevelBarColor = (level: number) => {
     if (level >= 70) return 'bg-green-500';
     if (level >= 40) return 'bg-orange-500';
     return 'bg-red-500';
