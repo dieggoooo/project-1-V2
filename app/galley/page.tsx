@@ -196,7 +196,7 @@ function GalleyMapContent() {
               </div>
 
               {/* Trolley Positions */}
-              {currentGalley.trolleys.map((trolley) => (
+              {currentGalley.trolleys.map((trolley: any) => (
                 <button
                   key={trolley.id}
                   onClick={() => setSelectedTrolley(trolley)}
@@ -237,7 +237,7 @@ function GalleyMapContent() {
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h3 className="font-medium mb-3">Filter by Category</h3>
             <div className="flex flex-wrap gap-2">
-              {['All', 'Beverages', 'Glassware', 'Service', 'Food'].map((category) => (
+              {['All', 'Beverages', 'Glassware', 'Service', 'Food'].map((category: any) => (
                 <button
                   key={category}
                   className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-blue-100 hover:text-blue-700 !rounded-button"
@@ -333,7 +333,7 @@ function GalleyMapContent() {
 
                   {/* Cart Structure */}
                   <div className="relative bg-white border-2 border-gray-300 rounded-lg h-48 mx-auto max-w-xs">
-                    {selectedTrolley.items.map((item: any, index) => (
+                    {selectedTrolley.items.map((item: any, index: number) => (
                       <div
                         key={index}
                         className={`absolute w-16 h-8 bg-blue-100 border border-blue-300 rounded text-xs flex items-center justify-center font-medium transition-colors hover:bg-blue-200 ${
@@ -355,7 +355,7 @@ function GalleyMapContent() {
               <div className="p-6 border-b">
                 <h3 className="font-medium text-gray-900 mb-3">Cart Sections</h3>
                 <div className="flex flex-wrap gap-2">
-                  {selectedTrolley.sections.map((section: any, index) => (
+                  {selectedTrolley.sections.map((section: any, index: number) => (
                     <span
                       key={index}
                       className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
@@ -370,7 +370,7 @@ function GalleyMapContent() {
               <div className="p-6 border-b">
                 <h4 className="font-medium text-gray-900 mb-4">Detailed Item Configuration</h4>
                 <div className="space-y-3">
-                  {selectedTrolley.items.map((item, index) => (
+                  {selectedTrolley.items.map((item: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
@@ -394,7 +394,7 @@ function GalleyMapContent() {
               <div className="p-6">
                 <h3 className="font-medium text-gray-900 mb-3">Current Status</h3>
                 <div className="space-y-2">
-                  {selectedTrolley.contents.map((item: any, index) => (
+                  {selectedTrolley.contents.map((item: any, index: number) => (
                     <div
                       key={index}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
