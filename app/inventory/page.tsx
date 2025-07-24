@@ -16,7 +16,7 @@ export default function InventoryPage() {
     { id: 8, name: 'Krug Grande Cuvée', type: 'Champagne', level: 70, bottles: 3, checked: false }
   ]);
 
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   const handleCheck = (id: any) => {
     setChecklist(prev => 
