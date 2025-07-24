@@ -26,7 +26,7 @@ export default function InventoryPage() {
     );
   };
 
-  const getLevelColor = (level) => {
+  const getLevelColor = (level: number) => {
     if (level >= 70) return 'text-green-600 bg-green-100';
     if (level >= 40) return 'text-orange-600 bg-orange-100';
     return 'text-red-600 bg-red-100';
