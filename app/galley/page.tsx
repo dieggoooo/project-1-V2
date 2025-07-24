@@ -11,7 +11,7 @@ function GalleyMapContent() {
   const searchParams = useSearchParams();
   const highlightItem = searchParams.get('item');
   const [selectedGalley, setSelectedGalley] = useState('forward');
-  const [selectedTrolley, setSelectedTrolley] = useState(null);
+  const [selectedTrolley, setSelectedTrolley] = useState<any>(null);
   const [viewMode, setViewMode] = useState('front');
 
   const galleys = {
