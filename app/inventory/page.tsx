@@ -239,9 +239,9 @@ export default function InventoryPage() {
                 </label>
                 <textarea
                   className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                  rows="3"
+                  rows={3}
                   placeholder="Add notes about condition, spillage, etc..."
-                  maxLength="500"
+                  maxLength={500}
                 ></textarea>
               </div>
 
