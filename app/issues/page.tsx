@@ -84,15 +84,15 @@ export default function IssuesPage() {
     }
   };
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'misplacement': return 'ri-map-pin-line';
-      case 'damage': return 'ri-tools-line';
-      case 'missing': return 'ri-error-warning-line';
-      case 'other': return 'ri-question-line';
-      default: return 'ri-alert-line';
-    }
-  };
+const getTypeIcon = (type: 'misplacement' | 'damage' | 'missing' | 'other') => {
+  switch (type) {
+    case 'misplacement': return 'ri-map-pin-line';
+    case 'damage': return 'ri-tools-line';
+    case 'missing': return 'ri-error-warning-line';
+    case 'other': return 'ri-question-line';
+    default: return 'ri-alert-line';
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
