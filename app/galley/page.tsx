@@ -201,7 +201,7 @@ function GalleyMapContent() {
                   key={trolley.id}
                   onClick={() => setSelectedTrolley(trolley)}
                   className={`absolute w-12 h-12 rounded-lg border-2 flex items-center justify-center font-medium text-sm transition-all ${
-                    highlhighlightItem && trolley.contents.some((item: any) => item.includes('Coffee')) && highlightItem === '1'
+                    highlightItem && trolley.contents.some((item: any) => item.includes('Coffee')) && highlightItem === '1'
                       ? 'bg-orange-500 border-orange-600 text-white animate-pulse'
                       : getCartTypeColor(trolley.cartType) + ' text-white hover:scale-105'
                   }`}
