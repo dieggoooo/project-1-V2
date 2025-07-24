@@ -4,9 +4,36 @@ import { useState } from 'react';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 
+// Type definitions
+type IssueType = 'misplacement' | 'damage' | 'missing' | 'other';
+type SeverityType = 'high' | 'medium' | 'low';
+type StatusType = 'open' | 'resolved';
+
+interface Issue {
+  id: number;
+  type: IssueType;
+  item: string;
+  location: string;
+  description: string;
+  severity: SeverityType;
+  status: StatusType;
+  reportedBy: string;
+  reportedAt: string;
+  flight: string;
+}
+
+interface FormData {
+  type: IssueType;
+  item: string;
+  location: string;
+  description: string;
+  severity: SeverityType;
+  flight: string;
+}
+
 export default function IssuesPage() {
-  const [activeTab, setActiveTab] = useState('report');
-  const [formData, setFormData] = useState({
+  const [activeTab, setActiveTab] = useState<'report' | 'history'>('report');
+  const [formData, setFormData] = useState<FormData>({
     type: 'misplacement',
     item: '',
     location: '',
@@ -15,7 +42,7 @@ export default function IssuesPage() {
     flight: ''
   });
 
-  const [issues, setIssues] = useState([
+  const [issues, setIssues] = useState<Issue[]>([
     {
       id: 1,
       type: 'misplacement',
@@ -54,9 +81,9 @@ export default function IssuesPage() {
     }
   ]);
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newIssue = {
+    const newIssue: Issue = {
       id: issues.length + 1,
       ...formData,
       status: 'open',
@@ -75,7 +102,7 @@ export default function IssuesPage() {
     setActiveTab('history');
   };
 
-  const getSeverityColor = (severity: 'high' | 'medium' | 'low') => {
+  const getSeverityColor = (severity: SeverityType): string => {
     switch (severity) {
       case 'high': return 'bg-red-100 text-red-700 border-red-200';
       case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
@@ -84,15 +111,15 @@ export default function IssuesPage() {
     }
   };
 
-const getTypeIcon = (type: 'misplacement' | 'damage' | 'missing' | 'other') => {
-  switch (type) {
-    case 'misplacement': return 'ri-map-pin-line';
-    case 'damage': return 'ri-tools-line';
-    case 'missing': return 'ri-error-warning-line';
-    case 'other': return 'ri-question-line';
-    default: return 'ri-alert-line';
-  }
-};
+  const getTypeIcon = (type: IssueType): string => {
+    switch (type) {
+      case 'misplacement': return 'ri-map-pin-line';
+      case 'damage': return 'ri-tools-line';
+      case 'missing': return 'ri-error-warning-line';
+      case 'other': return 'ri-question-line';
+      default: return 'ri-alert-line';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,7 +164,7 @@ const getTypeIcon = (type: 'misplacement' | 'damage' | 'missing' | 'other') => {
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    onChange={(e) => setFormData({...formData, type: e.target.value as IssueType})}
                     className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
@@ -196,7 +223,7 @@ const getTypeIcon = (type: 'misplacement' | 'damage' | 'missing' | 'other') => {
                   </label>
                   <select
                     value={formData.severity}
-                    onChange={(e) => setFormData({...formData, severity: e.target.value})}
+                    onChange={(e) => setFormData({...formData, severity: e.target.value as SeverityType})}
                     className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
