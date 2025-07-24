@@ -75,7 +75,7 @@ export default function IssuesPage() {
     setActiveTab('history');
   };
 
-  const getSeverityColor = (severity) => {
+  const getSeverityColor = (severity: 'high' | 'medium' | 'low') => {
     switch (severity) {
       case 'high': return 'bg-red-100 text-red-700 border-red-200';
       case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
