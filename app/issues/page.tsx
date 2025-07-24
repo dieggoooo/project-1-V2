@@ -54,7 +54,7 @@ export default function IssuesPage() {
     }
   ]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
     const newIssue = {
       id: issues.length + 1,
