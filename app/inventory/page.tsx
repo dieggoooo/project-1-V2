@@ -18,9 +18,9 @@ export default function InventoryPage() {
 
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const handleCheck = (id) => {
+  const handleCheck = (id: any) => {
     setChecklist(prev => 
-      prev.map(item => 
+      prev.map((item: any) =>
         item.id === id ? { ...item, checked: !item.checked } : item
       )
     );
