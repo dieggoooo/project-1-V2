@@ -215,7 +215,7 @@ const getTypeIcon = (type: 'misplacement' | 'damage' | 'missing' | 'other') => {
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     placeholder="Describe the issue in detail..."
                     className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
-                    maxLength="500"
+                    maxLength={500}
                     required
                   />
                   <div className="text-right text-xs text-gray-500 mt-1">
