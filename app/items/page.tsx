@@ -227,18 +227,18 @@ function ItemSearchContent() {
     return matchesSearch && matchesFilter && matchesCategory && matchesSubcategory;
   });
 
-  const handleCategorySelect = (categoryId) => {
-    setSelectedCategory(categoryId);
-    setSelectedSubcategory(null);
-  };
+const handleCategorySelect = (categoryId: string) => {
+  setSelectedCategory(categoryId);
+  setSelectedSubcategory(null);
+};
 
-  const handleBack = () => {
-    if (selectedSubcategory) {
-      setSelectedSubcategory(null);
-    } else if (selectedCategory) {
-      setSelectedCategory(null);
-    }
-  };
+const handleBack = () => {
+  if (selectedSubcategory) {
+    setSelectedSubcategory(null);
+  } else if (selectedCategory) {
+    setSelectedCategory(null);
+  }
+};
 
   const getCurrentCategory = () => {
     return categories.find(cat => cat.id === selectedCategory);
@@ -262,7 +262,7 @@ function ItemSearchContent() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {categories.map((category) => (
+            {categories.map((category: any) => (
               <div
                 key={category.id}
                 className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
