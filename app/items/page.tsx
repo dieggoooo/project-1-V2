@@ -1,21 +1,45 @@
-
 'use client';
-
+ 
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import Link from 'next/link';
-
+ 
+interface Subcategory {
+  id: string;
+  name: string;
+  icon: string;
+}
+ 
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  subcategories?: Subcategory[];
+}
+ 
+interface Item {
+  id: number;
+  name: string;
+  location: string;
+  trolley: string;
+  galley: string;
+  category: string;
+  subcategory?: string;
+  common: boolean;
+}
+ 
 function ItemSearchContent() {
   const searchParams = useSearchParams();
   const filter = searchParams.get('filter');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
-
-  const categories = [
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+ 
+  const categories: Category[] = [
     {
       id: 'beverages',
       name: 'Beverages',
@@ -55,170 +79,26 @@ function ItemSearchContent() {
       color: 'bg-gray-100 text-gray-600'
     }
   ];
-
-  const items = [
-    // Beverages - Alcoholic
-    {
-      id: 1,
-      name: 'Dom Pérignon 2012',
-      location: '1F1C01',
-      trolley: 'Trolley 1/1',
-      galley: 'Forward Galley',
-      category: 'beverages',
-      subcategory: 'alcoholic',
-      common: false
-    },
-    {
-      id: 2,
-      name: 'Hennessy Paradis',
-      location: '1F1C02',
-      trolley: 'Trolley 1/1',
-      galley: 'Forward Galley',
-      category: 'beverages',
-      subcategory: 'alcoholic',
-      common: false
-    },
-    {
-      id: 3,
-      name: 'Château Margaux 2015',
-      location: '1F2C01',
-      trolley: 'Trolley 2/3',
-      galley: 'Forward Galley',
-      category: 'beverages',
-      subcategory: 'alcoholic',
-      common: false
-    },
-    // Beverages - Hot Drinks
-    {
-      id: 4,
-      name: 'Kopi Luwak Coffee',
-      location: '1F1C03',
-      trolley: 'Trolley 1/1',
-      galley: 'Forward Galley',
-      category: 'beverages',
-      subcategory: 'hot-drinks',
-      common: true
-    },
-    {
-      id: 5,
-      name: 'Earl Grey Tea',
-      location: '1F1C04',
-      trolley: 'Trolley 1/1',
-      galley: 'Forward Galley',
-      category: 'beverages',
-      subcategory: 'hot-drinks',
-      common: true
-    },
-    // Beverages - Juice
-    {
-      id: 6,
-      name: 'Fresh Orange Juice',
-      location: '2A1C01',
-      trolley: 'Trolley 1/2',
-      galley: 'Aft Galley',
-      category: 'beverages',
-      subcategory: 'juice',
-      common: true
-    },
-    {
-      id: 7,
-      name: 'Apple Juice',
-      location: '2A1C02',
-      trolley: 'Trolley 1/2',
-      galley: 'Aft Galley',
-      category: 'beverages',
-      subcategory: 'juice',
-      common: true
-    },
-    // Beverages - Soda
-    {
-      id: 8,
-      name: 'Coca Cola',
-      location: '2A2C01',
-      trolley: 'Trolley 2/2',
-      galley: 'Aft Galley',
-      category: 'beverages',
-      subcategory: 'soda',
-      common: true
-    },
-    {
-      id: 9,
-      name: 'Sprite',
-      location: '2A2C02',
-      trolley: 'Trolley 2/2',
-      galley: 'Aft Galley',
-      category: 'beverages',
-      subcategory: 'soda',
-      common: true
-    },
-    // Meals
-    {
-      id: 10,
-      name: 'Wagyu Beef Wellington',
-      location: '1F3C01',
-      trolley: 'Trolley 3/3',
-      galley: 'Forward Galley',
-      category: 'meals',
-      common: false
-    },
-    {
-      id: 11,
-      name: 'Lobster Thermidor',
-      location: '1F3C02',
-      trolley: 'Trolley 3/3',
-      galley: 'Forward Galley',
-      category: 'meals',
-      common: false
-    },
-    {
-      id: 12,
-      name: 'Chicken Teriyaki',
-      location: '2A3C01',
-      trolley: 'Trolley 3/2',
-      galley: 'Aft Galley',
-      category: 'meals',
-      common: true
-    },
-    // Snacks
-    {
-      id: 13,
-      name: 'Macadamia Nuts',
-      location: '1F4C01',
-      trolley: 'Trolley 4/3',
-      galley: 'Forward Galley',
-      category: 'snacks',
-      common: true
-    },
-    {
-      id: 14,
-      name: 'Godiva Chocolates',
-      location: '1F4C02',
-      trolley: 'Trolley 4/3',
-      galley: 'Forward Galley',
-      category: 'snacks',
-      common: false
-    },
-    // Duty Free
-    {
-      id: 15,
-      name: 'Chanel No. 5',
-      location: '2A4C01',
-      trolley: 'Trolley 4/2',
-      galley: 'Aft Galley',
-      category: 'duty-free',
-      common: false
-    },
-    {
-      id: 16,
-      name: 'Rolex Submariner',
-      location: '2A4C02',
-      trolley: 'Trolley 4/2',
-      galley: 'Aft Galley',
-      category: 'duty-free',
-      common: false
-    }
+ 
+  const items: Item[] = [
+    { id: 1, name: 'Dom Pérignon 2012', location: '1F1C01', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false },
+    { id: 2, name: 'Hennessy Paradis', location: '1F1C02', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false },
+    { id: 3, name: 'Château Margaux 2015', location: '1F2C01', trolley: 'Trolley 2/3', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false },
+    { id: 4, name: 'Kopi Luwak Coffee', location: '1F1C03', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true },
+    { id: 5, name: 'Earl Grey Tea', location: '1F1C04', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true },
+    { id: 6, name: 'Fresh Orange Juice', location: '2A1C01', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true },
+    { id: 7, name: 'Apple Juice', location: '2A1C02', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true },
+    { id: 8, name: 'Coca Cola', location: '2A2C01', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true },
+    { id: 9, name: 'Sprite', location: '2A2C02', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true },
+    { id: 10, name: 'Wagyu Beef Wellington', location: '1F3C01', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false },
+    { id: 11, name: 'Lobster Thermidor', location: '1F3C02', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false },
+    { id: 12, name: 'Chicken Teriyaki', location: '2A3C01', trolley: 'Trolley 3/2', galley: 'Aft Galley', category: 'meals', common: true },
+    { id: 13, name: 'Macadamia Nuts', location: '1F4C01', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: true },
+    { id: 14, name: 'Godiva Chocolates', location: '1F4C02', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: false },
+    { id: 15, name: 'Chanel No. 5', location: '2A4C01', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false },
+    { id: 16, name: 'Rolex Submariner', location: '2A4C02', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false }
   ];
-
+ 
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'common' ? item.common : true;
@@ -226,80 +106,59 @@ function ItemSearchContent() {
     const matchesSubcategory = selectedSubcategory ? item.subcategory === selectedSubcategory : true;
     return matchesSearch && matchesFilter && matchesCategory && matchesSubcategory;
   });
-
-const handleCategorySelect = (categoryId: string) => {
-  setSelectedCategory(categoryId);
-  setSelectedSubcategory(null);
-};
-
-const handleBack = () => {
-  if (selectedSubcategory) {
+ 
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
     setSelectedSubcategory(null);
-  } else if (selectedCategory) {
-    setSelectedCategory(null);
-  }
-};
-
-  const getCurrentCategory = () => {
-    return categories.find(cat => cat.id === selectedCategory);
   };
-
-  const getCurrentSubcategory = () => {
-    const category = getCurrentCategory();
-    return category?.subcategories?.find(sub => sub.id === selectedSubcategory);
+ 
+  const handleBack = () => {
+    if (selectedSubcategory) {
+      setSelectedSubcategory(null);
+    } else if (selectedCategory) {
+      setSelectedCategory(null);
+    }
   };
-
-  // Category Selection Screen
+ 
+  const getCurrentCategory = () => categories.find(cat => cat.id === selectedCategory);
+  const getCurrentSubcategory = () => getCurrentCategory()?.subcategories?.find(sub => sub.id === selectedSubcategory);
+ 
   if (!selectedCategory) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
         <div className="pt-16 pb-20 px-4">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Browse Items</h1>
             <p className="text-gray-600">Select a category to view items</p>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
-            {categories.map((category: any) => (
-              <div
-                key={category.id}
-                className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleCategorySelect(category.id)}
-              >
+            {categories.map(category => (
+              <div key={category.id} className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCategorySelect(category.id)}>
                 <div className="text-center">
                   <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${category.color}`}>
                     <i className={`${category.icon} text-2xl`}></i>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {items.filter(item => item.category === category.id).length} items
-                  </p>
+                  <p className="text-sm text-gray-500">{items.filter(item => item.category === category.id).length} items</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
         <BottomNav />
       </div>
     );
   }
-
-  // Subcategory Selection Screen (for beverages)
+ 
   if (selectedCategory === 'beverages' && !selectedSubcategory) {
     const category = getCurrentCategory();
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
         <div className="pt-16 pb-20 px-4">
           <div className="flex items-center mb-6">
-            <button
-              onClick={handleBack}
-              className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3"
-            >
+            <button onClick={handleBack} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3">
               <i className="ri-arrow-left-line text-gray-600"></i>
             </button>
             <div>
@@ -307,68 +166,44 @@ const handleBack = () => {
               <p className="text-gray-600">Select beverage type</p>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
-            {category.subcategories.map((subcategory) => (
-              <div
-                key={subcategory.id}
-                className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setSelectedSubcategory(subcategory.id)}
-              >
+            {category?.subcategories?.map(subcategory => (
+              <div key={subcategory.id} className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedSubcategory(subcategory.id)}>
                 <div className="text-center">
                   <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
                     <i className={`${subcategory.icon} text-2xl text-blue-600`}></i>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">{subcategory.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {items.filter(item => item.subcategory === subcategory.id).length} items
-                  </p>
+                  <p className="text-sm text-gray-500">{items.filter(item => item.subcategory === subcategory.id).length} items</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
         <BottomNav />
       </div>
     );
   }
-
-  // Items List Screen
+ 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
       <div className="pt-16 pb-20 px-4">
-        {/* Header with back button */}
         <div className="flex items-center mb-6">
-          <button
-            onClick={handleBack}
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3"
-          >
+          <button onClick={handleBack} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3">
             <i className="ri-arrow-left-line text-gray-600"></i>
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {selectedSubcategory ? getCurrentSubcategory()?.name : getCurrentCategory()?.name}
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900">{selectedSubcategory ? getCurrentSubcategory()?.name : getCurrentCategory()?.name}</h1>
             <p className="text-gray-600">{filteredItems.length} items available</p>
           </div>
         </div>
-
-        {/* Search Bar */}
         <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <i className="ri-search-line text-gray-400"></i>
             </div>
-            <input
-              type="text"
-              placeholder="Search items..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <input type="text" placeholder="Search items..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           {filter === 'common' && (
             <div className="mt-3 flex items-center text-sm text-blue-600">
@@ -377,15 +212,9 @@ const handleBack = () => {
             </div>
           )}
         </div>
-
-        {/* Items List */}
         <div className="space-y-3">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setSelectedItem(item)}
-            >
+          {filteredItems.map(item => (
+            <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedItem(item)}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
@@ -402,10 +231,7 @@ const handleBack = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Link
-                    href={`/galley?item=${item.id}`}
-                    className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
-                  >
+                  <Link href={`/galley?item=${item.id}`} className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <i className="ri-map-pin-line text-blue-600 text-sm"></i>
                   </Link>
                   <i className="ri-arrow-right-s-line text-gray-400"></i>
@@ -414,7 +240,6 @@ const handleBack = () => {
             </div>
           ))}
         </div>
-
         {filteredItems.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
@@ -424,21 +249,15 @@ const handleBack = () => {
           </div>
         )}
       </div>
-
-      {/* Item Detail Modal */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-2xl p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-              >
+              <button onClick={() => setSelectedItem(null)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                 <i className="ri-close-line text-gray-600"></i>
               </button>
             </div>
-            
             <div className="space-y-4">
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">Location Details</h3>
@@ -457,20 +276,11 @@ const handleBack = () => {
                   </div>
                 </div>
               </div>
-
               <div className="flex space-x-3">
-                <Link
-                  href={`/galley?item=${selectedItem.id}`}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg text-center font-medium !rounded-button"
-                  onClick={() => setSelectedItem(null)}
-                >
+                <Link href={`/galley?item=${selectedItem.id}`} className="flex-1 bg-blue-600 text-white py-3 rounded-lg text-center font-medium !rounded-button" onClick={() => setSelectedItem(null)}>
                   View on Map
                 </Link>
-                <Link
-                  href="/issues"
-                  className="px-6 py-3 border border-orange-200 bg-orange-50 text-orange-700 rounded-lg font-medium !rounded-button hover:bg-orange-100 transition-colors"
-                  onClick={() => setSelectedItem(null)}
-                >
+                <Link href="/issues" className="px-6 py-3 border border-orange-200 bg-orange-50 text-orange-700 rounded-lg font-medium !rounded-button hover:bg-orange-100 transition-colors" onClick={() => setSelectedItem(null)}>
                   Report Issue
                 </Link>
               </div>
@@ -478,12 +288,11 @@ const handleBack = () => {
           </div>
         </div>
       )}
-
       <BottomNav />
     </div>
   );
 }
-
+ 
 export default function ItemsPage() {
   return (
     <Suspense fallback={
@@ -498,3 +307,4 @@ export default function ItemsPage() {
     </Suspense>
   );
 }
+ 
