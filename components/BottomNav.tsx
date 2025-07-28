@@ -11,12 +11,13 @@ export default function BottomNav() {
     { href: '/', icon: 'ri-home-line', label: 'Home' },
     { href: '/items', icon: 'ri-search-line', label: 'Items' },
     { href: '/galley', icon: 'ri-map-line', label: 'Map' },
-    { href: '/inventory', icon: 'ri-file-list-line', label: 'Inventory' }
+    { href: '/inventory', icon: 'ri-file-list-line', label: 'Inventory' },
+    { href: '/profile', icon: 'ri-user-line', label: 'Profile' }
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-0 py-2">
-      <div className="grid grid-cols-4 gap-0">
+      <div className="grid grid-cols-5 gap-0">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (

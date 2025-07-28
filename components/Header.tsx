@@ -11,6 +11,9 @@ export default function Header() {
         </Link>
         <div className="flex items-center space-x-4">
           <span className="text-sm">Flight: AA123</span>
+          <Link href="/profile" className="text-white hover:text-blue-100">
+            <i className="ri-user-line text-lg"></i>
+          </Link>
         </div>
       </div>
     </div>
