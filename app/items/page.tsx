@@ -29,6 +29,8 @@ interface Item {
   category: string;
   subcategory?: string;
   common: boolean;
+  units: number;
+  image?: string;
 }
  
 function ItemSearchContent() {
@@ -38,6 +40,8 @@ function ItemSearchContent() {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [itemImages, setItemImages] = useState<{ [key: number]: string }>({});
+  const [uploadingImage, setUploadingImage] = useState<number | null>(null);
  
   const categories: Category[] = [
     {
@@ -81,23 +85,45 @@ function ItemSearchContent() {
   ];
  
   const items: Item[] = [
-    { id: 1, name: 'Dom Pérignon 2012', location: '1F1C01', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false },
-    { id: 2, name: 'Hennessy Paradis', location: '1F1C02', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false },
-    { id: 3, name: 'Château Margaux 2015', location: '1F2C01', trolley: 'Trolley 2/3', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false },
-    { id: 4, name: 'Kopi Luwak Coffee', location: '1F1C03', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true },
-    { id: 5, name: 'Earl Grey Tea', location: '1F1C04', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true },
-    { id: 6, name: 'Fresh Orange Juice', location: '2A1C01', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true },
-    { id: 7, name: 'Apple Juice', location: '2A1C02', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true },
-    { id: 8, name: 'Coca Cola', location: '2A2C01', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true },
-    { id: 9, name: 'Sprite', location: '2A2C02', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true },
-    { id: 10, name: 'Wagyu Beef Wellington', location: '1F3C01', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false },
-    { id: 11, name: 'Lobster Thermidor', location: '1F3C02', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false },
-    { id: 12, name: 'Chicken Teriyaki', location: '2A3C01', trolley: 'Trolley 3/2', galley: 'Aft Galley', category: 'meals', common: true },
-    { id: 13, name: 'Macadamia Nuts', location: '1F4C01', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: true },
-    { id: 14, name: 'Godiva Chocolates', location: '1F4C02', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: false },
-    { id: 15, name: 'Chanel No. 5', location: '2A4C01', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false },
-    { id: 16, name: 'Rolex Submariner', location: '2A4C02', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false }
+    { id: 1, name: 'Dom Pérignon 2012', location: '1F1C01', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false, units: 6 },
+    { id: 2, name: 'Hennessy Paradis', location: '1F1C02', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false, units: 2 },
+    { id: 3, name: 'Château Margaux 2015', location: '1F2C01', trolley: 'Trolley 2/3', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false, units: 4 },
+    { id: 4, name: 'Kopi Luwak Coffee', location: '1F1C03', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true, units: 2 },
+    { id: 5, name: 'Earl Grey Tea', location: '1F1C04', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true, units: 50 },
+    { id: 6, name: 'Fresh Orange Juice', location: '2A1C01', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true, units: 24 },
+    { id: 7, name: 'Apple Juice', location: '2A1C02', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true, units: 24 },
+    { id: 8, name: 'Coca Cola', location: '2A2C01', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true, units: 48 },
+    { id: 9, name: 'Sprite', location: '2A2C02', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true, units: 48 },
+    { id: 10, name: 'Wagyu Beef Wellington', location: '1F3C01', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false, units: 8 },
+    { id: 11, name: 'Lobster Thermidor', location: '1F3C02', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false, units: 6 },
+    { id: 12, name: 'Chicken Teriyaki', location: '2A3C01', trolley: 'Trolley 3/2', galley: 'Aft Galley', category: 'meals', common: true, units: 12 },
+    { id: 13, name: 'Macadamia Nuts', location: '1F4C01', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: true, units: 40 },
+    { id: 14, name: 'Godiva Chocolates', location: '1F4C02', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: false, units: 20 },
+    { id: 15, name: 'Chanel No. 5', location: '2A4C01', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false, units: 3 },
+    { id: 16, name: 'Rolex Submariner', location: '2A4C02', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false, units: 1 }
   ];
+
+  const handleImageUpload = (itemId: number, file: File) => {
+    setUploadingImage(itemId);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setItemImages(prev => ({
+        ...prev,
+        [itemId]: result
+      }));
+      setUploadingImage(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileSelect = (itemId: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImageUpload(itemId, file);
+    }
+  };
  
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -228,6 +254,7 @@ function ItemSearchContent() {
                   <div className="flex items-center space-x-4 text-sm">
                     <span className="text-blue-600 font-medium">{item.location}</span>
                     <span className="text-gray-500">{item.trolley}</span>
+                    <span className="text-green-600 font-medium">{item.units} units</span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -258,6 +285,56 @@ function ItemSearchContent() {
                 <i className="ri-close-line text-gray-600"></i>
               </button>
             </div>
+            
+            {/* Item Image Section */}
+            <div className="mb-6">
+              <h3 className="font-medium text-gray-900 mb-3">Item Image</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                {itemImages[selectedItem.id] ? (
+                  <div className="relative">
+                    <img 
+                      src={itemImages[selectedItem.id]} 
+                      alt={selectedItem.name}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <button 
+                      onClick={() => {
+                        const newImages = { ...itemImages };
+                        delete newImages[selectedItem.id];
+                        setItemImages(newImages);
+                      }}
+                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center"
+                    >
+                      <i className="ri-delete-bin-line text-sm"></i>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <i className="ri-image-line text-gray-400 text-2xl"></i>
+                    </div>
+                    <p className="text-gray-500 mb-3">No image uploaded</p>
+                    <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
+                      <i className="ri-upload-line mr-2"></i>
+                      Upload Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileSelect(selectedItem.id, e)}
+                        className="hidden"
+                      />
+                    </label>
+                    {uploadingImage === selectedItem.id && (
+                      <div className="mt-3 flex items-center justify-center text-sm text-gray-600">
+                        <i className="ri-loader-4-line animate-spin mr-2"></i>
+                        Uploading...
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">Location Details</h3>
@@ -273,6 +350,10 @@ function ItemSearchContent() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Galley:</span>
                     <span className="font-medium">{selectedItem.galley}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Available Units:</span>
+                    <span className="font-medium text-green-600">{selectedItem.units} units</span>
                   </div>
                 </div>
               </div>

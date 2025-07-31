@@ -6,6 +6,7 @@ import BottomNav from '../../components/BottomNav';
 
 export default function InventoryPage() {
   const [selectedFilter, setSelectedFilter] = useState('All');
+  const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [checklist, setChecklist] = useState([
     // Alcohol Inventory
     { id: 1, name: 'Dom Pérignon 2012', type: 'Champagne', level: 85, bottles: 6, checked: false },
@@ -61,7 +62,17 @@ export default function InventoryPage() {
     return 'bg-red-500';
   };
 
-  const filteredItems = checklist.filter(item => selectedFilter === 'All' || item.type === selectedFilter);
+  const getLevelCategory = (level: number) => {
+    if (level >= 70) return 'Good';
+    if (level >= 40) return 'Medium';
+    return 'Low';
+  };
+
+  const filteredItems = checklist.filter(item => {
+    const typeMatch = selectedFilter === 'All' || item.type === selectedFilter;
+    const levelMatch = !levelFilter || getLevelCategory(item.level) === levelFilter;
+    return typeMatch && levelMatch;
+  });
   const completedItems = filteredItems.filter(item => item.checked).length;
   const progress = filteredItems.length > 0 ? (completedItems / filteredItems.length) * 100 : 0;
 
@@ -107,32 +118,45 @@ export default function InventoryPage() {
             ></div>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-lg font-semibold text-green-600">
+            <button
+              onClick={() => setLevelFilter(levelFilter === 'Good' ? null : 'Good')}
+              className={`p-2 rounded-lg transition-colors ${
+                levelFilter === 'Good' ? 'bg-green-100 border-2 border-green-300' : 'hover:bg-green-50'
+              }`}
+            >
+              <div className={`text-lg font-semibold ${levelFilter === 'Good' ? 'text-green-700' : 'text-green-600'}`}>
                 {filteredItems.filter(item => item.level >= 70).length}
               </div>
               <div className="text-xs text-gray-600">Good Level</div>
-            </div>
-            <div>
-              <div className="text-lg font-semibold text-orange-600">
+            </button>
+            <button
+              onClick={() => setLevelFilter(levelFilter === 'Medium' ? null : 'Medium')}
+              className={`p-2 rounded-lg transition-colors ${
+                levelFilter === 'Medium' ? 'bg-orange-100 border-2 border-orange-300' : 'hover:bg-orange-50'
+              }`}
+            >
+              <div className={`text-lg font-semibold ${levelFilter === 'Medium' ? 'text-orange-700' : 'text-orange-600'}`}>
                 {filteredItems.filter(item => item.level >= 40 && item.level < 70).length}
               </div>
               <div className="text-xs text-gray-600">Medium Level</div>
-            </div>
-            <div>
-              <div className="text-lg font-semibold text-red-600">
+            </button>
+            <button
+              onClick={() => setLevelFilter(levelFilter === 'Low' ? null : 'Low')}
+              className={`p-2 rounded-lg transition-colors ${
+                levelFilter === 'Low' ? 'bg-red-100 border-2 border-red-300' : 'hover:bg-red-50'
+              }`}
+            >
+              <div className={`text-lg font-semibold ${levelFilter === 'Low' ? 'text-red-700' : 'text-red-600'}`}>
                 {filteredItems.filter(item => item.level < 40).length}
               </div>
               <div className="text-xs text-gray-600">Low Level</div>
-            </div>
+            </button>
           </div>
         </div>
 
         {/* Inventory List */}
         <div className="space-y-3">
-          {checklist
-            .filter(item => selectedFilter === 'All' || item.type === selectedFilter)
-            .map((item) => (
+          {filteredItems.map((item) => (
             <div
               key={item.id}
               className={`bg-white rounded-xl p-4 shadow-sm transition-all ${
