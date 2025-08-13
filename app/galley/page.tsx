@@ -10,21 +10,24 @@ import Link from 'next/link';
 function GalleyMapContent() {
   const searchParams = useSearchParams();
   const highlightItem = searchParams.get('item');
-  const [selectedGalley, setSelectedGalley] = useState('forward');
+  const [selectedGalley, setSelectedGalley] = useState<string | null>(null);
   const [selectedTrolley, setSelectedTrolley] = useState<any>(null);
   const [viewMode, setViewMode] = useState('front');
 
+  // New 8-galley system based on aircraft layout
   const galleys = {
-    forward: {
-      name: 'Forward Galley',
+    '1F1C': {
+      name: 'Galley 1F1C',
+      position: { top: '45%', left: '10%' },
+      description: 'Front Left Galley',
       trolleys: [
         {
-          id: '1F1',
-          position: { top: '20%', left: '10%' },
-          contents: ['Coffee Pot', 'Tea Service Set', 'Sugar Packets'],
-          code: '1F1C03',
+          id: '1F1C-01',
+          position: { top: '20%', left: '16%' },
+          contents: ['Coffee Service', 'Tea Set', 'Sugar Packets'],
+          code: '1F1C01',
           cartType: 'Economy Snack Cart',
-          cartDescription: 'Standard beverage and snack service for economy class passengers',
+          cartDescription: 'Standard beverage service for economy class',
           sections: ['Beverages', 'Snacks', 'Ice', 'Cups', 'Napkins'],
           items: [
             { name: 'Coffee (Regular)', position: 'Thermos 1', quantity: '2L' },
@@ -33,14 +36,21 @@ function GalleyMapContent() {
             { name: 'Cookies', position: 'Snack Bay B', quantity: 40 },
             { name: 'Plastic Cups', position: 'Cup Dispenser', quantity: 100 }
           ]
-        },
+        }
+      ]
+    },
+    '0FCR': {
+      name: 'Galley 0FCR',
+      position: { top: '45%', left: '20%' },
+      description: 'Front Right Galley',
+      trolleys: [
         {
-          id: '1F2',
-          position: { top: '20%', right: '10%' },
-          contents: ['Wine Glasses', 'Water Glasses', 'Napkins'],
-          code: '1F2C05',
+          id: '0FCR-01',
+          position: { top: '10%', right: '5%' },
+          contents: ['Wine Service', 'Premium Glassware', 'Napkins'],
+          code: '0FCR01',
           cartType: 'Business Class Liquid Trolley',
-          cartDescription: 'Premium beverage service with fine glassware and spirits',
+          cartDescription: 'Premium beverage service with fine glassware',
           sections: ['Premium Wines', 'Spirits', 'Champagne', 'Mixers', 'Ice'],
           items: [
             { name: 'Dom Pérignon 2012', position: 'Top Shelf', quantity: 6 },
@@ -49,12 +59,19 @@ function GalleyMapContent() {
             { name: 'Tonic Water', position: 'Bottom Left', quantity: 24 },
             { name: 'Club Soda', position: 'Bottom Right', quantity: 24 }
           ]
-        },
+        }
+      ]
+    },
+    '2A1C': {
+      name: 'Galley 2A1C',
+      position: { top: '45%', left: '40%' },
+      description: 'Mid-Left Galley',
+      trolleys: [
         {
-          id: '1F3',
-          position: { top: '60%', left: '10%' },
-          contents: ['Meal Trays', 'Cutlery', 'Salt & Pepper'],
-          code: '1F3C02',
+          id: '2A1C-01',
+          position: { top: '30%', left: '20%' },
+          contents: ['Meal Service', 'Cutlery', 'Condiments'],
+          code: '2A1C01',
           cartType: 'First Class Meal Service',
           cartDescription: 'Gourmet meal service with premium dining essentials',
           sections: ['Hot Meals', 'Cold Items', 'Condiments', 'Utensils', 'Linens'],
@@ -65,12 +82,19 @@ function GalleyMapContent() {
             { name: 'Fine China Plates', position: 'Utensil Bay', quantity: 16 },
             { name: 'Linen Napkins', position: 'Storage Bottom', quantity: 20 }
           ]
-        },
+        }
+      ]
+    },
+    '2A1R': {
+      name: 'Galley 2A1R',
+      position: { top: '30%', left: '50%' },
+      description: 'Mid-Right Galley',
+      trolleys: [
         {
-          id: '1F4',
-          position: { top: '60%', right: '10%' },
-          contents: ['Bread Baskets', 'Butter', 'Condiments'],
-          code: '1F4C01',
+          id: '2A1R-01',
+          position: { top: '50%', right: '70%' },
+          contents: ['Bread Service', 'Butter', 'Condiments'],
+          code: '2A1R01',
           cartType: 'Economy Snack Cart',
           cartDescription: 'Basic meal accompaniments and condiments',
           sections: ['Bread Items', 'Condiments', 'Utensils', 'Napkins'],
@@ -84,16 +108,18 @@ function GalleyMapContent() {
         }
       ]
     },
-    aft: {
-      name: 'Aft Galley',
+    '4A1C-Top': {
+      name: 'Galley 4A1C (Top)',
+      position: { top: '55%', left: '70%' },
+      description: 'Rear Top Galley',
       trolleys: [
         {
-          id: '2A1',
-          position: { top: '25%', left: '15%' },
-          contents: ['Champagne Flutes', 'Premium Spirits', 'Ice'],
-          code: '2A1C02',
+          id: '4A1C-Top-01',
+          position: { top: '100%', left: '70%' },
+          contents: ['Champagne Service', 'Premium Spirits', 'Ice'],
+          code: '4A1C01',
           cartType: 'Business Class Liquid Trolley',
-          cartDescription: 'Premium spirits and champagne service for business class',
+          cartDescription: 'Premium spirits and champagne service',
           sections: ['Premium Wines', 'Spirits', 'Champagne', 'Mixers', 'Ice'],
           items: [
             { name: 'Krug Grande Cuvée', position: 'Champagne Rack', quantity: 4 },
@@ -102,12 +128,19 @@ function GalleyMapContent() {
             { name: 'Premium Mixers', position: 'Mixer Bay', quantity: 12 },
             { name: 'Crystal Glassware', position: 'Glass Rack', quantity: 16 }
           ]
-        },
+        }
+      ]
+    },
+    '4F1C': {
+      name: 'Galley 4F1C',
+      position: { top: '45%', left: '75%' },
+      description: 'Rear Left Galley',
+      trolleys: [
         {
-          id: '2A2',
-          position: { top: '25%', right: '15%' },
-          contents: ['Ice Bucket', 'Cocktail Mixers', 'Garnishes'],
-          code: '2A2C01',
+          id: '4F1C-01',
+          position: { top: '90%', left: '60%' },
+          contents: ['Cocktail Service', 'Mixers', 'Garnishes'],
+          code: '4F1C01',
           cartType: 'Business Class Liquid Trolley',
           cartDescription: 'Cocktail preparation station with mixers and garnishes',
           sections: ['Mixers', 'Garnishes', 'Ice', 'Bar Tools', 'Glassware'],
@@ -118,12 +151,19 @@ function GalleyMapContent() {
             { name: 'Ice Bucket', position: 'Center Section', quantity: 2 },
             { name: 'Martini Glasses', position: 'Glass Section', quantity: 12 }
           ]
-        },
+        }
+      ]
+    },
+    '4A1C-Right': {
+      name: 'Galley 4A1C (Right)',
+      position: { top: '55%', left: '80%' },
+      description: 'Rear Right Galley',
+      trolleys: [
         {
-          id: '2A3',
-          position: { top: '70%', left: '15%' },
-          contents: ['Snack Items', 'Beverages', 'Cookies'],
-          code: '2A3C04',
+          id: '4A1C-Right-01',
+          position: { top: '50%', right: '40%' },
+          contents: ['Snack Service', 'Beverages', 'Cookies'],
+          code: '4A1C02',
           cartType: 'Economy Snack Cart',
           cartDescription: 'Light refreshments and beverages for economy service',
           sections: ['Beverages', 'Snacks', 'Cookies', 'Cups', 'Napkins'],
@@ -136,85 +176,102 @@ function GalleyMapContent() {
           ]
         }
       ]
+    },
+    '4A1C-Bottom': {
+      name: 'Galley 4A1C (Bottom)',
+      position: { top: '65%', left: '75%' },
+      description: 'Rear Bottom Galley',
+      trolleys: [
+        {
+          id: '4A1C-Bottom-01',
+          position: { top: '70%', left: '35%' },
+          contents: ['Storage', 'Backup Items', 'Supplies'],
+          code: '4A1C03',
+          cartType: 'Storage Cart',
+          cartDescription: 'Backup storage and supplies management',
+          sections: ['Storage', 'Backup Items', 'Supplies', 'Cleaning', 'Maintenance'],
+          items: [
+            { name: 'Backup Beverages', position: 'Storage Bay A', quantity: 48 },
+            { name: 'Emergency Supplies', position: 'Storage Bay B', quantity: 20 },
+            { name: 'Cleaning Materials', position: 'Storage Bay C', quantity: 15 },
+            { name: 'Paper Products', position: 'Storage Bay D', quantity: 200 },
+            { name: 'Maintenance Tools', position: 'Tool Storage', quantity: 10 }
+          ]
+        }
+      ]
     }
   };
 
-  const currentGalley = galleys[selectedGalley as keyof typeof galleys];
-
   const getCartTypeColor = (cartType: string) => {
-  switch (cartType) {
-    case 'Business Class Liquid Trolley': return 'bg-blue-500 border-blue-600';
-    case 'First Class Meal Service': return 'bg-purple-500 border-purple-600';
-    case 'Economy Snack Cart': return 'bg-green-500 border-green-600';
-    default: return 'bg-gray-500 border-gray-600';
-  }
-};
+    switch (cartType) {
+      case 'Business Class Liquid Trolley': return 'bg-blue-500 border-blue-600';
+      case 'First Class Meal Service': return 'bg-purple-500 border-purple-600';
+      case 'Economy Snack Cart': return 'bg-green-500 border-green-600';
+      case 'Storage Cart': return 'bg-gray-500 border-gray-600';
+      default: return 'bg-gray-500 border-gray-600';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
       <div className="pt-16 pb-20">
-        {/* Galley Selector */}
-        <div className="px-4 py-4 bg-white border-b">
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setSelectedGalley('forward')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors !rounded-button ${
-                selectedGalley === 'forward'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Forward Galley
-            </button>
-            <button
-              onClick={() => setSelectedGalley('aft')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors !rounded-button ${
-                selectedGalley === 'aft'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Aft Galley
-            </button>
-          </div>
-        </div>
-
-        {/* Galley Map */}
+        {/* Aircraft Galley Map */}
         <div className="px-4 py-6">
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">{currentGalley.name}</h2>
-              <p className="text-sm text-gray-600">Tap trolley slots to view cart configuration & details</p>
+              <h2 className="text-lg font-semibold">Aircraft Galley Map</h2>
+              <p className="text-sm text-gray-600">Tap galley sections to view trolley details</p>
             </div>
 
-            <div className="relative bg-gradient-to-b from-blue-50 to-blue-100 h-80">
-              {/* Galley Structure */}
-              <div className="absolute inset-4 border-2 border-dashed border-blue-300 rounded-lg">
-                <div className="absolute inset-2 bg-white/50 rounded backdrop-blur-sm"></div>
+            {/* Aircraft Layout */}
+            <div className="relative bg-gradient-to-b from-blue-50 to-blue-100 h-96 p-4">
+              {/* Aircraft Outline */}
+              <div className="absolute inset-4 border-2 border-gray-400 rounded-full bg-gray-200/30">
+                <div className="absolute inset-2 bg-white/20 rounded-full"></div>
               </div>
 
-              {/* Trolley Positions */}
-              {currentGalley.trolleys.map((trolley: any) => (
+              {/* Galley Sections */}
+              {Object.entries(galleys).map(([code, galley]) => (
                 <button
-                  key={trolley.id}
-                  onClick={() => setSelectedTrolley(trolley)}
-                  className={`absolute w-12 h-12 rounded-lg border-2 flex items-center justify-center font-medium text-sm transition-all ${
-                    highlightItem && trolley.contents.some((item: any) => item.includes('Coffee')) && highlightItem === '1'
-                      ? 'bg-orange-500 border-orange-600 text-white animate-pulse'
-                      : getCartTypeColor(trolley.cartType) + ' text-white hover:scale-105'
+                  key={code}
+                  onClick={() => setSelectedGalley(code)}
+                  className={`absolute w-12 h-6 bg-blue-500 border-2 border-blue-600 rounded flex items-center justify-center font-medium text-white text-xs transition-all hover:scale-110 ${
+                    selectedGalley === code ? 'ring-4 ring-blue-300' : ''
                   }`}
-                  style={trolley.position}
+                  style={galley.position}
                 >
-                  {trolley.id}
+                  G
                 </button>
               ))}
+
+              {/* Galley Labels */}
+              <div className="absolute top-52 left-8 text-xs text-gray-600 font-medium text-center w-12">1F1C</div>
+              <div className="absolute top-52 left-18 text-xs text-gray-600 font-medium text-center w-12">0FCR</div>
+              <div className="absolute top-52 left-38 text-xs text-gray-600 font-medium text-center w-12">2A1C</div>
+              <div className="absolute top-37 left-48 text-xs text-gray-600 font-medium text-center w-12">2A1R</div>
+              <div className="absolute top-62 left-68 text-xs text-gray-600 font-medium text-center w-12">4A1C</div>
+              <div className="absolute top-52 left-73 text-xs text-gray-600 font-medium text-center w-12">4F1C</div>
+              <div className="absolute top-62 left-78 text-xs text-gray-600 font-medium text-center w-12">4A1C</div>
+              <div className="absolute top-72 left-73 text-xs text-gray-600 font-medium text-center w-12">4A1C</div>
+
+              {/* Aircraft Labels */}
+              <div className="absolute top-1/2 left-2 transform -translate-y-1/2 text-xs text-gray-600 font-medium">
+                FRONT
+              </div>
+              <div className="absolute top-1/2 right-2 transform -translate-y-1/2 text-xs text-gray-600 font-medium">
+                REAR
+              </div>
             </div>
 
-            {/* Legend - Moved outside the map */}
+            {/* Legend */}
             <div className="p-4 bg-gray-50 border-t">
               <div className="flex items-center justify-center space-x-6 text-xs">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded"></div>
+                  <span>Galley Sections</span>
+                </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-blue-500 rounded"></div>
                   <span>Business Class</span>
@@ -237,7 +294,7 @@ function GalleyMapContent() {
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <h3 className="font-medium mb-3">Filter by Category</h3>
             <div className="flex flex-wrap gap-2">
-              {['All', 'Beverages', 'Glassware', 'Service', 'Food'].map((category: any) => (
+              {['All', 'Beverages', 'Glassware', 'Service', 'Food', 'Storage'].map((category: any) => (
                 <button
                   key={category}
                   className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-blue-100 hover:text-blue-700 !rounded-button"
@@ -269,7 +326,48 @@ function GalleyMapContent() {
         </div>
       </div>
 
-      {/* Enhanced Trolley Detail Modal with Cart Configuration */}
+      {/* Galley Detail Modal */}
+      {selectedGalley && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold">{galleys[selectedGalley as keyof typeof galleys].name}</h2>
+                  <p className="text-sm text-gray-600">{galleys[selectedGalley as keyof typeof galleys].description}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedGalley(null)}
+                  className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+                >
+                  <i className="ri-close-line text-gray-600"></i>
+                </button>
+              </div>
+
+              {/* Trolley List */}
+              <div className="space-y-3">
+                {galleys[selectedGalley as keyof typeof galleys].trolleys.map((trolley: any) => (
+                  <button
+                    key={trolley.id}
+                    onClick={() => setSelectedTrolley(trolley)}
+                    className="w-full p-4 border border-gray-200 rounded-lg text-left hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{trolley.cartType}</h3>
+                        <p className="text-sm text-gray-600">{trolley.cartDescription}</p>
+                      </div>
+                      <i className="ri-arrow-right-s-line text-gray-400"></i>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Trolley Detail Modal */}
       {selectedTrolley && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-hidden">
@@ -389,8 +487,6 @@ function GalleyMapContent() {
                   ))}
                 </div>
               </div>
-
-
             </div>
 
             {/* Actions */}
