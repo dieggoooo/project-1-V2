@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import Link from 'next/link';
-import { transform } from 'zod';
 
 function GalleyMapContent() {
   const searchParams = useSearchParams();
@@ -313,76 +312,86 @@ function GalleyMapContent() {
               <p className="text-sm text-gray-600">Complete galley overview</p>
             </div>
 
-            {/* Aircraft Body with Galleys Positioned Per Diagram */}
-            <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 h-[700px] overflow-hidden">
-              {/* Aircraft Body Outline - Long narrow fuselage */}
-              <div className="absolute inset-x-6 top-4 bottom-4">
-                {/* Aircraft fuselage - more elongated like the diagram */}
-                <div className="absolute inset-0 border-4 border-gray-400 bg-gradient-to-r from-gray-50 to-gray-100 shadow-lg"
-                     style={{ borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%' }}></div>
-                
-                {/* Main cabin area */}
-                <div className="absolute inset-x-8 top-6 bottom-6 bg-blue-50/30 border border-blue-200 rounded-lg">
-                  
-                  {/* Passenger seat rows visualization */}
-                  <div className="absolute inset-4 space-y-2 overflow-hidden">
-                    {/* Multiple rows of seats represented as small rectangles */}
-                    {[...Array(25)].map((_, row) => (
-                      <div key={row} className="flex justify-between items-center h-4">
-                        {/* Left seats */}
-                        <div className="flex space-x-1">
-                          <div className="w-4 h-3 bg-gray-300 rounded-sm border border-gray-400"></div>
-                          <div className="w-4 h-3 bg-gray-300 rounded-sm border border-gray-400"></div>
-                          <div className="w-4 h-3 bg-gray-300 rounded-sm border border-gray-400"></div>
-                        </div>
-                        {/* Center aisle */}
-                        <div className="w-8 h-1 bg-blue-200"></div>
-                        {/* Right seats */}
-                        <div className="flex space-x-1">
-                          <div className="w-4 h-3 bg-gray-300 rounded-sm border border-gray-400"></div>
-                          <div className="w-4 h-3 bg-gray-300 rounded-sm border border-gray-400"></div>
-                          <div className="w-4 h-3 bg-gray-300 rounded-sm border border-gray-400"></div>
-                        </div>
-                      </div>
-                    ))}
+            {/* Simplified Aircraft Body with Fixed Dimensions */}
+            <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 flex justify-center items-center py-8">
+              {/* Fixed-size aircraft container */}
+              <div className="relative" style={{ width: '400px', height: '600px' }}>
+                {/* Aircraft fuselage - skinnier airplane shape */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-200 to-gray-300 border-4 border-gray-400 shadow-lg"
+                     style={{ 
+                       borderRadius: '200px 200px 50px 50px',
+                       clipPath: 'ellipse(35% 50% at 50% 50%)'
+                     }}>
+                </div>
+
+                {/* Aircraft wings - realistic airplane wing shape */}
+                <div className="absolute top-1/2 -left-6 transform -translate-y-1/2">
+                  <div className="w-14 h-24 bg-gray-400 border-2 border-gray-500"
+                       style={{
+                         clipPath: 'polygon(15% 45%, 100% 15%, 100% 25%, 95% 35%, 90% 50%, 95% 65%, 100% 75%, 100% 85%, 15% 55%)',
+                         borderRadius: '2px'
+                       }}>
+                  </div>
+                </div>
+                <div className="absolute top-1/2 -right-6 transform -translate-y-1/2">
+                  <div className="w-14 h-24 bg-gray-400 border-2 border-gray-500"
+                       style={{
+                         clipPath: 'polygon(85% 45%, 0% 15%, 0% 25%, 5% 35%, 10% 50%, 5% 65%, 0% 75%, 0% 85%, 85% 55%)',
+                         borderRadius: '2px'
+                       }}>
                   </div>
                 </div>
 
-                {/* Aircraft windows along the sides */}
-                <div className="absolute left-2 top-10 bottom-10 w-2 space-y-2">
-                  {[...Array(30)].map((_, i) => (
-                    <div key={i} className="w-2 h-2 bg-blue-200 rounded-sm border border-blue-300"></div>
-                  ))}
+                {/* Tail wings - vertical and horizontal stabilizers (elevators) */}
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2">
+                  {/* Vertical stabilizer (tail fin) */}
+                  <div className="w-6 h-12 bg-gray-400 border-2 border-gray-500"
+                       style={{
+                         clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)',
+                         borderRadius: '2px'
+                       }}>
+                  </div>
+                  {/* Horizontal stabilizers (elevators) - more elevator-like shape */}
+                  <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
+                    {/* Left elevator */}
+                    <div className="absolute -left-8 w-8 h-2 bg-gray-400 border border-gray-500"
+                         style={{
+                           clipPath: 'polygon(0% 50%, 30% 0%, 100% 20%, 100% 80%, 30% 100%)',
+                           borderRadius: '1px'
+                         }}>
+                    </div>
+                    {/* Right elevator */}
+                    <div className="absolute left-0 w-8 h-2 bg-gray-400 border border-gray-500"
+                         style={{
+                           clipPath: 'polygon(100% 50%, 70% 0%, 0% 20%, 0% 80%, 70% 100%)',
+                           borderRadius: '1px'
+                         }}>
+                    </div>
+                  </div>
                 </div>
-                <div className="absolute right-2 top-10 bottom-10 w-2 space-y-2">
-                  {[...Array(30)].map((_, i) => (
-                    <div key={i} className="w-2 h-2 bg-blue-200 rounded-sm border border-blue-300"></div>
-                  ))}
+
+                {/* Nose indicator (small circle at front) */}
+                <div className="absolute top-2 left-1/2 w-3 h-3 bg-gray-500 rounded-full transform -translate-x-1/2"></div>
+
+                {/* Galleys positioned exactly as in the original */}
+                {Object.values(galleys).map((galley: any) => (
+                  <button
+                    key={galley.id}
+                    onClick={() => setSelectedGalley(galley.id)}
+                    className={`absolute w-16 h-8 rounded-md border-2 flex items-center justify-center text-[10px] font-bold transition-all transform hover:scale-110 shadow-lg ${
+                      getGalleyTypeColor(galley.type)
+                    }`}
+                    style={galley.position}
+                  >
+                    {galley.id}
+                  </button>
+                ))}
+
+                {/* Directional indicator */}
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/90 px-3 py-1 rounded-full border border-gray-300">
+                  <i className="ri-plane-line text-blue-600"></i>
+                  <span className="text-xs font-medium text-gray-700">← AFT | FORWARD →</span>
                 </div>
-              </div>
-
-              {/* Galleys positioned exactly as in the diagram */}
-              {Object.values(galleys).map((galley: any) => (
-                <button
-                  key={galley.id}
-                  onClick={() => setSelectedGalley(galley.id)}
-                  className={`absolute w-16 h-8 rounded-md border-2 flex items-center justify-center text-[10px] font-bold transition-all transform hover:scale-110 shadow-lg ${
-                    getGalleyTypeColor(galley.type)
-                  }`}
-                  style={galley.position}
-                >
-                  {galley.id}
-                </button>
-              ))}
-
-              {/* Directional indicator */}
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/90 px-3 py-1 rounded-full border border-gray-300">
-                <i className="ri-plane-line text-blue-600"></i>
-                <span className="text-xs font-medium text-gray-700">← AFT | FORWARD →</span>
-              </div>
-
-              {/* Galley count indicator */}
-              <div className="absolute bottom-4 right-4 bg-white/90 px-3 py-2 rounded border border-gray-300">
               </div>
             </div>
 
