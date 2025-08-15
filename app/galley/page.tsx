@@ -20,6 +20,65 @@ function GalleyMapContent() {
       name: '1F1C - First Class Front Center',
       position: { top: '8%', left: '50%', transform: 'translateX(-50%)' },
       type: 'First Class',
+      configuration: {
+        // Grid layout based on the image - 4 columns, multiple rows
+        positions: [
+          // Top row - Standard boxes (CAJA STD)
+          { id: '1F1C20', code: 'Pos 1F1C20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['2x Mantel Carro', '1x Charolas Servicio', '1x Sobrecargos'], row: 0, col: 0 },
+          { id: '1F1C21F', code: 'Pos 1F1C21F CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['2x Hielera Metálica'], row: 0, col: 1 },
+          { id: '1F1C22F', code: 'Pos 1F1C22F CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['1x Canastas Premier'], row: 0, col: 2 },
+          { id: '1F1C23F', code: 'Pos 1F1C23F CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['2x Misc para Café y Té'], row: 0, col: 3 },
+          
+          // Second row - Standard boxes (CAJA STD)  
+          { id: '1F1C21R', code: 'Pos 1F1C21R CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['2x Hielera Metálica'], row: 1, col: 1 },
+          { id: '1F1C22R', code: 'Pos 1F1C22R CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['1x Canasta Snack Premier (regreso)'], row: 1, col: 2 },
+          { id: '1F1C23R', code: 'Pos 1F1C23R CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: ['Caja STD VACÍA'], row: 1, col: 3 },
+          
+          // Third row - Ovens (Horno)
+          { id: '1F1C08', code: 'Pos 1F1C08 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 2, col: 0 },
+          { id: '1F1C10', code: 'Pos 1F1C10 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 2, col: 1 },
+          { id: '1F1C12', code: 'Pos 1F1C12 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 2, col: 2 },
+          { id: '1F1C14', code: 'Pos 1F1C14 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 2, col: 3 },
+          { id: '1F1C16', code: 'Pos 1F1C16', type: 'coffee', category: 'miscellaneous', size: 'small', 
+            contents: ['CAFETERA 1x Jarra Metálica'], row: 2, col: 4 },
+          { id: '1F1C17', code: 'Pos 1F1C17', type: 'coffee', category: 'empty', size: 'small', 
+            contents: ['CAFETERA EXPRESS'], row: 2, col: 5 },
+          
+          // Bottom row - Carts (Carro 1/1)
+          { id: '1F1C01', code: 'Pos 1F1C01 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
+            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos', '1x Canasta Snack Premier (ida)', 
+                      'si aplica) 1x Charola de Pan', 'si aplica PD) 1x Kit de platos', '1x Canasta Snack Premier (regreso)', 
+                      '2x Canasta Snack Premier Inter', '1x Canasta Snack Premier (ida)'], row: 3, col: 0 },
+          { id: '1F1C02', code: 'Pos 1F1C02 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
+            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos', '1x Canasta Snack Premier (ida)', 
+                      'si aplica) 1x Charola de Pan', 'si aplica PD) 1x Kit de platos', '1x Canasta Snack Premier (regreso)', 
+                      '2x Canasta Snack Premier Inter', '1x Canasta Snack Premier (ida)'], row: 3, col: 1 },
+          { id: '1F1C03', code: 'Pos 1F1C03 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
+            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Leche Light 1 LT', 'CJ', 
+                      'Aplica de acuerdo a QTY en Matriz', '01x Kit Agua 1.5L en Gaveta de Plástico', 
+                      '01x Cerveza Fría Premier ATRÁS', '01x Refrescos (lata)', '03x Kit Agua 1.5L en Gaveta de Plástico', '01x Hielo'], row: 3, col: 2 },
+          { id: '1F1C04', code: 'Pos 1F1C04 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
+            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Kit Agua 1.5L en Gaveta de Plástico', 
+                      '01x Cerveza Fría Premier ATRÁS', '01x Refrescos (lata)', '03x Kit Agua 1.5L en Gaveta de Plástico', 
+                      'en Gaveta de Plástico', '01x Hielo'], row: 3, col: 3 },
+          { id: '1F1C05', code: 'Pos 1F1C05 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
+            contents: ['ADELANTE', '5x Cristalería', '2x Tazas para café ATRÁS', '5x Cristalería', '2x Tazas para café'], row: 3, col: 4 },
+          { id: '1F1C06', code: 'Pos 1F1C06 Carro 1/1', type: 'cart', category: 'bar', size: 'large', 
+            contents: ['BAR PREMIER', '1x Cubitera para hielo Nal', '2x Pinzas para Servicio Inter', 
+                      'Formas Migratorias'], row: 3, col: 5 }
+        ]
+      },
       trolleys: [
         {
           id: '1F1C',
@@ -209,12 +268,32 @@ function GalleyMapContent() {
     }
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'liquids': return 'bg-blue-200 border-blue-300 text-blue-800';
+      case 'food': return 'bg-orange-200 border-orange-300 text-orange-800';
+      case 'miscellaneous': return 'bg-green-200 border-green-300 text-green-800';
+      case 'bar': return 'bg-red-200 border-red-300 text-red-800';
+      case 'empty': return 'bg-gray-100 border-gray-300 text-gray-600';
+      default: return 'bg-gray-100 border-gray-300 text-gray-600';
+    }
+  };
+
   const getCartTypeColor = (cartType: string) => {
     if (cartType.includes('First Class')) return 'bg-purple-500 border-purple-600';
     if (cartType.includes('Business Class')) return 'bg-blue-500 border-blue-600';
     if (cartType.includes('Economy')) return 'bg-green-500 border-green-600';
     if (cartType.includes('Utility')) return 'bg-gray-500 border-gray-600';
     return 'bg-gray-500 border-gray-600';
+  };
+
+  const getPositionSize = (size: string) => {
+    switch (size) {
+      case 'small': return 'h-16';
+      case 'medium': return 'h-20';
+      case 'large': return 'h-24';
+      default: return 'h-20';
+    }
   };
 
   if (selectedGalley) {
@@ -238,29 +317,92 @@ function GalleyMapContent() {
             </div>
           </div>
 
-          {/* Individual Galley Detail View */}
+          {/* Galley Configuration Grid */}
           <div className="px-4 py-6">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-4 border-b">
-                <h3 className="font-semibold">Galley Layout</h3>
-                <p className="text-sm text-gray-600">Tap trolleys for detailed information</p>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold">Galley Configuration</h3>
+                    <p className="text-sm text-gray-600">Physical layout and storage positions</p>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">Weight: 538.00</span>
+                    <button className="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded">Report</button>
+                  </div>
+                </div>
+                
+                {/* Legend */}
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-blue-200 border border-blue-300 rounded"></div>
+                    <span>Liquids</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-orange-200 border border-orange-300 rounded"></div>
+                    <span>Food</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-green-200 border border-green-300 rounded"></div>
+                    <span>Miscellaneous</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-3 h-3 bg-red-200 border border-red-300 rounded"></div>
+                    <span>Bar</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 h-80">
-                <div className="absolute inset-4 border-2 border-gray-300 rounded-lg bg-white/80">
-                  {galley.trolleys.map((trolley: any) => (
-                    <button
-                      key={trolley.id}
-                      onClick={() => setSelectedTrolley(trolley)}
-                      className={`absolute w-16 h-10 rounded-lg border-2 flex items-center justify-center font-medium text-xs transition-all hover:scale-110 shadow-md ${
-                        getCartTypeColor(trolley.cartType) + ' text-white'
-                      }`}
-                      style={trolley.position}
-                    >
-                      {trolley.id}
-                    </button>
-                  ))}
-                </div>
+              {/* Configuration Grid */}
+              <div className="p-4">
+                {galley.configuration && (
+                  <div className="space-y-2">
+                    {/* Group positions by row */}
+                    {[0, 1, 2, 3].map(rowIndex => {
+                      const rowPositions = galley.configuration.positions
+                        .filter((pos: any) => pos.row === rowIndex)
+                        .sort((a: any, b: any) => a.col - b.col);
+                      
+                      return (
+                        <div key={rowIndex} className="grid grid-cols-6 gap-2">
+                          {rowPositions.map((position: any) => (
+                            <button
+                              key={position.id}
+                              onClick={() => setSelectedTrolley({
+                                id: position.id,
+                                code: position.code,
+                                cartType: position.type,
+                                contents: position.contents || [],
+                                items: (position.contents || []).map((content: string, index: number) => ({
+                                  name: content,
+                                  position: `Position ${index + 1}`,
+                                  quantity: 1
+                                }))
+                              })}
+                              className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                                getCategoryColor(position.category)
+                              } ${getPositionSize(position.size)}`}
+                            >
+                              <div className="text-[10px] font-bold mb-1">{position.code}</div>
+                              <div className="text-[9px] leading-tight">
+                                {position.contents && position.contents.length > 0 ? (
+                                  position.contents.slice(0, 2).map((item: string, index: number) => (
+                                    <div key={index} className="truncate">{item}</div>
+                                  ))
+                                ) : (
+                                  <div className="text-gray-500">Empty</div>
+                                )}
+                                {position.contents && position.contents.length > 2 && (
+                                  <div className="text-gray-600">+{position.contents.length - 2} more</div>
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
