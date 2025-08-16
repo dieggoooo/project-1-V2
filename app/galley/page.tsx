@@ -486,7 +486,7 @@ function GalleyMapContent() {
 
               {/* Configuration Grid */}
               <div className="p-4">
-                {galley.configuration ? (
+                {'configuration' in galley && galley.configuration ? (
                   <div className="space-y-2">
                     {/* Dynamic grid based on galley type */}
                     {galley.id === 'OFCR' ? (
