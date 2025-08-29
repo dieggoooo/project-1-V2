@@ -689,48 +689,86 @@ function GalleyMapContent() {
 
             {/* Simplified Aircraft Body with Fixed Dimensions */}
             <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 flex justify-center items-center py-8">
-              {/* SVG-based aircraft for better visuals and easier scaling */}
-              <svg
-                width={400}
-                height={600}
-                viewBox="0 0 400 600"
-                className="absolute left-1/2 top-0 -translate-x-1/2"
-                style={{ zIndex: 1 }}
-              >
-                {/* Fuselage */}
-                <ellipse cx="200" cy="300" rx="70" ry="270" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="8" />
-                {/* Cockpit window */}
-                <ellipse cx="200" cy="60" rx="18" ry="12" fill="#64748b" opacity="0.7" />
-                {/* Wings */}
-                <polygon points="60,300 200,200 340,300 200,260" fill="#cbd5e1" stroke="#9ca3af" strokeWidth="4" />
-                {/* Tail fin */}
-                <polygon points="180,570 220,570 200,500" fill="#9ca3af" />
-                {/* Horizontal stabilizers */}
-                <rect x="120" y="540" width="50" height="10" rx="5" fill="#cbd5e1" />
-                <rect x="230" y="540" width="50" height="10" rx="5" fill="#cbd5e1" />
-              </svg>
+              {/* Fixed-size aircraft container */}
+              <div className="relative" style={{ width: '400px', height: '600px' }}>
+                {/* Aircraft fuselage - skinnier airplane shape */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-200 to-gray-300 border-4 border-gray-400 shadow-lg"
+                     style={{ 
+                       borderRadius: '200px 200px 50px 50px',
+                       clipPath: 'ellipse(35% 50% at 50% 50%)'
+                     }}>
+                </div>
 
-              {/* Galleys positioned on top of the SVG */}
-              {Object.values(galleys).map((galley: any) => (
-                <button
-                  key={galley.id}
-                  onClick={() => setSelectedGalley(galley.id)}
-                  className={`absolute w-16 h-8 rounded-md border-2 flex items-center justify-center text-[10px] font-bold transition-all transform hover:scale-110 shadow-lg ${
-                    getGalleyTypeColor(galley.type)
-                  }`}
-                  style={{
-                    ...galley.position,
-                    zIndex: 2, // Ensure galley buttons are above the SVG
-                  }}
-                >
-                  {galley.id}
-                </button>
-              ))}
 
-              {/* Directional indicator */}
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/90 px-3 py-1 rounded-full border border-gray-300 z-10">
-                <i className="ri-plane-line text-blue-600"></i>
-                <span className="text-xs font-medium text-gray-700">← AFT | FORWARD →</span>
+
+                {/* Aircraft wings - realistic airplane wing shape */}
+                <div className="absolute top-1/2 -left-6 transform -translate-y-1/2">
+                  <div className="w-14 h-24 bg-gray-400 border-2 border-gray-500"
+                       style={{
+                         clipPath: 'polygon(15% 45%, 100% 15%, 100% 25%, 95% 35%, 90% 50%, 95% 65%, 100% 75%, 100% 85%, 15% 55%)',
+                         borderRadius: '2px'
+                       }}>
+                  </div>
+                </div>
+                <div className="absolute top-1/2 -right-6 transform -translate-y-1/2">
+                  <div className="w-14 h-24 bg-gray-400 border-2 border-gray-500"
+                       style={{
+                         clipPath: 'polygon(85% 45%, 0% 15%, 0% 25%, 5% 35%, 10% 50%, 5% 65%, 0% 75%, 0% 85%, 85% 55%)',
+                         borderRadius: '2px'
+                       }}>
+                  </div>
+                </div>
+
+                {/* Tail wings - vertical and horizontal stabilizers (elevators) */}
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2">
+                  {/* Vertical stabilizer (tail fin) */}
+                  <div className="w-6 h-12 bg-gray-400 border-2 border-gray-500"
+                       style={{
+                         clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)',
+                         borderRadius: '2px'
+                       }}>
+                  </div>
+                  {/* Horizontal stabilizers (elevators) - more elevator-like shape */}
+                  <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
+                    {/* Left elevator */}
+                    <div className="absolute -left-8 w-8 h-2 bg-gray-400 border border-gray-500"
+                         style={{
+                           clipPath: 'polygon(0% 50%, 30% 0%, 100% 20%, 100% 80%, 30% 100%)',
+                           borderRadius: '1px'
+                         }}>
+                    </div>
+                    {/* Right elevator */}
+                    <div className="absolute left-0 w-8 h-2 bg-gray-400 border border-gray-500"
+                         style={{
+                           clipPath: 'polygon(100% 50%, 70% 0%, 0% 20%, 0% 80%, 70% 100%)',
+                           borderRadius: '1px'
+                         }}>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nose indicator (small circle at front) */}
+                <div className="absolute top-2 left-1/2 w-3 h-3 bg-gray-500 rounded-full transform -translate-x-1/2"></div>
+
+                {/* Galleys positioned exactly as in the original */}
+                {Object.values(galleys).map((galley: any) => (
+                  <button
+                    key={galley.id}
+                    onClick={() => setSelectedGalley(galley.id)}
+                    className={`absolute w-16 h-8 rounded-md border-2 flex items-center justify-center text-[10px] font-bold transition-all transform hover:scale-110 shadow-lg ${
+                      getGalleyTypeColor(galley.type)
+                    }`}
+                    style={galley.position}
+                  >
+                    {galley.id}
+                  </button>
+                ))}
+
+                {/* Directional indicator */}
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/90 px-3 py-1 rounded-full border border-gray-300">
+                  <i className="ri-plane-line text-blue-600"></i>
+                  <span className="text-xs font-medium text-gray-700">← AFT | FORWARD →</span>
+                </div>
               </div>
             </div>
 
