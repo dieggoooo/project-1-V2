@@ -45,6 +45,32 @@ export default function InventoryPage() {
     return '';
   };
 
+  // Check if item is alcohol
+  const isAlcoholItem = (item: any) => {
+    return item.subcategory === 'alcoholic' || 
+           item.type === 'Champagne' || 
+           item.type === 'Cognac' || 
+           item.type === 'Whisky' || 
+           item.type === 'Vodka' ||
+           item.category === 'alcoholic';
+  };
+
+  // Update position with percentage (for alcohol) or discrete count (for other items)
+  const updatePositionLevel = (itemId: number, positionId: string, newValue: number, isPercentage: boolean = false) => {
+    if (isPercentage) {
+      // For alcohol - newValue is the percentage remaining (0-100)
+      const item = items.find(i => i.id === itemId);
+      const position = item?.positions.find((p: any) => p.id === positionId);
+      if (position) {
+        const consumed = Math.round((position.quantity * (100 - newValue)) / 100);
+        updatePositionConsumption(itemId, positionId, consumed);
+      }
+    } else {
+      // For non-alcohol - newValue is consumed count
+      updatePositionConsumption(itemId, positionId, newValue);
+    }
+  };
+
   const filteredItems = items.filter(item => {
     const totals = getItemTotals(item.id);
     const typeMatch = selectedFilter === 'All' || item.type === selectedFilter;
@@ -146,6 +172,7 @@ export default function InventoryPage() {
         <div className="space-y-3">
           {filteredItems.map((item) => {
             const totals = getItemTotals(item.id);
+            const isAlcohol = isAlcoholItem(item);
             return (
               <div
                 key={item.id}
@@ -170,7 +197,15 @@ export default function InventoryPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                          {isAlcohol && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                              <i className="ri-wine-glass-line mr-1"></i>
+                              Alcohol
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
                           <span>{item.type}</span>
                           <span>•</span>
@@ -194,16 +229,27 @@ export default function InventoryPage() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">
-                        {totals.totalAvailable} available of {totals.totalQuantity}
-                        {item.positions.length > 1 && (
-                          <span className="ml-2 text-blue-600">({item.positions.length} locations)</span>
+                        {isAlcohol ? (
+                          <>
+                            {totals.totalAvailable} available of {totals.totalQuantity}
+                            {item.positions.length > 1 && (
+                              <span className="ml-2 text-blue-600">({item.positions.length} bottles)</span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {totals.totalAvailable} available of {totals.totalQuantity}
+                            {item.positions.length > 1 && (
+                              <span className="ml-2 text-blue-600">({item.positions.length} locations)</span>
+                            )}
+                          </>
                         )}
                       </span>
                       <button
                         onClick={() => setSelectedItem(item)}
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
-                        Update Level
+                        {isAlcohol ? 'Set Levels' : 'Update Level'}
                       </button>
                     </div>
                   </div>
@@ -230,7 +276,15 @@ export default function InventoryPage() {
           <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
+                  {isAlcoholItem(selectedItem) && (
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                      <i className="ri-wine-glass-line mr-1"></i>
+                      Alcohol
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-gray-600 font-mono">{selectedItem.code}</p>
               </div>
               <button
@@ -252,76 +306,186 @@ export default function InventoryPage() {
               <p className="text-gray-600">Overall Level</p>
             </div>
 
-            {/* Position Breakdown Table */}
+            {/* Position Breakdown */}
             <div className="mb-6">
-              <h3 className="font-medium text-gray-900 mb-3">Update by Position</h3>
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                {/* Table Header */}
-                <div className="bg-gray-800 text-white">
-                  <div className="grid grid-cols-6 gap-2 p-3 text-sm font-medium">
-                    <div>Position</div>
-                    <div className="text-center">QTY</div>
-                    <div className="text-center">Unit</div>
-                    <div className="text-center">Consumed</div>
-                    <div className="text-center">Available</div>
-                    <div className="text-center">% Available</div>
-                  </div>
-                </div>
-
-                {/* Table Body */}
-                <div className="divide-y divide-gray-200">
-                  {selectedItem.positions.map((position: any) => (
-                    <div 
-                      key={position.id} 
-                      className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
-                    >
-                      <div className="font-medium text-gray-900">{position.positionCode}</div>
-                      <div className="text-center text-gray-700">{position.quantity}</div>
-                      <div className="text-center text-gray-700">{position.unitOfMeasure}</div>
-                      <div className="text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          max={position.quantity}
-                          value={position.consumed}
-                          onChange={(e) => {
-                            const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
-                            updatePositionConsumption(selectedItem.id, position.id, newConsumed);
-                          }}
-                          className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div className="text-center font-medium text-gray-900">{position.available}</div>
-                      <div className="text-center">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
-                          {position.percentageAvailable}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Totals Row */}
-                  {(() => {
-                    const totals = getItemTotals(selectedItem.id);
+              <h3 className="font-medium text-gray-900 mb-3">
+                {isAlcoholItem(selectedItem) ? 'Alcohol Levels by Bottle' : 'Update by Position'}
+              </h3>
+              
+            {isAlcoholItem(selectedItem) ? (
+                // Alcohol Items - Average Percentage Sliders (Option A)
+                <div className="space-y-4">
+                  {selectedItem.positions.map((position: any) => {
+                    const averageLevel = position.bottleLevels 
+                      ? Math.round(position.bottleLevels.reduce((sum: number, level: number) => sum + level, 0) / position.bottleLevels.length)
+                      : Math.round((position.available / position.quantity) * 100);
+                    
                     return (
-                      <div className="bg-gray-100 border-t-2 border-gray-300">
-                        <div className="grid grid-cols-6 gap-2 p-3 text-sm font-bold">
-                          <div className="text-gray-900">TOTAL</div>
-                          <div className="text-center text-gray-900">{totals.totalQuantity}</div>
-                          <div className="text-center text-gray-700">-</div>
-                          <div className="text-center text-gray-900">{totals.totalConsumed}</div>
-                          <div className="text-center text-gray-900">{totals.totalAvailable}</div>
-                          <div className="text-center">
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
-                              {totals.totalPercentage}%
-                            </span>
+                      <div key={position.id} className={`p-4 border rounded-lg ${getStockLevelBg(averageLevel)}`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <div className="font-medium text-gray-900">{position.positionCode}</div>
+                            <div className="text-sm text-gray-600">{position.galleyName} - {position.trolleyName}</div>
+                            <div className="text-sm text-blue-600">{position.quantity} bottles • Average Level</div>
                           </div>
+                          <div className={`px-3 py-1 rounded-lg text-lg font-bold ${getStockLevelColor(averageLevel)}`}>
+                            {averageLevel}%
+                          </div>
+                        </div>
+                        
+                        {/* Average Level Slider */}
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex-1">
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={averageLevel}
+                                onChange={(e) => {
+                                  const newPercentage = parseInt(e.target.value);
+                                  updatePositionLevel(selectedItem.id, position.id, newPercentage, true);
+                                }}
+                                className="w-full h-3 rounded-lg cursor-pointer"
+                                style={{
+                                  background: `linear-gradient(to right, 
+                                    #ef4444 0%, #ef4444 25%, 
+                                    #f59e0b 25%, #f59e0b 50%, 
+                                    #eab308 50%, #eab308 75%, 
+                                    #10b981 75%, #10b981 100%)`
+                                }}
+                              />
+                            </div>
+                            <div className="text-sm text-gray-600 min-w-[60px]">
+                              {averageLevel}% Full
+                            </div>
+                          </div>
+                          
+                          {/* Slider Scale Labels */}
+                          <div className="flex justify-between text-xs text-gray-500 px-1">
+                            <span>Empty</span>
+                            <span>25%</span>
+                            <span>50%</span>
+                            <span>75%</span>
+                            <span>Full</span>
+                          </div>
+                        </div>
+                        
+                        {/* Position Summary */}
+                        <div className="mt-4 grid grid-cols-3 gap-4 text-center text-sm bg-gray-50 p-3 rounded">
+                          <div>
+                            <div className="font-medium text-gray-900">{position.quantity}</div>
+                            <div className="text-gray-600">Total Bottles</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-blue-600">{position.available.toFixed(1)}</div>
+                            <div className="text-gray-600">Equivalent Available</div>
+                          </div>
+                          <div>
+                            <div className="font-medium text-orange-600">{position.consumed.toFixed(1)}</div>
+                            <div className="text-gray-600">Equivalent Consumed</div>
+                          </div>
+                        </div>
+
+                        {/* Quick Preset Buttons */}
+                        <div className="mt-3 flex space-x-2">
+                          <button
+                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 100, true)}
+                            className="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded text-xs font-medium hover:bg-green-200 transition-colors"
+                          >
+                            Full (100%)
+                          </button>
+                          <button
+                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 75, true)}
+                            className="flex-1 bg-yellow-100 text-yellow-700 py-2 px-3 rounded text-xs font-medium hover:bg-yellow-200 transition-colors"
+                          >
+                            Mostly (75%)
+                          </button>
+                          <button
+                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 50, true)}
+                            className="flex-1 bg-orange-100 text-orange-700 py-2 px-3 rounded text-xs font-medium hover:bg-orange-200 transition-colors"
+                          >
+                            Half (50%)
+                          </button>
+                          <button
+                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 0, true)}
+                            className="flex-1 bg-red-100 text-red-700 py-2 px-3 rounded text-xs font-medium hover:bg-red-200 transition-colors"
+                          >
+                            Empty (0%)
+                          </button>
                         </div>
                       </div>
                     );
-                  })()}
+                  })}
                 </div>
-              </div>
+              ) : (
+                // Non-Alcohol Items - Regular Table
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-800 text-white">
+                    <div className="grid grid-cols-6 gap-2 p-3 text-sm font-medium">
+                      <div>Position</div>
+                      <div className="text-center">QTY</div>
+                      <div className="text-center">Unit</div>
+                      <div className="text-center">Consumed</div>
+                      <div className="text-center">Available</div>
+                      <div className="text-center">% Available</div>
+                    </div>
+                  </div>
+                  
+                  <div className="divide-y divide-gray-200">
+                    {selectedItem.positions.map((position: any) => (
+                      <div 
+                        key={position.id} 
+                        className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                      >
+                        <div className="font-medium text-gray-900">{position.positionCode}</div>
+                        <div className="text-center text-gray-700">{position.quantity}</div>
+                        <div className="text-center text-gray-700">{position.unitOfMeasure}</div>
+                        <div className="text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            max={position.quantity}
+                            value={position.consumed}
+                            onChange={(e) => {
+                              const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
+                              updatePositionLevel(selectedItem.id, position.id, newConsumed, false);
+                            }}
+                            className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                        <div className="text-center font-medium text-gray-900">{position.available}</div>
+                        <div className="text-center">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                            {position.percentageAvailable}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Totals Row */}
+                    {(() => {
+                      const totals = getItemTotals(selectedItem.id);
+                      return (
+                        <div className="bg-gray-100 border-t-2 border-gray-300">
+                          <div className="grid grid-cols-6 gap-2 p-3 text-sm font-bold">
+                            <div className="text-gray-900">TOTAL</div>
+                            <div className="text-center text-gray-900">{totals.totalQuantity}</div>
+                            <div className="text-center text-gray-700">-</div>
+                            <div className="text-center text-gray-900">{totals.totalConsumed}</div>
+                            <div className="text-center text-gray-900">{totals.totalAvailable}</div>
+                            <div className="text-center">
+                              <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                                {totals.totalPercentage}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
