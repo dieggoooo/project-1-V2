@@ -6,7 +6,32 @@ import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import Link from 'next/link';
 import { useInventory } from '../contexts/InventoryContext';
-import type { InventoryItem } from '../contexts/InventoryContext';
+
+// Define types locally since we're having import issues
+interface Position {
+  id: string;
+  positionCode: string;
+  quantity: number;
+  consumed: number;
+  available: number;
+  percentageAvailable: number;
+  unitOfMeasure: string;
+  galleyName: string;
+  trolleyName: string;
+}
+
+interface InventoryItem {
+  id: number;
+  name: string;
+  code: string;
+  category: string;
+  subcategory?: string;
+  type: string;
+  common: boolean;
+  description?: string;
+  positions: Position[];
+  checked?: boolean;
+}
  
 interface Subcategory {
   id: string;
@@ -26,14 +51,18 @@ function ItemSearchContent() {
   const searchParams = useSearchParams();
   const filter = searchParams.get('filter');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [itemImages, setItemImages] = useState<{ [key: number]: string }>({});
   const [uploadingImage, setUploadingImage] = useState<number | null>(null);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   
   // Use the unified inventory system
-  const { items, updatePositionConsumption, getItemTotals } = useInventory();
+  const { 
+    items = [], 
+    updatePositionConsumption = () => {}, 
+    getItemTotals = () => ({ totalQuantity: 0, totalConsumed: 0, totalAvailable: 0, totalPercentage: 0 })
+  } = useInventory() || {};
 
   const categories: Category[] = [
     {
@@ -112,7 +141,7 @@ function ItemSearchContent() {
     return '';
   };
 
-  const filteredItems = items.filter(item => {
+  const filteredItems = items.filter((item: InventoryItem) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'common' ? item.common : true;
     const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
@@ -153,7 +182,7 @@ function ItemSearchContent() {
                     <i className={`${category.icon} text-2xl`}></i>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
-                  <p className="text-sm text-gray-500">{items.filter(item => item.category === category.id).length} items</p>
+                  <p className="text-sm text-gray-500">{items.filter((item: InventoryItem) => item.category === category.id).length} items</p>
                 </div>
               </div>
             ))}
@@ -187,7 +216,7 @@ function ItemSearchContent() {
                     <i className={`${subcategory.icon} text-2xl text-blue-600`}></i>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">{subcategory.name}</h3>
-                  <p className="text-sm text-gray-500">{items.filter(item => item.subcategory === subcategory.id).length} items</p>
+                  <p className="text-sm text-gray-500">{items.filter((item: InventoryItem) => item.subcategory === subcategory.id).length} items</p>
                 </div>
               </div>
             ))}
@@ -226,10 +255,10 @@ function ItemSearchContent() {
           )}
         </div>
         <div className="space-y-3">
-          {filteredItems.map(item => {
+          {filteredItems.map((item: InventoryItem) => {
             const totals = getItemTotals(item.id);
             return (
-              <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedItem(item)}>
+              <div key={`item-${item.id}`} className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedItem(item)}>
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
@@ -242,7 +271,7 @@ function ItemSearchContent() {
                     </div>
                     <div className="flex items-center space-x-4 text-sm">
                       <span className="text-blue-600 font-medium">{item.code}</span>
-                      <span className="text-gray-500">{item.positions.length} location{item.positions.length !== 1 ? 's' : ''}</span>
+                      <span className="text-gray-500">{item.positions?.length || 0} location{(item.positions?.length || 0) !== 1 ? 's' : ''}</span>
                       <span className={`font-medium px-2 py-1 rounded text-xs ${getStockLevelColor(totals.totalPercentage)}`}>
                         {totals.totalAvailable}/{totals.totalQuantity} ({totals.totalPercentage}%)
                       </span>
@@ -348,9 +377,9 @@ function ItemSearchContent() {
 
                 {/* Table Body */}
                 <div className="divide-y divide-gray-200">
-                  {selectedItem.positions.map((position) => (
+                  {selectedItem.positions && selectedItem.positions.map((position: Position) => (
                     <div 
-                      key={position.id} 
+                      key={`position-${position.id}`} 
                       className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
                     >
                       <div className="font-medium text-gray-900">{position.positionCode}</div>
@@ -365,22 +394,6 @@ function ItemSearchContent() {
                           onChange={(e) => {
                             const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
                             updatePositionConsumption(selectedItem.id, position.id, newConsumed);
-                            
-                            // Update the selected item state for immediate UI feedback
-                            const updatedPositions = selectedItem.positions.map(pos => {
-                              if (pos.id === position.id) {
-                                const available = pos.quantity - newConsumed;
-                                const percentageAvailable = pos.quantity > 0 ? Math.round((available / pos.quantity) * 100) : 0;
-                                return {
-                                  ...pos,
-                                  consumed: newConsumed,
-                                  available,
-                                  percentageAvailable
-                                };
-                              }
-                              return pos;
-                            });
-                            setSelectedItem({ ...selectedItem, positions: updatedPositions });
                           }}
                           className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                         />
