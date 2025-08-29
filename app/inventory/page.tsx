@@ -3,52 +3,15 @@
 import { useState } from 'react';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
+import { useInventory } from '../contexts/InventoryContext';
 
 export default function InventoryPage() {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
-  const [checklist, setChecklist] = useState([
-    // Alcohol Inventory
-    { id: 1, name: 'Dom Pérignon 2012', type: 'Champagne', level: 85, bottles: 6, checked: false },
-    { id: 2, name: 'Johnnie Walker Blue', type: 'Whisky', level: 60, bottles: 2, checked: false },
-    { id: 3, name: 'Grey Goose Vodka', type: 'Vodka', level: 45, bottles: 2, checked: false },
-    { id: 4, name: 'Hennessy XO Cognac', type: 'Cognac', level: 75, bottles: 1, checked: false },
-    { id: 5, name: 'Macallan 18', type: 'Whisky', level: 30, bottles: 1, checked: false },
-    { id: 6, name: 'Beluga Gold Vodka', type: 'Vodka', level: 90, bottles: 1, checked: false },
-    { id: 7, name: 'Rémy Martin XO', type: 'Cognac', level: 55, bottles: 1, checked: false },
-    { id: 8, name: 'Krug Grande Cuvée', type: 'Champagne', level: 70, bottles: 3, checked: false },
-    // Galley Equipment & Supplies
-    { id: 9, name: 'Coffee Pot', type: 'Equipment', level: 100, bottles: 2, checked: false },
-    { id: 10, name: 'Tea Service Set', type: 'Equipment', level: 100, bottles: 1, checked: false },
-    { id: 11, name: 'Sugar Packets', type: 'Supplies', level: 75, bottles: 200, checked: false },
-    { id: 12, name: 'Wine Glasses', type: 'Glassware', level: 90, bottles: 24, checked: false },
-    { id: 13, name: 'Water Glasses', type: 'Glassware', level: 85, bottles: 30, checked: false },
-    { id: 14, name: 'Napkins', type: 'Supplies', level: 60, bottles: 150, checked: false },
-    { id: 15, name: 'Meal Trays', type: 'Equipment', level: 95, bottles: 20, checked: false },
-    { id: 16, name: 'Cutlery', type: 'Equipment', level: 80, bottles: 25, checked: false },
-    { id: 17, name: 'Salt & Pepper', type: 'Supplies', level: 70, bottles: 15, checked: false },
-    { id: 18, name: 'Bread Baskets', type: 'Equipment', level: 100, bottles: 8, checked: false },
-    { id: 19, name: 'Butter', type: 'Supplies', level: 45, bottles: 50, checked: false },
-    { id: 20, name: 'Condiments', type: 'Supplies', level: 80, bottles: 30, checked: false },
-    { id: 21, name: 'Champagne Flutes', type: 'Glassware', level: 90, bottles: 16, checked: false },
-    { id: 22, name: 'Premium Spirits', type: 'Alcohol', level: 65, bottles: 8, checked: false },
-    { id: 23, name: 'Ice', type: 'Supplies', level: 40, bottles: 10, checked: false },
-    { id: 24, name: 'Cocktail Mixers', type: 'Supplies', level: 85, bottles: 24, checked: false },
-    { id: 25, name: 'Garnishes', type: 'Supplies', level: 70, bottles: 50, checked: false },
-    { id: 26, name: 'Snack Items', type: 'Food', level: 55, bottles: 100, checked: false },
-    { id: 27, name: 'Beverages', type: 'Drinks', level: 80, bottles: 48, checked: false },
-    { id: 28, name: 'Cookies', type: 'Food', level: 65, bottles: 60, checked: false }
-  ]);
-
   const [selectedItem, setSelectedItem] = useState<any>(null);
-
-  const handleCheck = (id: any) => {
-    setChecklist(prev => 
-      prev.map((item: any) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
-  };
+  
+  // Use the unified inventory system
+  const { items, toggleItemChecked, getItemTotals, updatePositionConsumption } = useInventory();
 
   const getLevelColor = (level: number) => {
     if (level >= 70) return 'text-green-600 bg-green-100';
@@ -68,11 +31,27 @@ export default function InventoryPage() {
     return 'Low';
   };
 
-  const filteredItems = checklist.filter(item => {
+  const getStockLevelColor = (percentage: number) => {
+    if (percentage === 0) return 'bg-red-100 text-red-800';
+    if (percentage <= 25) return 'bg-orange-100 text-orange-800';
+    if (percentage <= 50) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStockLevelBg = (percentage: number) => {
+    if (percentage === 0) return 'bg-red-50';
+    if (percentage <= 25) return 'bg-orange-50';
+    if (percentage <= 50) return 'bg-yellow-50';
+    return '';
+  };
+
+  const filteredItems = items.filter(item => {
+    const totals = getItemTotals(item.id);
     const typeMatch = selectedFilter === 'All' || item.type === selectedFilter;
-    const levelMatch = !levelFilter || getLevelCategory(item.level) === levelFilter;
+    const levelMatch = !levelFilter || getLevelCategory(totals.totalPercentage) === levelFilter;
     return typeMatch && levelMatch;
   });
+
   const completedItems = filteredItems.filter(item => item.checked).length;
   const progress = filteredItems.length > 0 ? (completedItems / filteredItems.length) * 100 : 0;
 
@@ -125,7 +104,10 @@ export default function InventoryPage() {
               }`}
             >
               <div className={`text-lg font-semibold ${levelFilter === 'Good' ? 'text-green-700' : 'text-green-600'}`}>
-                {filteredItems.filter(item => item.level >= 70).length}
+                {filteredItems.filter(item => {
+                  const totals = getItemTotals(item.id);
+                  return totals.totalPercentage >= 70;
+                }).length}
               </div>
               <div className="text-xs text-gray-600">Good Level</div>
             </button>
@@ -136,7 +118,10 @@ export default function InventoryPage() {
               }`}
             >
               <div className={`text-lg font-semibold ${levelFilter === 'Medium' ? 'text-orange-700' : 'text-orange-600'}`}>
-                {filteredItems.filter(item => item.level >= 40 && item.level < 70).length}
+                {filteredItems.filter(item => {
+                  const totals = getItemTotals(item.id);
+                  return totals.totalPercentage >= 40 && totals.totalPercentage < 70;
+                }).length}
               </div>
               <div className="text-xs text-gray-600">Medium Level</div>
             </button>
@@ -147,7 +132,10 @@ export default function InventoryPage() {
               }`}
             >
               <div className={`text-lg font-semibold ${levelFilter === 'Low' ? 'text-red-700' : 'text-red-600'}`}>
-                {filteredItems.filter(item => item.level < 40).length}
+                {filteredItems.filter(item => {
+                  const totals = getItemTotals(item.id);
+                  return totals.totalPercentage < 40;
+                }).length}
               </div>
               <div className="text-xs text-gray-600">Low Level</div>
             </button>
@@ -156,64 +144,81 @@ export default function InventoryPage() {
 
         {/* Inventory List */}
         <div className="space-y-3">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className={`bg-white rounded-xl p-4 shadow-sm transition-all ${
-                item.checked ? 'bg-green-50 border border-green-200' : ''
-              }`}
-            >
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => handleCheck(item.id)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    item.checked 
-                      ? 'bg-green-500 border-green-500' 
-                      : 'border-gray-300 hover:border-green-400'
-                  }`}
-                >
-                  {item.checked && (
-                    <i className="ri-check-line text-white text-sm"></i>
-                  )}
-                </button>
-
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                      <p className="text-sm text-gray-600">{item.type} • {item.bottles} bottle{item.bottles !== 1 ? 's' : ''}</p>
-                    </div>
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${getLevelColor(item.level)}`}>
-                      {item.level}%
-                    </div>
-                  </div>
-
-                  {/* Level Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all ${getLevelBarColor(item.level)}`}
-                      style={{ width: `${item.level}%` }}
-                    ></div>
-                  </div>
-
+          {filteredItems.map((item) => {
+            const totals = getItemTotals(item.id);
+            return (
+              <div
+                key={item.id}
+                className={`bg-white rounded-xl p-4 shadow-sm transition-all ${
+                  item.checked ? 'bg-green-50 border border-green-200' : ''
+                }`}
+              >
+                <div className="flex items-center space-x-4">
                   <button
-                    onClick={() => setSelectedItem(item)}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    onClick={() => toggleItemChecked(item.id)}
+                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      item.checked 
+                        ? 'bg-green-500 border-green-500' 
+                        : 'border-gray-300 hover:border-green-400'
+                    }`}
                   >
-                    Update Level
+                    {item.checked && (
+                      <i className="ri-check-line text-white text-sm"></i>
+                    )}
                   </button>
+
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <span>{item.type}</span>
+                          <span>•</span>
+                          <span className="font-mono text-blue-600">{item.code}</span>
+                          <span>•</span>
+                          <span>{totals.totalQuantity} {item.positions[0]?.unitOfMeasure || 'units'}</span>
+                        </div>
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs font-medium ${getLevelColor(totals.totalPercentage)}`}>
+                        {totals.totalPercentage}%
+                      </div>
+                    </div>
+
+                    {/* Level Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all ${getLevelBarColor(totals.totalPercentage)}`}
+                        style={{ width: `${totals.totalPercentage}%` }}
+                      ></div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
+                        {totals.totalAvailable} available of {totals.totalQuantity}
+                        {item.positions.length > 1 && (
+                          <span className="ml-2 text-blue-600">({item.positions.length} locations)</span>
+                        )}
+                      </span>
+                      <button
+                        onClick={() => setSelectedItem(item)}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Update Level
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Action Buttons */}
         <div className="mt-8 space-y-3">
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium !rounded-button">
+          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium">
             Submit Inventory Report
           </button>
-          <button className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium !rounded-button">
+          <button className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium">
             Save as Draft
           </button>
         </div>
@@ -222,11 +227,11 @@ export default function InventoryPage() {
       {/* Level Update Modal */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[70vh] overflow-y-auto">
+          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
-                <p className="text-sm text-gray-600">Update remaining level</p>
+                <p className="text-sm text-gray-600 font-mono">{selectedItem.code}</p>
               </div>
               <button
                 onClick={() => setSelectedItem(null)}
@@ -236,91 +241,95 @@ export default function InventoryPage() {
               </button>
             </div>
             
-            <div className="space-y-6">
-              {/* Current Level Display */}
-              <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">
-                  {selectedItem.level}%
-                </div>
-                <p className="text-gray-600">Current Level</p>
+            {/* Current Level Display */}
+            <div className="text-center mb-6">
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                {(() => {
+                  const totals = getItemTotals(selectedItem.id);
+                  return totals.totalPercentage;
+                })()}%
               </div>
-
-              {/* Level Slider */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Adjust Level
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={selectedItem.level}
-                  onChange={(e) => {
-                    const newLevel = parseInt(e.target.value);
-                    setChecklist(prev =>
-                      prev.map(item =>
-                        item.id === selectedItem.id 
-                          ? { ...item, level: newLevel }
-                          : item
-                      )
-                    );
-                    setSelectedItem({ ...selectedItem, level: newLevel });
-                  }}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Empty</span>
-                  <span>Full</span>
-                </div>
-              </div>
-
-              {/* Quick Select Buttons */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quick Select
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[25, 50, 75, 100].map((level) => (
-                    <button
-                      key={level}
-                      onClick={() => {
-                        setChecklist(prev =>
-                          prev.map(item =>
-                            item.id === selectedItem.id 
-                              ? { ...item, level }
-                              : item
-                          )
-                        );
-                        setSelectedItem({ ...selectedItem, level });
-                      }}
-                      className="py-2 px-3 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 !rounded-button"
-                    >
-                      {level}%
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes (Optional)
-                </label>
-                <textarea
-                  className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                  rows={3}
-                  placeholder="Add notes about condition, spillage, etc..."
-                  maxLength={500}
-                ></textarea>
-              </div>
-
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium !rounded-button"
-              >
-                Save Changes
-              </button>
+              <p className="text-gray-600">Overall Level</p>
             </div>
+
+            {/* Position Breakdown Table */}
+            <div className="mb-6">
+              <h3 className="font-medium text-gray-900 mb-3">Update by Position</h3>
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-gray-800 text-white">
+                  <div className="grid grid-cols-6 gap-2 p-3 text-sm font-medium">
+                    <div>Position</div>
+                    <div className="text-center">QTY</div>
+                    <div className="text-center">Unit</div>
+                    <div className="text-center">Consumed</div>
+                    <div className="text-center">Available</div>
+                    <div className="text-center">% Available</div>
+                  </div>
+                </div>
+
+                {/* Table Body */}
+                <div className="divide-y divide-gray-200">
+                  {selectedItem.positions.map((position: any) => (
+                    <div 
+                      key={position.id} 
+                      className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                    >
+                      <div className="font-medium text-gray-900">{position.positionCode}</div>
+                      <div className="text-center text-gray-700">{position.quantity}</div>
+                      <div className="text-center text-gray-700">{position.unitOfMeasure}</div>
+                      <div className="text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          max={position.quantity}
+                          value={position.consumed}
+                          onChange={(e) => {
+                            const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
+                            updatePositionConsumption(selectedItem.id, position.id, newConsumed);
+                          }}
+                          className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="text-center font-medium text-gray-900">{position.available}</div>
+                      <div className="text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                          {position.percentageAvailable}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Totals Row */}
+                  {(() => {
+                    const totals = getItemTotals(selectedItem.id);
+                    return (
+                      <div className="bg-gray-100 border-t-2 border-gray-300">
+                        <div className="grid grid-cols-6 gap-2 p-3 text-sm font-bold">
+                          <div className="text-gray-900">TOTAL</div>
+                          <div className="text-center text-gray-900">{totals.totalQuantity}</div>
+                          <div className="text-center text-gray-700">-</div>
+                          <div className="text-center text-gray-900">{totals.totalConsumed}</div>
+                          <div className="text-center text-gray-900">{totals.totalAvailable}</div>
+                          <div className="text-center">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                              {totals.totalPercentage}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedItem(null)}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium"
+            >
+              Save Changes
+            </button>
           </div>
         </div>
       )}

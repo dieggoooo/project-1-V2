@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import Link from 'next/link';
+import { useInventory } from '../contexts/InventoryContext';
+import type { InventoryItem } from '../contexts/InventoryContext';
  
 interface Subcategory {
   id: string;
@@ -19,30 +21,20 @@ interface Category {
   color: string;
   subcategories?: Subcategory[];
 }
- 
-interface Item {
-  id: number;
-  name: string;
-  location: string;
-  trolley: string;
-  galley: string;
-  category: string;
-  subcategory?: string;
-  common: boolean;
-  units: number;
-  image?: string;
-}
- 
+
 function ItemSearchContent() {
   const searchParams = useSearchParams();
   const filter = searchParams.get('filter');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [itemImages, setItemImages] = useState<{ [key: number]: string }>({});
   const [uploadingImage, setUploadingImage] = useState<number | null>(null);
- 
+  
+  // Use the unified inventory system
+  const { items, updatePositionConsumption, getItemTotals } = useInventory();
+
   const categories: Category[] = [
     {
       id: 'beverages',
@@ -83,25 +75,6 @@ function ItemSearchContent() {
       color: 'bg-gray-100 text-gray-600'
     }
   ];
- 
-  const items: Item[] = [
-    { id: 1, name: 'Dom Pérignon 2012', location: '1F1C01', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false, units: 6 },
-    { id: 2, name: 'Hennessy Paradis', location: '1F1C02', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false, units: 2 },
-    { id: 3, name: 'Château Margaux 2015', location: '1F2C01', trolley: 'Trolley 2/3', galley: 'Forward Galley', category: 'beverages', subcategory: 'alcoholic', common: false, units: 4 },
-    { id: 4, name: 'Kopi Luwak Coffee', location: '1F1C03', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true, units: 2 },
-    { id: 5, name: 'Earl Grey Tea', location: '1F1C04', trolley: 'Trolley 1/1', galley: 'Forward Galley', category: 'beverages', subcategory: 'hot-drinks', common: true, units: 50 },
-    { id: 6, name: 'Fresh Orange Juice', location: '2A1C01', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true, units: 24 },
-    { id: 7, name: 'Apple Juice', location: '2A1C02', trolley: 'Trolley 1/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'juice', common: true, units: 24 },
-    { id: 8, name: 'Coca Cola', location: '2A2C01', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true, units: 48 },
-    { id: 9, name: 'Sprite', location: '2A2C02', trolley: 'Trolley 2/2', galley: 'Aft Galley', category: 'beverages', subcategory: 'soda', common: true, units: 48 },
-    { id: 10, name: 'Wagyu Beef Wellington', location: '1F3C01', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false, units: 8 },
-    { id: 11, name: 'Lobster Thermidor', location: '1F3C02', trolley: 'Trolley 3/3', galley: 'Forward Galley', category: 'meals', common: false, units: 6 },
-    { id: 12, name: 'Chicken Teriyaki', location: '2A3C01', trolley: 'Trolley 3/2', galley: 'Aft Galley', category: 'meals', common: true, units: 12 },
-    { id: 13, name: 'Macadamia Nuts', location: '1F4C01', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: true, units: 40 },
-    { id: 14, name: 'Godiva Chocolates', location: '1F4C02', trolley: 'Trolley 4/3', galley: 'Forward Galley', category: 'snacks', common: false, units: 20 },
-    { id: 15, name: 'Chanel No. 5', location: '2A4C01', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false, units: 3 },
-    { id: 16, name: 'Rolex Submariner', location: '2A4C02', trolley: 'Trolley 4/2', galley: 'Aft Galley', category: 'duty-free', common: false, units: 1 }
-  ];
 
   const handleImageUpload = (itemId: number, file: File) => {
     setUploadingImage(itemId);
@@ -124,7 +97,21 @@ function ItemSearchContent() {
       handleImageUpload(itemId, file);
     }
   };
- 
+
+  const getStockLevelColor = (percentage: number) => {
+    if (percentage === 0) return 'bg-red-100 text-red-800';
+    if (percentage <= 25) return 'bg-orange-100 text-orange-800';
+    if (percentage <= 50) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStockLevelBg = (percentage: number) => {
+    if (percentage === 0) return 'bg-red-50';
+    if (percentage <= 25) return 'bg-orange-50';
+    if (percentage <= 50) return 'bg-yellow-50';
+    return '';
+  };
+
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === 'common' ? item.common : true;
@@ -239,33 +226,38 @@ function ItemSearchContent() {
           )}
         </div>
         <div className="space-y-3">
-          {filteredItems.map(item => (
-            <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedItem(item)}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                    {item.common && (
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        <i className="ri-star-fill text-orange-500 text-sm"></i>
-                      </div>
-                    )}
+          {filteredItems.map(item => {
+            const totals = getItemTotals(item.id);
+            return (
+              <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedItem(item)}>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                      {item.common && (
+                        <div className="w-4 h-4 flex items-center justify-center">
+                          <i className="ri-star-fill text-orange-500 text-sm"></i>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <span className="text-blue-600 font-medium">{item.code}</span>
+                      <span className="text-gray-500">{item.positions.length} location{item.positions.length !== 1 ? 's' : ''}</span>
+                      <span className={`font-medium px-2 py-1 rounded text-xs ${getStockLevelColor(totals.totalPercentage)}`}>
+                        {totals.totalAvailable}/{totals.totalQuantity} ({totals.totalPercentage}%)
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-blue-600 font-medium">{item.location}</span>
-                    <span className="text-gray-500">{item.trolley}</span>
-                    <span className="text-green-600 font-medium">{item.units} units</span>
+                  <div className="flex items-center space-x-2">
+                    <Link href={`/galley?item=${item.id}`} className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <i className="ri-map-pin-line text-blue-600 text-sm"></i>
+                    </Link>
+                    <i className="ri-arrow-right-s-line text-gray-400"></i>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Link href={`/galley?item=${item.id}`} className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <i className="ri-map-pin-line text-blue-600 text-sm"></i>
-                  </Link>
-                  <i className="ri-arrow-right-s-line text-gray-400"></i>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {filteredItems.length === 0 && (
           <div className="text-center py-12">
@@ -278,9 +270,12 @@ function ItemSearchContent() {
       </div>
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[80vh] overflow-y-auto">
+          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
+              <div>
+                <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
+                <p className="text-sm text-gray-600 font-mono">{selectedItem.code}</p>
+              </div>
               <button onClick={() => setSelectedItem(null)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                 <i className="ri-close-line text-gray-600"></i>
               </button>
@@ -335,36 +330,110 @@ function ItemSearchContent() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Location Details</h3>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Position Code:</span>
-                    <span className="font-medium">{selectedItem.location}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Trolley:</span>
-                    <span className="font-medium">{selectedItem.trolley}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Galley:</span>
-                    <span className="font-medium">{selectedItem.galley}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Available Units:</span>
-                    <span className="font-medium text-green-600">{selectedItem.units} units</span>
+            {/* Position Breakdown Table */}
+            <div className="mb-6">
+              <h3 className="font-medium text-gray-900 mb-3">Position Breakdown</h3>
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-gray-800 text-white">
+                  <div className="grid grid-cols-6 gap-2 p-3 text-sm font-medium">
+                    <div>Position</div>
+                    <div className="text-center">QTY</div>
+                    <div className="text-center">Unit of Measure</div>
+                    <div className="text-center">Consumed</div>
+                    <div className="text-center">Available</div>
+                    <div className="text-center">% Available</div>
                   </div>
                 </div>
+
+                {/* Table Body */}
+                <div className="divide-y divide-gray-200">
+                  {selectedItem.positions.map((position) => (
+                    <div 
+                      key={position.id} 
+                      className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                    >
+                      <div className="font-medium text-gray-900">{position.positionCode}</div>
+                      <div className="text-center text-gray-700">{position.quantity}</div>
+                      <div className="text-center text-gray-700">{position.unitOfMeasure}</div>
+                      <div className="text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          max={position.quantity}
+                          value={position.consumed}
+                          onChange={(e) => {
+                            const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
+                            updatePositionConsumption(selectedItem.id, position.id, newConsumed);
+                            
+                            // Update the selected item state for immediate UI feedback
+                            const updatedPositions = selectedItem.positions.map(pos => {
+                              if (pos.id === position.id) {
+                                const available = pos.quantity - newConsumed;
+                                const percentageAvailable = pos.quantity > 0 ? Math.round((available / pos.quantity) * 100) : 0;
+                                return {
+                                  ...pos,
+                                  consumed: newConsumed,
+                                  available,
+                                  percentageAvailable
+                                };
+                              }
+                              return pos;
+                            });
+                            setSelectedItem({ ...selectedItem, positions: updatedPositions });
+                          }}
+                          className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="text-center font-medium text-gray-900">{position.available}</div>
+                      <div className="text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                          {position.percentageAvailable}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Totals Row */}
+                  {(() => {
+                    const totals = getItemTotals(selectedItem.id);
+                    return (
+                      <div className="bg-gray-100 border-t-2 border-gray-300">
+                        <div className="grid grid-cols-6 gap-2 p-3 text-sm font-bold">
+                          <div className="text-gray-900">TOTAL</div>
+                          <div className="text-center text-gray-900">{totals.totalQuantity}</div>
+                          <div className="text-center text-gray-700">-</div>
+                          <div className="text-center text-gray-900">{totals.totalConsumed}</div>
+                          <div className="text-center text-gray-900">{totals.totalAvailable}</div>
+                          <div className="text-center">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                              {totals.totalPercentage}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
-              <div className="flex space-x-3">
-                <Link href={`/galley?item=${selectedItem.id}`} className="flex-1 bg-blue-600 text-white py-3 rounded-lg text-center font-medium !rounded-button" onClick={() => setSelectedItem(null)}>
-                  View on Map
-                </Link>
-                <Link href="/issues" className="px-6 py-3 border border-orange-200 bg-orange-50 text-orange-700 rounded-lg font-medium !rounded-button hover:bg-orange-100 transition-colors" onClick={() => setSelectedItem(null)}>
-                  Report Issue
-                </Link>
+            </div>
+
+            {/* Description */}
+            {selectedItem.description && (
+              <div className="mb-6">
+                <h3 className="font-medium text-gray-900 mb-2">Description</h3>
+                <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{selectedItem.description}</p>
               </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <Link href={`/galley?item=${selectedItem.id}`} className="flex-1 bg-blue-600 text-white py-3 rounded-lg text-center font-medium" onClick={() => setSelectedItem(null)}>
+                View on Map
+              </Link>
+              <Link href="/issues" className="px-6 py-3 border border-orange-200 bg-orange-50 text-orange-700 rounded-lg font-medium hover:bg-orange-100 transition-colors" onClick={() => setSelectedItem(null)}>
+                Report Issue
+              </Link>
             </div>
           </div>
         </div>
@@ -388,4 +457,3 @@ export default function ItemsPage() {
     </Suspense>
   );
 }
- 
