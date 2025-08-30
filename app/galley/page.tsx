@@ -94,7 +94,8 @@ function GalleyMapContent() {
           ]
         }
       ]
-    },
+    }
+  };,
     'OFCR': {
       id: 'OFCR',
       name: 'Forward Crew Rest & Office Area',
@@ -200,6 +201,49 @@ function GalleyMapContent() {
       name: 'Mid Forward Business Class Right',
       position: { top: '53%', left: '50%', transform: 'translateX(-50%)' },
       type: 'Business Class',
+      configuration: {
+        positions: [
+          // Row 0 - Top row standard boxes
+          { id: '2A1R13', code: 'Pos 2A1R13 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
+            contents: ['(si aplica) Audífonos Business STN - MEX'], row: 0, col: 0 },
+          { id: '2A1R14', code: 'Pos 2A1R14 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
+            contents: ['(si aplica) Audífonos Business STN - MEX'], row: 0, col: 1 },
+          { id: '2A1R15', code: 'Pos 2A1R15 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 0, col: 2 },
+          { id: '2A1R16', code: 'Pos 2A1R16 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['1x Canastas Business'], row: 0, col: 3 },
+          
+          // Row 1 - Second row standard boxes
+          { id: '2A1R05', code: 'Pos 2A1R05 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
+            contents: ['(si aplica) Audífonos Business MEX - STN'], row: 1, col: 0 },
+          { id: '2A1R07', code: 'Pos 2A1R07 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
+            contents: ['(si aplica) Audífonos Business MEX - STN'], row: 1, col: 1 },
+          { id: '2A1R09', code: 'Pos 2A1R09 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 1, col: 2 },
+          { id: '2A1R11', code: 'Pos 2A1R11 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 1, col: 3 },
+          
+          // Row 2 - Third row with ice drawer
+          { id: '2A1R06', code: 'Pos 2A1R06 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 2, col: 0 },
+          { id: '2A1R08', code: 'Pos 2A1R08 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 2, col: 1 },
+          { id: '2A1R10', code: 'Pos 2A1R10 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 2, col: 2 },
+          { id: '2A1R12', code: 'Pos 2A1R12 ICE DRAWER', type: 'drawer', category: 'empty', size: 'small', 
+            contents: [], row: 2, col: 3 },
+          
+          // Row 3 - Bottom row with carts and waste
+          { id: '2A1R01', code: 'Pos 2A1R01 Carro 1/2', type: 'cart', category: 'food', size: 'large', 
+            contents: ['Business Meals', 'Quality Cutlery', 'Fine China'], row: 3, col: 0 },
+          { id: '2A1R02', code: 'Pos 2A1R02 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 3, col: 1 },
+          { id: '2A1R03', code: 'Pos 2A1R03 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 3, col: 2 },
+          { id: '2A1R04', code: 'Pos 2A1R04 WASTE', type: 'waste', category: 'empty', size: 'large', 
+            contents: [], row: 3, col: 3 }
+        ]
+      },
       trolleys: [
         {
           id: '2A1R',
@@ -221,6 +265,29 @@ function GalleyMapContent() {
       name: 'Aft Center Galley',
       position: { top: '82%', left: '50%', transform: 'translateX(-50%)' },
       type: 'Economy',
+      configuration: {
+        positions: [
+          // Row 0 - Economy storage boxes
+          { id: '4A1C20', code: 'Pos 4A1C20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Economy Service Items'], row: 0, col: 0 },
+          { id: '4A1C21', code: 'Pos 4A1C21 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Napkins & Utensils'], row: 0, col: 1 },
+          { id: '4A1C22', code: 'Pos 4A1C22 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 0, col: 2 },
+          { id: '4A1C23', code: 'Pos 4A1C23 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 0, col: 3 },
+          
+          // Row 1 - Cart positions
+          { id: '4A1C01', code: 'Pos 4A1C01 Carro 2/2', type: 'cart', category: 'liquids', size: 'large', 
+            contents: ['Soft Drinks', 'Juices', 'Water Bottles'], row: 1, col: 0 },
+          { id: '4A1C02', code: 'Pos 4A1C02 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 1 },
+          { id: '4A1C03', code: 'Pos 4A1C03 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 2 },
+          { id: '4A1C04', code: 'Pos 4A1C04 WASTE', type: 'waste', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 3 }
+        ]
+      },
       trolleys: [
         {
           id: '2A1R-T1',
@@ -242,6 +309,25 @@ function GalleyMapContent() {
       name: 'Aft Galley Left',
       position: { top: '88%', left: '35%', transform: 'translateX(-50%)' },
       type: 'Economy',
+      configuration: {
+        positions: [
+          // Row 0 - Economy meal prep area
+          { id: '4A1CL10', code: 'Pos 4A1CL10 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 0, col: 0 },
+          { id: '4A1CL11', code: 'Pos 4A1CL11 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 0, col: 1 },
+          { id: '4A1CL12', code: 'Pos 4A1CL12 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Economy Meal Trays'], row: 0, col: 2 },
+          
+          // Row 1 - Cart positions
+          { id: '4A1CL01', code: 'Pos 4A1CL01 Carro 2/2', type: 'cart', category: 'food', size: 'large', 
+            contents: ['Economy Meals', 'Plastic Cutlery', 'Napkins'], row: 1, col: 0 },
+          { id: '4A1CL02', code: 'Pos 4A1CL02 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 1 },
+          { id: '4A1CL03', code: 'Pos 4A1CL03 WASTE', type: 'waste', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 2 }
+        ]
+      },
       trolleys: [
         {
           id: '4A1C-T1',
@@ -263,6 +349,29 @@ function GalleyMapContent() {
       name: 'Aft Galley Right',
       position: { top: '88%', right: '35%', transform: 'translateX(50%)' },
       type: 'Economy',
+      configuration: {
+        positions: [
+          // Row 0 - Beverage prep area
+          { id: '4A1CR16', code: 'Pos 4A1CR16', type: 'coffee', category: 'miscellaneous', size: 'small', 
+            contents: ['CAFETERA Economy'], row: 0, col: 0 },
+          { id: '4A1CR17', code: 'Pos 4A1CR17', type: 'coffee', category: 'miscellaneous', size: 'small', 
+            contents: ['Hot Water Station'], row: 0, col: 1 },
+          { id: '4A1CR18', code: 'Pos 4A1CR18 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Coffee Supplies', 'Tea Bags', 'Sugar'], row: 0, col: 2 },
+          { id: '4A1CR19', code: 'Pos 4A1CR19 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Snack Service Items'], row: 0, col: 3 },
+          
+          // Row 1 - Cart positions
+          { id: '4A1CR01', code: 'Pos 4A1CR01 Carro 2/2', type: 'cart', category: 'miscellaneous', size: 'large', 
+            contents: ['Snack Service', 'Cookies', 'Nuts'], row: 1, col: 0 },
+          { id: '4A1CR02', code: 'Pos 4A1CR02 Carro 2/2', type: 'cart', category: 'liquids', size: 'large', 
+            contents: ['Coffee Service', 'Tea Bags', 'Sugar'], row: 1, col: 1 },
+          { id: '4A1CR03', code: 'Pos 4A1CR03 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 2 },
+          { id: '4A1CR04', code: 'Pos 4A1CR04 WASTE', type: 'waste', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 3 }
+        ]
+      },
       trolleys: [
         {
           id: '4A1C-CT1',
@@ -297,6 +406,25 @@ function GalleyMapContent() {
       name: 'Aft Bottom Galley',
       position: { top: '94%', left: '50%', transform: 'translateX(-50%)' },
       type: 'Economy',
+      configuration: {
+        positions: [
+          // Row 0 - Utility area
+          { id: '4A1CB20', code: 'Pos 4A1CB20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Cleaning Supplies'], row: 0, col: 0 },
+          { id: '4A1CB21', code: 'Pos 4A1CB21 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Maintenance Items'], row: 0, col: 1 },
+          { id: '4A1CB22', code: 'Pos 4A1CB22 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 0, col: 2 },
+          
+          // Row 1 - Utility carts
+          { id: '4A1CB01', code: 'Pos 4A1CB01 Carro 2/2', type: 'cart', category: 'miscellaneous', size: 'large', 
+            contents: ['Waste Management', 'Recycling', 'Cleaning'], row: 1, col: 0 },
+          { id: '4A1CB02', code: 'Pos 4A1CB02 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 1 },
+          { id: '4A1CB03', code: 'Pos 4A1CB03 WASTE', type: 'waste', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 2 }
+        ]
+      },
       trolleys: [
         {
           id: '4A1C-RT1',
@@ -354,11 +482,27 @@ function GalleyMapContent() {
     }
   };
 
-  if (selectedGalley) {
-    const galley = galleys[selectedGalley as keyof typeof galleys];
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+  const handleTrolleyClick = (position: any) => {
+    console.log('Trolley clicked:', position);
+    setSelectedTrolley({
+      id: position.id,
+      code: position.code,
+      cartType: position.type,
+      contents: position.contents || [],
+      items: (position.contents || []).map((content: string, index: number) => ({
+        name: content,
+        position: `Position ${index + 1}`,
+        quantity: 1
+      }))
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      
+      {selectedGalley ? (
+        // Galley Detail View
         <div className="pt-16 pb-20">
           <div className="px-4 py-4 bg-white border-b">
             <div className="flex items-center mb-4">
@@ -369,8 +513,8 @@ function GalleyMapContent() {
                 <i className="ri-arrow-left-line text-gray-600"></i>
               </button>
               <div>
-                <h2 className="text-lg font-semibold">{galley.name}</h2>
-                <p className="text-sm text-gray-600">Service Type: {galley.type}</p>
+                <h2 className="text-lg font-semibold">{galleys[selectedGalley as keyof typeof galleys].name}</h2>
+                <p className="text-sm text-gray-600">Service Type: {galleys[selectedGalley as keyof typeof galleys].type}</p>
               </div>
             </div>
           </div>
@@ -417,31 +561,21 @@ function GalleyMapContent() {
 
               {/* Configuration Grid */}
               <div className="p-4">
-                {'configuration' in galley && galley.configuration ? (
+                {galleys[selectedGalley as keyof typeof galleys].configuration ? (
                   <div className="space-y-2">
                     {/* Dynamic grid based on galley type */}
-                    {galley.id === 'OFCR' ? (
+                    {selectedGalley === 'OFCR' ? (
                       // OFCR - Left column (2 stacked) + Right side (2 side by side)
                       <div className="flex gap-4 max-w-4xl mx-auto">
                         {/* Left column - stacked full-size carts */}
                         <div className="flex flex-col gap-3 flex-1">
-                          {galley.configuration.positions
+                          {galleys[selectedGalley as keyof typeof galleys].configuration?.positions
                             .filter((pos: any) => pos.col === 0)
                             .sort((a: any, b: any) => a.row - b.row)
                             .map((position: any) => (
                             <button
                               key={position.id}
-                              onClick={() => setSelectedTrolley({
-                                id: position.id,
-                                code: position.code,
-                                cartType: position.type,
-                                contents: position.contents || [],
-                                items: (position.contents || []).map((content: string, index: number) => ({
-                                  name: content,
-                                  position: `Position ${index + 1}`,
-                                  quantity: 1
-                                }))
-                              })}
+                              onClick={() => handleTrolleyClick(position)}
                               className={`p-4 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
                                 getCategoryColor(position.category)
                               } h-32 flex items-center justify-center`}
@@ -455,23 +589,13 @@ function GalleyMapContent() {
                         
                         {/* Right side - side by side full-size carts */}
                         <div className="grid grid-cols-2 gap-3 flex-1">
-                          {galley.configuration.positions
+                          {galleys[selectedGalley as keyof typeof galleys].configuration?.positions
                             .filter((pos: any) => pos.col === 1)
                             .sort((a: any, b: any) => a.row - b.row)
                             .map((position: any) => (
                             <button
                               key={position.id}
-                              onClick={() => setSelectedTrolley({
-                                id: position.id,
-                                code: position.code,
-                                cartType: position.type,
-                                contents: position.contents || [],
-                                items: (position.contents || []).map((content: string, index: number) => ({
-                                  name: content,
-                                  position: `Position ${index + 1}`,
-                                  quantity: 1
-                                }))
-                              })}
+                              onClick={() => handleTrolleyClick(position)}
                               className={`p-3 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
                                 getCategoryColor(position.category)
                               } h-64 flex items-center justify-center`}
@@ -483,32 +607,22 @@ function GalleyMapContent() {
                           ))}
                         </div>
                       </div>
-                    ) : galley.id === '2A1C' ? (
+                    ) : selectedGalley === '2A1C' ? (
                       // 2A1C - 4x4 grid layout
                       <div className="space-y-2">
                         {[0, 1, 2, 3].map(rowIndex => {
-                          const rowPositions = galley.configuration!.positions
+                          const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
                             .filter((pos: any) => pos.row === rowIndex)
                             .sort((a: any, b: any) => a.col - b.col);
                           
-                          if (rowPositions.length === 0) return null;
+                          if (!rowPositions || rowPositions.length === 0) return null;
                           
                           return (
                             <div key={rowIndex} className="grid grid-cols-4 gap-2">
                               {rowPositions.map((position: any) => (
                                 <button
                                   key={position.id}
-                                  onClick={() => setSelectedTrolley({
-                                    id: position.id,
-                                    code: position.code,
-                                    cartType: position.type,
-                                    contents: position.contents || [],
-                                    items: (position.contents || []).map((content: string, index: number) => ({
-                                      name: content,
-                                      position: `Position ${index + 1}`,
-                                      quantity: 1
-                                    }))
-                                  })}
+                                  onClick={() => handleTrolleyClick(position)}
                                   className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
                                     getCategoryColor(position.category)
                                   } ${getPositionSize(position.size)} flex items-center justify-center`}
@@ -525,28 +639,18 @@ function GalleyMapContent() {
                     ) : (
                       // 1F1C and other galleys - 6-column grid
                       [0, 1, 2, 3].map(rowIndex => {
-                        const rowPositions = galley.configuration!.positions
+                        const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
                           .filter((pos: any) => pos.row === rowIndex)
                           .sort((a: any, b: any) => a.col - b.col);
                         
-                        if (rowPositions.length === 0) return null;
+                        if (!rowPositions || rowPositions.length === 0) return null;
                         
                         return (
                           <div key={rowIndex} className="grid grid-cols-6 gap-2">
                             {rowPositions.map((position: any) => (
                               <button
                                 key={position.id}
-                                onClick={() => setSelectedTrolley({
-                                  id: position.id,
-                                  code: position.code,
-                                  cartType: position.type,
-                                  contents: position.contents || [],
-                                  items: (position.contents || []).map((content: string, index: number) => ({
-                                    name: content,
-                                    position: `Position ${index + 1}`,
-                                    quantity: 1
-                                  }))
-                                })}
+                                onClick={() => handleTrolleyClick(position)}
                                 className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
                                   getCategoryColor(position.category)
                                 } ${getPositionSize(position.size)} flex items-center justify-center`}
@@ -576,7 +680,7 @@ function GalleyMapContent() {
             <div className="bg-white rounded-xl shadow-sm p-4">
               <h3 className="font-semibold mb-4">Trolley Inventory</h3>
               <div className="space-y-3">
-                {galley.trolleys.map((trolley: any) => (
+                {galleys[selectedGalley as keyof typeof galleys].trolleys.map((trolley: any) => (
                   <button
                     key={trolley.id}
                     onClick={() => setSelectedTrolley(trolley)}
@@ -595,172 +699,168 @@ function GalleyMapContent() {
             </div>
           </div>
         </div>
-        <BottomNav />
-      </div>
-    );
-  }
+      ) : (
+        // Main Galley Map View
+        <div className="pt-16 pb-20">
+          <div className="px-4 py-4 bg-white border-b">
+            <h1 className="text-xl font-semibold">Aircraft Galley Map</h1>
+            <p className="text-sm text-gray-600">8 galleys total - Tap any galley to explore</p>
+          </div>
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+          {/* Full Aircraft Map */}
+          <div className="px-4 py-6">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4 border-b">
+                <h2 className="text-lg font-semibold">Boeing 777-300ER Layout</h2>
+                <p className="text-sm text-gray-600">Complete galley overview</p>
+              </div>
 
-      <div className="pt-16 pb-20">
-        <div className="px-4 py-4 bg-white border-b">
-          <h1 className="text-xl font-semibold">Aircraft Galley Map</h1>
-          <p className="text-sm text-gray-600">8 galleys total - Tap any galley to explore</p>
-        </div>
-
-        {/* Full Aircraft Map */}
-        <div className="px-4 py-6">
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Boeing 777-300ER Layout</h2>
-              <p className="text-sm text-gray-600">Complete galley overview</p>
-            </div>
-
-            {/* Clean Aircraft Body matching your design with extended bottom */}
-            <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 flex justify-center items-center py-8">
-              {/* Fixed-size aircraft container */}
-              <div className="relative" style={{ width: '400px', height: '700px' }}>
-                {/* Main aircraft fuselage - extended to cover all galleys */}
-                <div className="absolute bg-gray-300 shadow-xl"
-                     style={{
-                       width: '230px',
-                       height: '675px',
-                       left: '50%',
-                       top: '40px',
-                       transform: 'translateX(-50%)',
-                       borderRadius: '100px 100px 30px 30px',
-                       background: 'linear-gradient(to bottom, #d1d5db, #9ca3af)'
-                     }}>
-                </div>
-
-                {/* Wings - realistic swept wings matching your image */}
-                <div className="absolute bg-gray-300 shadow-lg"
-                     style={{
-                       width: '120px',
-                       height: '80px',
-                       left: '-60px',
-                       top: '45%',
-                       transform: 'translateY(-50%)',
-                       clipPath: 'polygon(30% 20%, 100% 30%, 100% 70%, 30% 80%)',
-                       background: 'linear-gradient(to right, #9ca3af, #d1d5db)'
-                     }}>
-                </div>
-                <div className="absolute bg-gray-300 shadow-lg"
-                     style={{
-                       width: '120px',
-                       height: '80px',
-                       right: '-60px',
-                       top: '45%',
-                       transform: 'translateY(-50%)',
-                       clipPath: 'polygon(70% 20%, 0% 30%, 0% 70%, 70% 80%)',
-                       background: 'linear-gradient(to left, #9ca3af, #d1d5db)'
-                     }}>
-                </div>
-
-                {/* Galleys positioned with detailed labels */}
-                {Object.values(galleys).map((galley: any) => (
-                  <div key={galley.id} className="absolute" style={galley.position}>
-                    <button
-                      onClick={() => setSelectedGalley(galley.id)}
-                      className={`relative w-20 h-10 rounded-lg border-2 flex flex-col items-center justify-center text-[9px] font-bold transition-all transform hover:scale-110 shadow-lg ${
-                        getGalleyTypeColor(galley.type)
-                      }`}
-                    >
-                      <div className="text-[10px] font-extrabold leading-tight">{galley.id}</div>
-                      <div className="text-[7px] opacity-90 leading-tight">{galley.type.replace(' Class', '').replace(' ', '')}</div>
-                    </button>
-                    {/* Detailed label popup on hover */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
-                      <div className="bg-black text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap">
-                        {galley.name}
-                      </div>
-                      <div className="w-2 h-2 bg-black transform rotate-45 absolute top-full left-1/2 -translate-x-1/2 -translate-y-1"></div>
-                    </div>
+              {/* Clean Aircraft Body matching your design with extended bottom */}
+              <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 flex justify-center items-center py-8">
+                {/* Fixed-size aircraft container */}
+                <div className="relative" style={{ width: '400px', height: '700px' }}>
+                  {/* Main aircraft fuselage - extended to cover all galleys */}
+                  <div className="absolute bg-gray-300 shadow-xl"
+                       style={{
+                         width: '230px',
+                         height: '675px',
+                         left: '50%',
+                         top: '40px',
+                         transform: 'translateX(-50%)',
+                         borderRadius: '100px 100px 30px 30px',
+                         background: 'linear-gradient(to bottom, #d1d5db, #9ca3af)'
+                       }}>
                   </div>
-                ))}
 
-                {/* Directional indicator */}
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/90 px-3 py-1 rounded-full border border-gray-300">
-                  <i className="ri-plane-line text-blue-600"></i>
-                  <span className="text-xs font-medium text-gray-700">← AFT | FORWARD →</span>
+                  {/* Wings - realistic swept wings matching your image */}
+                  <div className="absolute bg-gray-300 shadow-lg"
+                       style={{
+                         width: '120px',
+                         height: '80px',
+                         left: '-60px',
+                         top: '45%',
+                         transform: 'translateY(-50%)',
+                         clipPath: 'polygon(30% 20%, 100% 30%, 100% 70%, 30% 80%)',
+                         background: 'linear-gradient(to right, #9ca3af, #d1d5db)'
+                       }}>
+                  </div>
+                  <div className="absolute bg-gray-300 shadow-lg"
+                       style={{
+                         width: '120px',
+                         height: '80px',
+                         right: '-60px',
+                         top: '45%',
+                         transform: 'translateY(-50%)',
+                         clipPath: 'polygon(70% 20%, 0% 30%, 0% 70%, 70% 80%)',
+                         background: 'linear-gradient(to left, #9ca3af, #d1d5db)'
+                       }}>
+                  </div>
+
+                  {/* Galleys positioned with detailed labels */}
+                  {Object.values(galleys).map((galley: any) => (
+                    <div key={galley.id} className="absolute" style={galley.position}>
+                      <button
+                        onClick={() => setSelectedGalley(galley.id)}
+                        className={`relative w-20 h-10 rounded-lg border-2 flex flex-col items-center justify-center text-[9px] font-bold transition-all transform hover:scale-110 shadow-lg ${
+                          getGalleyTypeColor(galley.type)
+                        }`}
+                      >
+                        <div className="text-[10px] font-extrabold leading-tight">{galley.id}</div>
+                        <div className="text-[7px] opacity-90 leading-tight">{galley.type.replace(' Class', '').replace(' ', '')}</div>
+                      </button>
+                      {/* Detailed label popup on hover */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                        <div className="bg-black text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap">
+                          {galley.name}
+                        </div>
+                        <div className="w-2 h-2 bg-black transform rotate-45 absolute top-full left-1/2 -translate-x-1/2 -translate-y-1"></div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Directional indicator */}
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/90 px-3 py-1 rounded-full border border-gray-300">
+                    <i className="ri-plane-line text-blue-600"></i>
+                    <span className="text-xs font-medium text-gray-700">← AFT | FORWARD →</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Legend */}
-            <div className="p-4 bg-gray-50 border-t">
-              <div className="flex items-center justify-center space-x-6 text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-purple-500 rounded"></div>
-                  <span>First Class</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                  <span>Business Class</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded"></div>
-                  <span>Economy</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-500 rounded"></div>
-                  <span>Utility</span>
+              {/* Legend */}
+              <div className="p-4 bg-gray-50 border-t">
+                <div className="flex items-center justify-center space-x-6 text-xs">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-purple-500 rounded"></div>
+                    <span>First Class</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <span>Business Class</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span>Economy</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-gray-500 rounded"></div>
+                    <span>Utility</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Galley Summary Cards */}
-        <div className="px-4 mb-4">
-          <h3 className="font-semibold mb-4">Quick Access</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {Object.values(galleys).map((galley: any) => (
-              <button
-                key={galley.id}
-                onClick={() => setSelectedGalley(galley.id)}
-                className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow text-left"
-              >
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className={`w-3 h-3 rounded-full ${getGalleyTypeColor(galley.type).split(' ')[0]}`}></div>
-                  <h4 className="font-medium text-sm">{galley.name}</h4>
+          {/* Galley Summary Cards */}
+          <div className="px-4 mb-4">
+            <h3 className="font-semibold mb-4">Quick Access</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.values(galleys).map((galley: any) => (
+                <button
+                  key={galley.id}
+                  onClick={() => setSelectedGalley(galley.id)}
+                  className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow text-left"
+                >
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className={`w-3 h-3 rounded-full ${getGalleyTypeColor(galley.type).split(' ')[0]}`}></div>
+                    <h4 className="font-medium text-sm">{galley.name}</h4>
+                  </div>
+                  <p className="text-xs text-gray-600">{galley.trolleys.length} trolley{galley.trolleys.length !== 1 ? 's' : ''}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Report Issue */}
+          <div className="px-4 mb-4">
+            <Link
+              href="/issues"
+              className="block bg-orange-50 border border-orange-200 rounded-xl p-4 hover:bg-orange-100 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                  <i className="ri-error-warning-line text-orange-600"></i>
                 </div>
-                <p className="text-xs text-gray-600">{galley.trolleys.length} trolley{galley.trolleys.length !== 1 ? 's' : ''}</p>
-              </button>
-            ))}
+                <div>
+                  <h3 className="font-medium text-orange-900">Report Issue</h3>
+                  <p className="text-sm text-orange-700">Log problems across all galleys</p>
+                </div>
+                <i className="ri-arrow-right-line text-orange-600 ml-auto"></i>
+              </div>
+            </Link>
           </div>
         </div>
+      )}
 
-        {/* Quick Report Issue */}
-        <div className="px-4 mb-4">
-          <Link
-            href="/issues"
-            className="block bg-orange-50 border border-orange-200 rounded-xl p-4 hover:bg-orange-100 transition-colors"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                <i className="ri-error-warning-line text-orange-600"></i>
-              </div>
-              <div>
-                <h3 className="font-medium text-orange-900">Report Issue</h3>
-                <p className="text-sm text-orange-700">Log problems across all galleys</p>
-              </div>
-              <i className="ri-arrow-right-line text-orange-600 ml-auto"></i>
-            </div>
-          </Link>
-        </div>
-      </div>
-
-      {/* Trolley Detail Modal */}
+      {/* CRITICAL FIX: Modal is now at the ROOT level, completely outside both conditional views */}
       {selectedTrolley && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+        <div className="fixed inset-0 bg-black/50 z-[70] flex items-end">
           <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold">Trolley {selectedTrolley.id}</h2>
+                  <h2 className="text-xl font-semibold">
+                    {selectedTrolley.cartType || selectedTrolley.type || 'Cart'} {selectedTrolley.id}
+                  </h2>
                   <p className="text-sm text-gray-600">Position: {selectedTrolley.code}</p>
                 </div>
                 <button
@@ -771,42 +871,52 @@ function GalleyMapContent() {
                 </button>
               </div>
 
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium ${getCartTypeColor(selectedTrolley.cartType)}`}>
+              <div className={`inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium ${getCartTypeColor(selectedTrolley.cartType || selectedTrolley.type || 'Standard')}`}>
                 <i className="ri-shopping-cart-line mr-2"></i>
-                {selectedTrolley.cartType}
+                {selectedTrolley.cartType || selectedTrolley.type || 'Standard Cart'}
               </div>
             </div>
 
             <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
               <div className="p-6">
                 <h3 className="font-medium text-gray-900 mb-3">Current Contents</h3>
-                <div className="space-y-2">
-                  {selectedTrolley.contents.map((item: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <span className="font-medium">{item}</span>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm text-green-600">Stocked</span>
+                {selectedTrolley.contents && selectedTrolley.contents.length > 0 ? (
+                  <div className="space-y-2">
+                    {selectedTrolley.contents.map((item: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <span className="font-medium">{item}</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm text-green-600">Stocked</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No contents listed for this position</p>
+                  </div>
+                )}
 
-                <h3 className="font-medium text-gray-900 mb-3 mt-6">Detailed Inventory</h3>
-                <div className="space-y-3">
-                  {selectedTrolley.items.map((item: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <h5 className="font-medium text-gray-900">{item.name}</h5>
-                        <p className="text-xs text-gray-600">{item.position}</p>
-                      </div>
-                      <span className="font-medium text-gray-900">{item.quantity}</span>
+                {selectedTrolley.items && selectedTrolley.items.length > 0 && (
+                  <>
+                    <h3 className="font-medium text-gray-900 mb-3 mt-6">Detailed Inventory</h3>
+                    <div className="space-y-3">
+                      {selectedTrolley.items.map((item: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div>
+                            <h5 className="font-medium text-gray-900">{item.name}</h5>
+                            <p className="text-xs text-gray-600">{item.position}</p>
+                          </div>
+                          <span className="font-medium text-gray-900">{item.quantity}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -827,21 +937,3 @@ function GalleyMapContent() {
       <BottomNav />
     </div>
   );
-}
-
-export default function GalleyPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <i className="ri-loader-4-line text-2xl text-blue-600 animate-spin mb-2"></i>
-            <p className="text-gray-600">Loading galley map...</p>
-          </div>
-        </div>
-      }
-    >
-      <GalleyMapContent />
-    </Suspense>
-  );
-}
