@@ -94,8 +94,7 @@ function GalleyMapContent() {
           ]
         }
       ]
-    }
-  };,
+    },
     'OFCR': {
       id: 'OFCR',
       name: 'Forward Crew Rest & Office Area',
@@ -607,8 +606,8 @@ function GalleyMapContent() {
                           ))}
                         </div>
                       </div>
-                    ) : selectedGalley === '2A1C' ? (
-                      // 2A1C - 4x4 grid layout
+                    ) : selectedGalley === '2A1C' || selectedGalley === '2A1R' ? (
+                      // 2A1C and 2A1R - 4x4 grid layout
                       <div className="space-y-2">
                         {[0, 1, 2, 3].map(rowIndex => {
                           const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
@@ -636,33 +635,67 @@ function GalleyMapContent() {
                           );
                         })}
                       </div>
+                    ) : selectedGalley === '4A1C-left' ? (
+                      // 4A1C-left - 3-column grid
+                      <div className="space-y-2">
+                        {[0, 1].map(rowIndex => {
+                          const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
+                            .filter((pos: any) => pos.row === rowIndex)
+                            .sort((a: any, b: any) => a.col - b.col);
+                          
+                          if (!rowPositions || rowPositions.length === 0) return null;
+                          
+                          return (
+                            <div key={rowIndex} className="grid grid-cols-3 gap-2">
+                              {rowPositions.map((position: any) => (
+                                <button
+                                  key={position.id}
+                                  onClick={() => handleTrolleyClick(position)}
+                                  className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                                    getCategoryColor(position.category)
+                                  } ${getPositionSize(position.size)} flex items-center justify-center`}
+                                >
+                                  <div className="text-center">
+                                    <div className="text-[9px] font-bold">{position.code}</div>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
                     ) : (
-                      // 1F1C and other galleys - 6-column grid
-                      [0, 1, 2, 3].map(rowIndex => {
-                        const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
-                          .filter((pos: any) => pos.row === rowIndex)
-                          .sort((a: any, b: any) => a.col - b.col);
-                        
-                        if (!rowPositions || rowPositions.length === 0) return null;
-                        
-                        return (
-                          <div key={rowIndex} className="grid grid-cols-6 gap-2">
-                            {rowPositions.map((position: any) => (
-                              <button
-                                key={position.id}
-                                onClick={() => handleTrolleyClick(position)}
-                                className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
-                                  getCategoryColor(position.category)
-                                } ${getPositionSize(position.size)} flex items-center justify-center`}
-                              >
-                                <div className="text-center">
-                                  <div className="text-[10px] font-bold">{position.code}</div>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        );
-                      })
+                      // Default grid for other galleys - 4-column or 6-column based on content
+                      <div className="space-y-2">
+                        {[0, 1, 2, 3].map(rowIndex => {
+                          const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
+                            .filter((pos: any) => pos.row === rowIndex)
+                            .sort((a: any, b: any) => a.col - b.col);
+                          
+                          if (!rowPositions || rowPositions.length === 0) return null;
+                          
+                          const maxCols = Math.max(...rowPositions.map((pos: any) => pos.col)) + 1;
+                          const gridCols = maxCols <= 4 ? 'grid-cols-4' : 'grid-cols-6';
+                          
+                          return (
+                            <div key={rowIndex} className={`grid ${gridCols} gap-2`}>
+                              {rowPositions.map((position: any) => (
+                                <button
+                                  key={position.id}
+                                  onClick={() => handleTrolleyClick(position)}
+                                  className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                                    getCategoryColor(position.category)
+                                  } ${getPositionSize(position.size)} flex items-center justify-center`}
+                                >
+                                  <div className="text-center">
+                                    <div className="text-[10px] font-bold">{position.code}</div>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -865,7 +898,7 @@ function GalleyMapContent() {
                 </div>
                 <button
                   onClick={() => setSelectedTrolley(null)}
-                  className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+                  className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center ml-4"
                 >
                   <i className="ri-close-line text-gray-600"></i>
                 </button>
@@ -937,3 +970,21 @@ function GalleyMapContent() {
       <BottomNav />
     </div>
   );
+}
+
+export default function GalleyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <i className="ri-loader-4-line text-2xl text-blue-600 animate-spin mb-2"></i>
+            <p className="text-gray-600">Loading galley map...</p>
+          </div>
+        </div>
+      }
+    >
+      <GalleyMapContent />
+    </Suspense>
+  );
+}
