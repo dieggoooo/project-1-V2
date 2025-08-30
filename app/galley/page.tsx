@@ -13,12 +13,12 @@ function GalleyMapContent() {
   const [selectedTrolley, setSelectedTrolley] = useState<any>(null);
   const [viewMode, setViewMode] = useState('front');
 
-  // All 8 galleys positioned to match the aircraft diagram
+  // All 8 galleys positioned exactly like your image
   const galleys = {
     '1F1C': {
       id: '1F1C',
-      name: '1F1C - First Class Front Center',
-      position: { top: '8%', left: '50%', transform: 'translateX(-50%)' },
+      name: 'Forward First Class Galley Center',
+      position: { top: '20%', left: '50%', transform: 'translateX(-50%)' },
       type: 'First Class',
       configuration: {
         // Grid layout based on the image - 4 columns, multiple rows
@@ -97,8 +97,8 @@ function GalleyMapContent() {
     },
     'OFCR': {
       id: 'OFCR',
-      name: 'OFCR - First Class Office/Crew Rest',
-      position: { top: '15%', left: '50%', transform: 'translateX(-50%)' },
+      name: 'Forward Crew Rest & Office Area',
+      position: { top: '28%', left: '50%', transform: 'translateX(-50%)' },
       type: 'First Class',
       configuration: {
         positions: [
@@ -133,8 +133,8 @@ function GalleyMapContent() {
     },
     '2A1C': {
       id: '2A1C',
-      name: '2A1C - Business Class Front Left',
-      position: { top: '30%', left: '45%'  },
+      name: 'Mid Forward Business Class Left',
+      position: { top: '45%', left: '50%', transform: 'translateX(-50%)' },
       type: 'Business Class',
       configuration: {
         positions: [
@@ -197,8 +197,8 @@ function GalleyMapContent() {
     },
     '2A1R': {
       id: '2A1R',
-      name: '2A1R - Business Class Front Right',
-      position: { top: '37%', right: '40%' },
+      name: 'Mid Forward Business Class Right',
+      position: { top: '53%', left: '50%', transform: 'translateX(-50%)' },
       type: 'Business Class',
       trolleys: [
         {
@@ -217,79 +217,10 @@ function GalleyMapContent() {
       ]
     },
     '2A1R-rear': {
-      id: '2A1R-rear',
-      name: '2A1R - Economy Mid Right',
-      position: { top: '83%', left: '44%', transform: 'translateY(-50%)' },
+      id: '4A1C-center',
+      name: 'Aft Center Galley',
+      position: { top: '82%', left: '50%', transform: 'translateX(-50%)' },
       type: 'Economy',
-      configuration: {
-        positions: [
-          // Row 0 - Top row (4 boxes)
-          { id: '4F1C13', code: 'Pos 4F1C13 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['2x Misc para Café y Té'], row: 0, col: 0 },
-          { id: '4F1C14F', code: 'Pos 4F1C14F CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 0, col: 1 },
-          { id: '4F1C15F', code: 'Pos 4F1C15F CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 0, col: 2 },
-          { id: '4F1C18', code: 'Pos 4F1C18 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['1x Sobrecargos'], row: 0, col: 3 },
-          
-          // Row 1 - Second row (smaller boxes on right)
-          { id: '4F1C14R', code: 'Pos 4F1C14R CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 1, col: 1 },
-          { id: '4F1C15R', code: 'Pos 4F1C15R CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 1, col: 2 },
-          
-          // Row 2 - Third row (4 boxes)
-          { id: '4F1C05F', code: 'Pos 4F1C05F CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['Nal', '2x Electrolit'], row: 2, col: 0 },
-          { id: '4F1C07', code: 'Pos 4F1C07 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['Audífonos Turista', '1x Kit Gel Sanitizante Sachet'], row: 2, col: 1 },
-          { id: '4F1C09', code: 'Pos 4F1C09 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['Audífonos Turista', '1x Kit Gel Sanitizante Sachet'], row: 2, col: 2 },
-          { id: '4F1C11F', code: 'Pos 4F1C11F CAJA STD', type: 'standard', category: 'bar', size: 'medium', 
-            contents: ['2x TARMAC DELAY USA / CAN obligatorio'], row: 2, col: 3 },
-          
-          // Row 3 - Fourth row (4 boxes)
-          { id: '4F1C05R', code: 'Pos 4F1C05R CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['3x Agua 1.5L'], row: 3, col: 0 },
-          { id: '4F1C08', code: 'Pos 4F1C08 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 3, col: 1 },
-          { id: '4F1C10', code: 'Pos 4F1C10 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 3, col: 2 },
-          { id: '4F1C11R', code: 'Pos 4F1C11R CAJA STD', type: 'standard', category: 'bar', size: 'medium', 
-            contents: ['2x TARMAC DELAY USA / CAN obligatorio'], row: 3, col: 3 },
-          
-          // Row 4 - Fifth row (4 boxes)
-          { id: '4F1C06F', code: 'Pos 4F1C06F CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['1x Cerveza Fría Turista'], row: 4, col: 0 },
-          { id: '4F1C08_2', code: 'Pos 4F1C08 CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['1x Cerveza Fría Turista'], row: 4, col: 1 },
-          { id: '4F1C10_2', code: 'Pos 4F1C10 CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['1x Cerveza Fría Turista'], row: 4, col: 2 },
-          { id: '4F1C12F', code: 'Pos 4F1C12F CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['150x Vaso Plástico', '150x Vaso Térmico'], row: 4, col: 3 },
-          
-          // Row 5 - Sixth row (4 boxes)
-          { id: '4F1C06R', code: 'Pos 4F1C06R CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['1x Cerveza Fría Turista'], row: 5, col: 0 },
-          { id: '4F1C08_3', code: 'Pos 4F1C08 CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['1x Cerveza Fría Turista'], row: 5, col: 1 },
-          { id: '4F1C10_3', code: 'Pos 4F1C10 CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['1x Cerveza Fría Turista'], row: 5, col: 2 },
-          { id: '4F1C12R', code: 'Pos 4F1C12R CAJA STD', type: 'standard', category: 'liquids', size: 'medium', 
-            contents: ['1x Agua Quina (Solo aborda MEX)'], row: 5, col: 3 },
-          
-          // Row 6 - Bottom row with carts and waste (4 positions)
-          { id: '4F1C01', code: 'Pos 4F1C01 Carro 1/1', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 6, col: 0 },
-          { id: '4F1C02', code: 'Pos 4F1C02 Carro 1/1', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 6, col: 1 },
-          { id: '4F1C03', code: 'Pos 4F1C03 Carro 1/1', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 6, col: 2 },
-          { id: '4F1C04', code: 'Pos 4F1C04 WASTE', type: 'waste', category: 'empty', size: 'large', 
-            contents: ['Contenedor de Basura'], row: 6, col: 3 }
-        ]
-      },
       trolleys: [
         {
           id: '2A1R-T1',
@@ -308,8 +239,8 @@ function GalleyMapContent() {
     },
     '4A1C-left': {
       id: '4A1C-left',
-      name: '4A1C - Aft Galley Left',
-      position: { top: '88%', left: '37%', transform: 'translateX(-50%)' },
+      name: 'Aft Galley Left',
+      position: { top: '88%', left: '35%', transform: 'translateX(-50%)' },
       type: 'Economy',
       trolleys: [
         {
@@ -328,9 +259,9 @@ function GalleyMapContent() {
       ]
     },
     '4A1C-center': {
-      id: '4A1C-center',
-      name: '4A1C - Aft Center Galley',
-      position: { top: '92%', left: '50%', transform: 'translateX(-50%)' },
+      id: '4A1C-right',
+      name: 'Aft Galley Right',
+      position: { top: '88%', right: '35%', transform: 'translateX(50%)' },
       type: 'Economy',
       trolleys: [
         {
@@ -362,9 +293,9 @@ function GalleyMapContent() {
       ]
     },
     '4A1C-right': {
-      id: '4A1C-right',
-      name: '4A1C - Aft Galley Right',
-      position: { top: '88%', right: '30%' },
+      id: '4A1C-bottom',
+      name: 'Aft Bottom Galley',
+      position: { top: '94%', left: '50%', transform: 'translateX(-50%)' },
       type: 'Economy',
       trolleys: [
         {
@@ -416,9 +347,9 @@ function GalleyMapContent() {
 
   const getPositionSize = (size: string) => {
     switch (size) {
-      case 'small': return 'h-16';      // Half-size (4rem = 64px)
-      case 'medium': return 'h-20';     // Medium (5rem = 80px)
-      case 'large': return 'h-32';      // Full-size (8rem = 128px) - exactly 2x half-size
+      case 'small': return 'h-16';
+      case 'medium': return 'h-20';
+      case 'large': return 'h-32';
       default: return 'h-20';
     }
   };
@@ -687,81 +618,67 @@ function GalleyMapContent() {
               <p className="text-sm text-gray-600">Complete galley overview</p>
             </div>
 
-            {/* Simplified Aircraft Body with Fixed Dimensions */}
+            {/* Clean Aircraft Body matching your design with extended bottom */}
             <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 flex justify-center items-center py-8">
               {/* Fixed-size aircraft container */}
-              <div className="relative" style={{ width: '400px', height: '600px' }}>
-                {/* Aircraft fuselage - skinnier airplane shape */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-200 to-gray-300 border-4 border-gray-400 shadow-lg"
-                     style={{ 
-                       borderRadius: '200px 200px 50px 50px',
-                       clipPath: 'ellipse(35% 50% at 50% 50%)'
+              <div className="relative" style={{ width: '400px', height: '700px' }}>
+                {/* Main aircraft fuselage - extended to cover all galleys */}
+                <div className="absolute bg-gray-300 shadow-xl"
+                     style={{
+                       width: '230px',
+                       height: '675px',
+                       left: '50%',
+                       top: '40px',
+                       transform: 'translateX(-50%)',
+                       borderRadius: '100px 100px 30px 30px',
+                       background: 'linear-gradient(to bottom, #d1d5db, #9ca3af)'
                      }}>
                 </div>
 
-
-
-                {/* Aircraft wings - realistic airplane wing shape */}
-                <div className="absolute top-1/2 -left-6 transform -translate-y-1/2">
-                  <div className="w-14 h-24 bg-gray-400 border-2 border-gray-500"
-                       style={{
-                         clipPath: 'polygon(15% 45%, 100% 15%, 100% 25%, 95% 35%, 90% 50%, 95% 65%, 100% 75%, 100% 85%, 15% 55%)',
-                         borderRadius: '2px'
-                       }}>
-                  </div>
+                {/* Wings - realistic swept wings matching your image */}
+                <div className="absolute bg-gray-300 shadow-lg"
+                     style={{
+                       width: '120px',
+                       height: '80px',
+                       left: '-60px',
+                       top: '45%',
+                       transform: 'translateY(-50%)',
+                       clipPath: 'polygon(30% 20%, 100% 30%, 100% 70%, 30% 80%)',
+                       background: 'linear-gradient(to right, #9ca3af, #d1d5db)'
+                     }}>
                 </div>
-                <div className="absolute top-1/2 -right-6 transform -translate-y-1/2">
-                  <div className="w-14 h-24 bg-gray-400 border-2 border-gray-500"
-                       style={{
-                         clipPath: 'polygon(85% 45%, 0% 15%, 0% 25%, 5% 35%, 10% 50%, 5% 65%, 0% 75%, 0% 85%, 85% 55%)',
-                         borderRadius: '2px'
-                       }}>
-                  </div>
-                </div>
-
-                {/* Tail wings - vertical and horizontal stabilizers (elevators) */}
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2">
-                  {/* Vertical stabilizer (tail fin) */}
-                  <div className="w-6 h-12 bg-gray-400 border-2 border-gray-500"
-                       style={{
-                         clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)',
-                         borderRadius: '2px'
-                       }}>
-                  </div>
-                  {/* Horizontal stabilizers (elevators) - more elevator-like shape */}
-                  <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
-                    {/* Left elevator */}
-                    <div className="absolute -left-8 w-8 h-2 bg-gray-400 border border-gray-500"
-                         style={{
-                           clipPath: 'polygon(0% 50%, 30% 0%, 100% 20%, 100% 80%, 30% 100%)',
-                           borderRadius: '1px'
-                         }}>
-                    </div>
-                    {/* Right elevator */}
-                    <div className="absolute left-0 w-8 h-2 bg-gray-400 border border-gray-500"
-                         style={{
-                           clipPath: 'polygon(100% 50%, 70% 0%, 0% 20%, 0% 80%, 70% 100%)',
-                           borderRadius: '1px'
-                         }}>
-                    </div>
-                  </div>
+                <div className="absolute bg-gray-300 shadow-lg"
+                     style={{
+                       width: '120px',
+                       height: '80px',
+                       right: '-60px',
+                       top: '45%',
+                       transform: 'translateY(-50%)',
+                       clipPath: 'polygon(70% 20%, 0% 30%, 0% 70%, 70% 80%)',
+                       background: 'linear-gradient(to left, #9ca3af, #d1d5db)'
+                     }}>
                 </div>
 
-                {/* Nose indicator (small circle at front) */}
-                <div className="absolute top-2 left-1/2 w-3 h-3 bg-gray-500 rounded-full transform -translate-x-1/2"></div>
-
-                {/* Galleys positioned exactly as in the original */}
+                {/* Galleys positioned with detailed labels */}
                 {Object.values(galleys).map((galley: any) => (
-                  <button
-                    key={galley.id}
-                    onClick={() => setSelectedGalley(galley.id)}
-                    className={`absolute w-16 h-8 rounded-md border-2 flex items-center justify-center text-[10px] font-bold transition-all transform hover:scale-110 shadow-lg ${
-                      getGalleyTypeColor(galley.type)
-                    }`}
-                    style={galley.position}
-                  >
-                    {galley.id}
-                  </button>
+                  <div key={galley.id} className="absolute" style={galley.position}>
+                    <button
+                      onClick={() => setSelectedGalley(galley.id)}
+                      className={`relative w-20 h-10 rounded-lg border-2 flex flex-col items-center justify-center text-[9px] font-bold transition-all transform hover:scale-110 shadow-lg ${
+                        getGalleyTypeColor(galley.type)
+                      }`}
+                    >
+                      <div className="text-[10px] font-extrabold leading-tight">{galley.id}</div>
+                      <div className="text-[7px] opacity-90 leading-tight">{galley.type.replace(' Class', '').replace(' ', '')}</div>
+                    </button>
+                    {/* Detailed label popup on hover */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                      <div className="bg-black text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap">
+                        {galley.name}
+                      </div>
+                      <div className="w-2 h-2 bg-black transform rotate-45 absolute top-full left-1/2 -translate-x-1/2 -translate-y-1"></div>
+                    </div>
+                  </div>
                 ))}
 
                 {/* Directional indicator */}
