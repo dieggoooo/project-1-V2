@@ -13,6 +13,57 @@ function GalleyMapContent() {
   const [selectedTrolley, setSelectedTrolley] = useState<any>(null);
   const [viewMode, setViewMode] = useState('front');
 
+  // Trolley configurations - NEW FEATURE!
+  const trolleyConfigurations: { [key: string]: any } = {
+    '1F1C03': {
+      name: 'Pos 1F1C03 Carro 1/1',
+      type: 'First Class Beverage Cart',
+      layout: {
+        front: [
+          // Rows 1-3: Multi-line item
+          { slot: 1, item: '1x Jugos CJ BOEING\n1x Leche Light 1 LT ( CJ )*\n(Aplica de acuerdo a QTY en Matriz)', description: '', rowSpan: 3 },
+          { slot: 2, item: '', description: '', hidden: true }, // Hidden - part of row 1
+          { slot: 3, item: '', description: '', hidden: true }, // Hidden - part of row 1
+          { slot: 4, item: '', description: '' }, // Row 4: Empty
+          // Rows 5-6: Multi-line item  
+          { slot: 5, item: '01x Agua 1.5L\nen GAVETA DE PLASTICO', description: '', rowSpan: 2 },
+          { slot: 6, item: '', description: '', hidden: true }, // Hidden - part of row 5
+          { slot: 7, item: '', description: '' }, // Row 7: Empty
+          // Rows 8-10: Multi-line item
+          { slot: 8, item: '01x Refrescos ( lata )', description: '', rowSpan: 3 },
+          { slot: 9, item: '', description: '', hidden: true }, // Hidden - part of row 8
+          { slot: 10, item: '', description: '', hidden: true }, // Hidden - part of row 8
+          // Rows 11-14: Multi-line item
+          { slot: 11, item: '01x CERVEZA FRÍA PREMIER', description: '', rowSpan: 4 },
+          { slot: 12, item: '', description: '', hidden: true }, // Hidden - part of row 11
+          { slot: 13, item: '', description: '', hidden: true }, // Hidden - part of row 11
+          { slot: 14, item: '', description: '', hidden: true }  // Hidden - part of row 11
+        ],
+        back: [
+          // Rows 1-2: Multi-line item
+          { slot: 1, item: '01x Agua 1.5L\nen GAVETA DE PLASTICO', description: '', rowSpan: 2 },
+          { slot: 2, item: '', description: '', hidden: true }, // Hidden - part of row 1
+          // Rows 3-4: Multi-line item
+          { slot: 3, item: '01x Agua 1.5L\nen GAVETA DE PLASTICO', description: '', rowSpan: 2 },
+          { slot: 4, item: '', description: '', hidden: true }, // Hidden - part of row 3
+          // Rows 5-6: Multi-line item
+          { slot: 5, item: '01x Agua 1.5L\nen GAVETA DE PLASTICO', description: '', rowSpan: 2 },
+          { slot: 6, item: '', description: '', hidden: true }, // Hidden - part of row 5
+          { slot: 7, item: '', description: '' }, // Row 7: Empty
+          // Rows 8-10: Multi-line item
+          { slot: 8, item: '01x KIT DE HIELO', description: '', rowSpan: 3 },
+          { slot: 9, item: '', description: '', hidden: true }, // Hidden - part of row 8
+          { slot: 10, item: '', description: '', hidden: true }, // Hidden - part of row 8
+          { slot: 11, item: '', description: '' }, // Row 11: Empty
+          // Rows 12-14: Multi-line item
+          { slot: 12, item: '01x KIT DE HIELO', description: '', rowSpan: 3 },
+          { slot: 13, item: '', description: '', hidden: true }, // Hidden - part of row 12
+          { slot: 14, item: '', description: '', hidden: true }  // Hidden - part of row 12
+        ]
+      }
+    }
+  };
+
   // All 8 galleys positioned exactly like your image
   const galleys = {
     '1F1C': {
@@ -21,7 +72,6 @@ function GalleyMapContent() {
       position: { top: '20%', left: '50%', transform: 'translateX(-50%)' },
       type: 'First Class',
       configuration: {
-        // Grid layout based on the image - 4 columns, multiple rows
         positions: [
           // Top row - Standard boxes (CAJA STD)
           { id: '1F1C20', code: 'Pos 1F1C20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
@@ -55,28 +105,22 @@ function GalleyMapContent() {
           { id: '1F1C17', code: 'Pos 1F1C17', type: 'coffee', category: 'empty', size: 'small', 
             contents: ['CAFETERA EXPRESS'], row: 2, col: 5 },
           
-          // Bottom row - Carts (Carro 1/1)
+          // Bottom row - Carts (Carro 1/1) - These are the clickable trolleys!
           { id: '1F1C01', code: 'Pos 1F1C01 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos', '1x Canasta Snack Premier (ida)', 
-                      'si aplica) 1x Charola de Pan', 'si aplica PD) 1x Kit de platos', '1x Canasta Snack Premier (regreso)', 
-                      '2x Canasta Snack Premier Inter', '1x Canasta Snack Premier (ida)'], row: 3, col: 0 },
+            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos', '1x Canasta Snack Premier (ida)'], 
+            row: 3, col: 0 },
           { id: '1F1C02', code: 'Pos 1F1C02 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos', '1x Canasta Snack Premier (ida)', 
-                      'si aplica) 1x Charola de Pan', 'si aplica PD) 1x Kit de platos', '1x Canasta Snack Premier (regreso)', 
-                      '2x Canasta Snack Premier Inter', '1x Canasta Snack Premier (ida)'], row: 3, col: 1 },
+            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos'], row: 3, col: 1 },
           { id: '1F1C03', code: 'Pos 1F1C03 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Leche Light 1 LT', 'CJ', 
-                      'Aplica de acuerdo a QTY en Matriz', '01x Kit Agua 1.5L en Gaveta de Plástico', 
-                      '01x Cerveza Fría Premier ATRÁS', '01x Refrescos (lata)', '03x Kit Agua 1.5L en Gaveta de Plástico', '01x Hielo'], row: 3, col: 2 },
+            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Leche Light 1 LT', 
+                      '01x Kit Agua 1.5L en Gaveta de Plástico', '01x Cerveza Fría Premier'], 
+            row: 3, col: 2 },
           { id: '1F1C04', code: 'Pos 1F1C04 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Kit Agua 1.5L en Gaveta de Plástico', 
-                      '01x Cerveza Fría Premier ATRÁS', '01x Refrescos (lata)', '03x Kit Agua 1.5L en Gaveta de Plástico', 
-                      'en Gaveta de Plástico', '01x Hielo'], row: 3, col: 3 },
+            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Hielo'], row: 3, col: 3 },
           { id: '1F1C05', code: 'Pos 1F1C05 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['ADELANTE', '5x Cristalería', '2x Tazas para café ATRÁS', '5x Cristalería', '2x Tazas para café'], row: 3, col: 4 },
+            contents: ['ADELANTE', '5x Cristalería', '2x Tazas para café'], row: 3, col: 4 },
           { id: '1F1C06', code: 'Pos 1F1C06 Carro 1/1', type: 'cart', category: 'bar', size: 'large', 
-            contents: ['BAR PREMIER', '1x Cubitera para hielo Nal', '2x Pinzas para Servicio Inter', 
-                      'Formas Migratorias'], row: 3, col: 5 }
+            contents: ['BAR PREMIER', '1x Cubitera para hielo', '2x Pinzas para Servicio'], row: 3, col: 5 }
         ]
       },
       trolleys: [
@@ -102,34 +146,17 @@ function GalleyMapContent() {
       type: 'First Class',
       configuration: {
         positions: [
-          // Left column - stacked full-size carts
           { id: 'FCR3F', code: 'Pos FCR3 F Carro 1/2', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['2x Mantel Carro', '1x Apios', '1x Charolas Servicio', '2x Misc para Café y Té'], row: 0, col: 0 },
+            contents: ['2x Mantel Carro', '1x Apios'], row: 0, col: 0 },
           { id: 'FCR3R', code: 'Pos FCR3 R Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
             contents: [], row: 1, col: 0 },
-          
-          // Right side - side by side full-size carts  
           { id: 'FCR1', code: 'Pos FCR1 Carro 1/1', type: 'cart', category: 'empty', size: 'large', 
             contents: [], row: 0, col: 1 },
           { id: 'FCR2', code: 'Pos FCR2 Carro 1/1', type: 'cart', category: 'empty', size: 'large', 
             contents: [], row: 1, col: 1 }
         ]
       },
-      trolleys: [
-        {
-          id: 'OFCR',
-          position: { top: '30%', right: '20%' },
-          contents: ['Crew Meals', 'Office Supplies', 'Documentation'],
-          code: 'OFCR01',
-          cartType: 'Crew Service Cart',
-          sections: ['Crew Meals', 'Supplies', 'Documentation', 'Storage'],
-          items: [
-            { name: 'Crew Meals', position: 'Hot Compartment', quantity: 8 },
-            { name: 'Flight Documentation', position: 'File Section', quantity: 1 },
-            { name: 'Office Supplies', position: 'Storage Bay', quantity: 10 }
-          ]
-        }
-      ]
+      trolleys: []
     },
     '2A1C': {
       id: '2A1C',
@@ -138,307 +165,13 @@ function GalleyMapContent() {
       type: 'Business Class',
       configuration: {
         positions: [
-          // Row 0 - Top row standard boxes
           { id: '2A1C13', code: 'Pos 2A1C13 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Premier STN - MEX'], row: 0, col: 0 },
-          { id: '2A1C14', code: 'Pos 2A1C14 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Premier STN - MEX'], row: 0, col: 1 },
-          { id: '2A1C15', code: 'Pos 2A1C15 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 0, col: 2 },
-          { id: '2A1C16', code: 'Pos 2A1C16 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['1x Canastas Premier'], row: 0, col: 3 },
-          
-          // Row 1 - Second row standard boxes
-          { id: '2A1C05', code: 'Pos 2A1C05 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Premier MEX - STN'], row: 1, col: 0 },
-          { id: '2A1C07', code: 'Pos 2A1C07 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Premier MEX - STN'], row: 1, col: 1 },
-          { id: '2A1C09', code: 'Pos 2A1C09 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 1, col: 2 },
-          { id: '2A1C11', code: 'Pos 2A1C11 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 1, col: 3 },
-          
-          // Row 2 - Third row with ice drawer
-          { id: '2A1C06', code: 'Pos 2A1C06 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 2, col: 0 },
-          { id: '2A1C08', code: 'Pos 2A1C08 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 2, col: 1 },
-          { id: '2A1C10', code: 'Pos 2A1C10 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 2, col: 2 },
-          { id: '2A1C12', code: 'Pos 2A1C12 ICE DRAWER', type: 'drawer', category: 'empty', size: 'small', 
-            contents: [], row: 2, col: 3 },
-          
-          // Row 3 - Bottom row with carts and waste
+            contents: ['Audífonos Premier'], row: 0, col: 0 },
           { id: '2A1C01', code: 'Pos 2A1C01 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 0 },
-          { id: '2A1C02', code: 'Pos 2A1C02 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 1 },
-          { id: '2A1C03', code: 'Pos 2A1C03 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 2 },
-          { id: '2A1C04', code: 'Pos 2A1C04 WASTE', type: 'waste', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 3 }
+            contents: [], row: 3, col: 0 }
         ]
       },
-      trolleys: [
-        {
-          id: '2A1C',
-          position: { top: '40%', left: '15%' },
-          contents: ['Premium Spirits', 'Wine Selection', 'Cocktail Tools'],
-          code: '2A1C01',
-          cartType: 'Business Class Liquid Trolley',
-          sections: ['Spirits', 'Wines', 'Mixers', 'Tools'],
-          items: [
-            { name: 'Johnnie Walker Blue', position: 'Spirit Rack', quantity: 2 },
-            { name: 'Premium Wine Selection', position: 'Wine Bay', quantity: 8 },
-            { name: 'Cocktail Shaker', position: 'Tool Section', quantity: 1 }
-          ]
-        }
-      ]
-    },
-    '2A1R': {
-      id: '2A1R',
-      name: 'Mid Forward Business Class Right',
-      position: { top: '53%', left: '50%', transform: 'translateX(-50%)' },
-      type: 'Business Class',
-      configuration: {
-        positions: [
-          // Row 0 - Top row standard boxes
-          { id: '2A1R13', code: 'Pos 2A1R13 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Business STN - MEX'], row: 0, col: 0 },
-          { id: '2A1R14', code: 'Pos 2A1R14 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Business STN - MEX'], row: 0, col: 1 },
-          { id: '2A1R15', code: 'Pos 2A1R15 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 0, col: 2 },
-          { id: '2A1R16', code: 'Pos 2A1R16 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['1x Canastas Business'], row: 0, col: 3 },
-          
-          // Row 1 - Second row standard boxes
-          { id: '2A1R05', code: 'Pos 2A1R05 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Business MEX - STN'], row: 1, col: 0 },
-          { id: '2A1R07', code: 'Pos 2A1R07 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['(si aplica) Audífonos Business MEX - STN'], row: 1, col: 1 },
-          { id: '2A1R09', code: 'Pos 2A1R09 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 1, col: 2 },
-          { id: '2A1R11', code: 'Pos 2A1R11 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 1, col: 3 },
-          
-          // Row 2 - Third row with ice drawer
-          { id: '2A1R06', code: 'Pos 2A1R06 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 2, col: 0 },
-          { id: '2A1R08', code: 'Pos 2A1R08 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 2, col: 1 },
-          { id: '2A1R10', code: 'Pos 2A1R10 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 2, col: 2 },
-          { id: '2A1R12', code: 'Pos 2A1R12 ICE DRAWER', type: 'drawer', category: 'empty', size: 'small', 
-            contents: [], row: 2, col: 3 },
-          
-          // Row 3 - Bottom row with carts and waste
-          { id: '2A1R01', code: 'Pos 2A1R01 Carro 1/2', type: 'cart', category: 'food', size: 'large', 
-            contents: ['Business Meals', 'Quality Cutlery', 'Fine China'], row: 3, col: 0 },
-          { id: '2A1R02', code: 'Pos 2A1R02 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 1 },
-          { id: '2A1R03', code: 'Pos 2A1R03 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 2 },
-          { id: '2A1R04', code: 'Pos 2A1R04 WASTE', type: 'waste', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 3 }
-        ]
-      },
-      trolleys: [
-        {
-          id: '2A1R',
-          position: { top: '40%', right: '15%' },
-          contents: ['Business Meals', 'Quality Cutlery', 'Fine China'],
-          code: '2A1R01',
-          cartType: 'Business Class Meal Service',
-          sections: ['Hot Meals', 'Fine China', 'Cutlery', 'Linens'],
-          items: [
-            { name: 'Grilled Salmon', position: 'Hot Section A', quantity: 12 },
-            { name: 'Chicken Teriyaki', position: 'Hot Section B', quantity: 10 },
-            { name: 'Fine China', position: 'Plate Stack', quantity: 24 }
-          ]
-        }
-      ]
-    },
-    '2A1R-rear': {
-      id: '4A1C-center',
-      name: 'Aft Center Galley',
-      position: { top: '82%', left: '50%', transform: 'translateX(-50%)' },
-      type: 'Economy',
-      configuration: {
-        positions: [
-          // Row 0 - Economy storage boxes
-          { id: '4A1C20', code: 'Pos 4A1C20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['Economy Service Items'], row: 0, col: 0 },
-          { id: '4A1C21', code: 'Pos 4A1C21 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['Napkins & Utensils'], row: 0, col: 1 },
-          { id: '4A1C22', code: 'Pos 4A1C22 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 0, col: 2 },
-          { id: '4A1C23', code: 'Pos 4A1C23 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 0, col: 3 },
-          
-          // Row 1 - Cart positions
-          { id: '4A1C01', code: 'Pos 4A1C01 Carro 2/2', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['Soft Drinks', 'Juices', 'Water Bottles'], row: 1, col: 0 },
-          { id: '4A1C02', code: 'Pos 4A1C02 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 1 },
-          { id: '4A1C03', code: 'Pos 4A1C03 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 2 },
-          { id: '4A1C04', code: 'Pos 4A1C04 WASTE', type: 'waste', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 3 }
-        ]
-      },
-      trolleys: [
-        {
-          id: '2A1R-T1',
-          position: { top: '70%', right: '15%' },
-          contents: ['Soft Drinks', 'Juices', 'Water Bottles'],
-          code: '2A1R02',
-          cartType: 'Economy Beverage Cart',
-          sections: ['Soft Drinks', 'Juices', 'Water', 'Ice'],
-          items: [
-            { name: 'Coca Cola', position: 'Soda Section', quantity: 48 },
-            { name: 'Orange Juice', position: 'Juice Bay', quantity: 24 },
-            { name: 'Bottled Water', position: 'Water Storage', quantity: 72 }
-          ]
-        }
-      ]
-    },
-    '4A1C-left': {
-      id: '4A1C-left',
-      name: 'Aft Galley Left',
-      position: { top: '88%', left: '35%', transform: 'translateX(-50%)' },
-      type: 'Economy',
-      configuration: {
-        positions: [
-          // Row 0 - Economy meal prep area
-          { id: '4A1CL10', code: 'Pos 4A1CL10 Horno', type: 'oven', category: 'empty', size: 'large', 
-            contents: [], row: 0, col: 0 },
-          { id: '4A1CL11', code: 'Pos 4A1CL11 Horno', type: 'oven', category: 'empty', size: 'large', 
-            contents: [], row: 0, col: 1 },
-          { id: '4A1CL12', code: 'Pos 4A1CL12 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['Economy Meal Trays'], row: 0, col: 2 },
-          
-          // Row 1 - Cart positions
-          { id: '4A1CL01', code: 'Pos 4A1CL01 Carro 2/2', type: 'cart', category: 'food', size: 'large', 
-            contents: ['Economy Meals', 'Plastic Cutlery', 'Napkins'], row: 1, col: 0 },
-          { id: '4A1CL02', code: 'Pos 4A1CL02 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 1 },
-          { id: '4A1CL03', code: 'Pos 4A1CL03 WASTE', type: 'waste', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 2 }
-        ]
-      },
-      trolleys: [
-        {
-          id: '4A1C-T1',
-          position: { top: '90%', left: '20%' },
-          contents: ['Economy Meals', 'Plastic Cutlery', 'Napkins'],
-          code: '4A1C01',
-          cartType: 'Economy Meal Service',
-          sections: ['Meals', 'Cutlery', 'Napkins', 'Condiments'],
-          items: [
-            { name: 'Chicken Rice Bowl', position: 'Hot Compartment A', quantity: 45 },
-            { name: 'Vegetable Pasta', position: 'Hot Compartment B', quantity: 30 },
-            { name: 'Plastic Cutlery Sets', position: 'Utensil Storage', quantity: 100 }
-          ]
-        }
-      ]
-    },
-    '4A1C-center': {
-      id: '4A1C-right',
-      name: 'Aft Galley Right',
-      position: { top: '88%', right: '35%', transform: 'translateX(50%)' },
-      type: 'Economy',
-      configuration: {
-        positions: [
-          // Row 0 - Beverage prep area
-          { id: '4A1CR16', code: 'Pos 4A1CR16', type: 'coffee', category: 'miscellaneous', size: 'small', 
-            contents: ['CAFETERA Economy'], row: 0, col: 0 },
-          { id: '4A1CR17', code: 'Pos 4A1CR17', type: 'coffee', category: 'miscellaneous', size: 'small', 
-            contents: ['Hot Water Station'], row: 0, col: 1 },
-          { id: '4A1CR18', code: 'Pos 4A1CR18 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['Coffee Supplies', 'Tea Bags', 'Sugar'], row: 0, col: 2 },
-          { id: '4A1CR19', code: 'Pos 4A1CR19 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['Snack Service Items'], row: 0, col: 3 },
-          
-          // Row 1 - Cart positions
-          { id: '4A1CR01', code: 'Pos 4A1CR01 Carro 2/2', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['Snack Service', 'Cookies', 'Nuts'], row: 1, col: 0 },
-          { id: '4A1CR02', code: 'Pos 4A1CR02 Carro 2/2', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['Coffee Service', 'Tea Bags', 'Sugar'], row: 1, col: 1 },
-          { id: '4A1CR03', code: 'Pos 4A1CR03 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 2 },
-          { id: '4A1CR04', code: 'Pos 4A1CR04 WASTE', type: 'waste', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 3 }
-        ]
-      },
-      trolleys: [
-        {
-          id: '4A1C-CT1',
-          position: { top: '88%', left: '40%' },
-          contents: ['Snack Service', 'Cookies', 'Nuts'],
-          code: '4A1C02',
-          cartType: 'Economy Snack Cart',
-          sections: ['Snacks', 'Cookies', 'Nuts', 'Crackers'],
-          items: [
-            { name: 'Mixed Nuts', position: 'Snack Bay A', quantity: 60 },
-            { name: 'Cookies', position: 'Snack Bay B', quantity: 80 },
-            { name: 'Crackers', position: 'Snack Bay C', quantity: 40 }
-          ]
-        },
-        {
-          id: '4A1C-CT2',
-          position: { top: '88%', right: '40%' },
-          contents: ['Coffee Service', 'Tea Bags', 'Sugar'],
-          code: '4A1C03',
-          cartType: 'Economy Hot Beverage Service',
-          sections: ['Coffee', 'Tea', 'Sugar', 'Cups'],
-          items: [
-            { name: 'Regular Coffee', position: 'Coffee Station', quantity: '4L' },
-            { name: 'Tea Bags', position: 'Tea Storage', quantity: 100 },
-            { name: 'Paper Cups', position: 'Cup Dispenser', quantity: 150 }
-          ]
-        }
-      ]
-    },
-    '4A1C-right': {
-      id: '4A1C-bottom',
-      name: 'Aft Bottom Galley',
-      position: { top: '94%', left: '50%', transform: 'translateX(-50%)' },
-      type: 'Economy',
-      configuration: {
-        positions: [
-          // Row 0 - Utility area
-          { id: '4A1CB20', code: 'Pos 4A1CB20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['Cleaning Supplies'], row: 0, col: 0 },
-          { id: '4A1CB21', code: 'Pos 4A1CB21 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['Maintenance Items'], row: 0, col: 1 },
-          { id: '4A1CB22', code: 'Pos 4A1CB22 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: [], row: 0, col: 2 },
-          
-          // Row 1 - Utility carts
-          { id: '4A1CB01', code: 'Pos 4A1CB01 Carro 2/2', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['Waste Management', 'Recycling', 'Cleaning'], row: 1, col: 0 },
-          { id: '4A1CB02', code: 'Pos 4A1CB02 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 1 },
-          { id: '4A1CB03', code: 'Pos 4A1CB03 WASTE', type: 'waste', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 2 }
-        ]
-      },
-      trolleys: [
-        {
-          id: '4A1C-RT1',
-          position: { top: '90%', right: '20%' },
-          contents: ['Waste Management', 'Recycling', 'Cleaning'],
-          code: '4A1C04',
-          cartType: 'Utility Cart',
-          sections: ['Waste', 'Recycling', 'Cleaning', 'Maintenance'],
-          items: [
-            { name: 'Waste Bags', position: 'Waste Section', quantity: 50 },
-            { name: 'Recycling Bags', position: 'Recycle Bay', quantity: 30 },
-            { name: 'Sanitizing Wipes', position: 'Cleaning Storage', quantity: 20 }
-          ]
-        }
-      ]
+      trolleys: []
     }
   };
 
@@ -464,14 +197,6 @@ function GalleyMapContent() {
     }
   };
 
-  const getCartTypeColor = (cartType: string) => {
-    if (cartType.includes('First Class')) return 'bg-purple-500 border-purple-600';
-    if (cartType.includes('Business Class')) return 'bg-blue-500 border-blue-600';
-    if (cartType.includes('Economy')) return 'bg-green-500 border-green-600';
-    if (cartType.includes('Utility')) return 'bg-gray-500 border-gray-600';
-    return 'bg-gray-500 border-gray-600';
-  };
-
   const getPositionSize = (size: string) => {
     switch (size) {
       case 'small': return 'h-16';
@@ -483,17 +208,32 @@ function GalleyMapContent() {
 
   const handleTrolleyClick = (position: any) => {
     console.log('Trolley clicked:', position);
-    setSelectedTrolley({
-      id: position.id,
-      code: position.code,
-      cartType: position.type,
-      contents: position.contents || [],
-      items: (position.contents || []).map((content: string, index: number) => ({
-        name: content,
-        position: `Position ${index + 1}`,
-        quantity: 1
-      }))
-    });
+    
+    // Check if this trolley has a configuration
+    if (trolleyConfigurations[position.id]) {
+      setSelectedTrolley({
+        id: position.id,
+        code: position.code,
+        cartType: position.type,
+        contents: position.contents || [],
+        configuration: trolleyConfigurations[position.id],
+        hasConfiguration: true
+      });
+    } else {
+      // Fallback to old modal format
+      setSelectedTrolley({
+        id: position.id,
+        code: position.code,
+        cartType: position.type,
+        contents: position.contents || [],
+        items: (position.contents || []).map((content: string, index: number) => ({
+          name: content,
+          position: `Position ${index + 1}`,
+          quantity: 1
+        })),
+        hasConfiguration: false
+      });
+    }
   };
 
   return (
@@ -512,8 +252,8 @@ function GalleyMapContent() {
                 <i className="ri-arrow-left-line text-gray-600"></i>
               </button>
               <div>
-                <h2 className="text-lg font-semibold">{galleys[selectedGalley as keyof typeof galleys].name}</h2>
-                <p className="text-sm text-gray-600">Service Type: {galleys[selectedGalley as keyof typeof galleys].type}</p>
+                <h2 className="text-lg font-semibold">{galleys[selectedGalley as keyof typeof galleys]?.name}</h2>
+                <p className="text-sm text-gray-600">Service Type: {galleys[selectedGalley as keyof typeof galleys]?.type}</p>
               </div>
             </div>
           </div>
@@ -551,22 +291,16 @@ function GalleyMapContent() {
                     <div className="w-3 h-3 bg-red-200 border border-red-300 rounded"></div>
                     <span>Bar</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-purple-200 border border-purple-300 rounded"></div>
-                    <span>Otros</span>
-                  </div>
                 </div>
               </div>
 
               {/* Configuration Grid */}
               <div className="p-4">
-                {galleys[selectedGalley as keyof typeof galleys].configuration ? (
+                {galleys[selectedGalley as keyof typeof galleys]?.configuration ? (
                   <div className="space-y-2">
-                    {/* Dynamic grid based on galley type */}
                     {selectedGalley === 'OFCR' ? (
-                      // OFCR - Left column (2 stacked) + Right side (2 side by side)
+                      // OFCR Layout
                       <div className="flex gap-4 max-w-4xl mx-auto">
-                        {/* Left column - stacked full-size carts */}
                         <div className="flex flex-col gap-3 flex-1">
                           {galleys[selectedGalley as keyof typeof galleys].configuration?.positions
                             .filter((pos: any) => pos.col === 0)
@@ -575,18 +309,22 @@ function GalleyMapContent() {
                             <button
                               key={position.id}
                               onClick={() => handleTrolleyClick(position)}
-                              className={`p-4 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                              className={`p-4 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
                                 getCategoryColor(position.category)
                               } h-32 flex items-center justify-center`}
                             >
                               <div className="text-center">
                                 <div className="text-[11px] font-bold">{position.code}</div>
+                                {trolleyConfigurations[position.id] && (
+                                  <div className="absolute top-1 right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <i className="ri-settings-line text-white text-[8px]"></i>
+                                  </div>
+                                )}
                               </div>
                             </button>
                           ))}
                         </div>
                         
-                        {/* Right side - side by side full-size carts */}
                         <div className="grid grid-cols-2 gap-3 flex-1">
                           {galleys[selectedGalley as keyof typeof galleys].configuration?.positions
                             .filter((pos: any) => pos.col === 1)
@@ -595,77 +333,24 @@ function GalleyMapContent() {
                             <button
                               key={position.id}
                               onClick={() => handleTrolleyClick(position)}
-                              className={`p-3 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                              className={`p-3 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
                                 getCategoryColor(position.category)
                               } h-64 flex items-center justify-center`}
                             >
                               <div className="text-center">
                                 <div className="text-[11px] font-bold">{position.code}</div>
+                                {trolleyConfigurations[position.id] && (
+                                  <div className="absolute top-1 right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <i className="ri-settings-line text-white text-[8px]"></i>
+                                  </div>
+                                )}
                               </div>
                             </button>
                           ))}
                         </div>
                       </div>
-                    ) : selectedGalley === '2A1C' || selectedGalley === '2A1R' ? (
-                      // 2A1C and 2A1R - 4x4 grid layout
-                      <div className="space-y-2">
-                        {[0, 1, 2, 3].map(rowIndex => {
-                          const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
-                            .filter((pos: any) => pos.row === rowIndex)
-                            .sort((a: any, b: any) => a.col - b.col);
-                          
-                          if (!rowPositions || rowPositions.length === 0) return null;
-                          
-                          return (
-                            <div key={rowIndex} className="grid grid-cols-4 gap-2">
-                              {rowPositions.map((position: any) => (
-                                <button
-                                  key={position.id}
-                                  onClick={() => handleTrolleyClick(position)}
-                                  className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
-                                    getCategoryColor(position.category)
-                                  } ${getPositionSize(position.size)} flex items-center justify-center`}
-                                >
-                                  <div className="text-center">
-                                    <div className="text-[9px] font-bold">{position.code}</div>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : selectedGalley === '4A1C-left' ? (
-                      // 4A1C-left - 3-column grid
-                      <div className="space-y-2">
-                        {[0, 1].map(rowIndex => {
-                          const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
-                            .filter((pos: any) => pos.row === rowIndex)
-                            .sort((a: any, b: any) => a.col - b.col);
-                          
-                          if (!rowPositions || rowPositions.length === 0) return null;
-                          
-                          return (
-                            <div key={rowIndex} className="grid grid-cols-3 gap-2">
-                              {rowPositions.map((position: any) => (
-                                <button
-                                  key={position.id}
-                                  onClick={() => handleTrolleyClick(position)}
-                                  className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
-                                    getCategoryColor(position.category)
-                                  } ${getPositionSize(position.size)} flex items-center justify-center`}
-                                >
-                                  <div className="text-center">
-                                    <div className="text-[9px] font-bold">{position.code}</div>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          );
-                        })}
-                      </div>
                     ) : (
-                      // Default grid for other galleys - 4-column or 6-column based on content
+                      // Standard Grid Layout
                       <div className="space-y-2">
                         {[0, 1, 2, 3].map(rowIndex => {
                           const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
@@ -683,12 +368,17 @@ function GalleyMapContent() {
                                 <button
                                   key={position.id}
                                   onClick={() => handleTrolleyClick(position)}
-                                  className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                                  className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
                                     getCategoryColor(position.category)
                                   } ${getPositionSize(position.size)} flex items-center justify-center`}
                                 >
                                   <div className="text-center">
                                     <div className="text-[10px] font-bold">{position.code}</div>
+                                    {trolleyConfigurations[position.id] && (
+                                      <div className="absolute top-1 right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <i className="ri-settings-line text-white text-[8px]"></i>
+                                      </div>
+                                    )}
                                   </div>
                                 </button>
                               ))}
@@ -701,33 +391,8 @@ function GalleyMapContent() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <p>Configuration layout not available for this galley</p>
-                    <p className="text-sm mt-2">Showing trolley layout instead</p>
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-
-          {/* Trolley List */}
-          <div className="px-4">
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <h3 className="font-semibold mb-4">Trolley Inventory</h3>
-              <div className="space-y-3">
-                {galleys[selectedGalley as keyof typeof galleys].trolleys.map((trolley: any) => (
-                  <button
-                    key={trolley.id}
-                    onClick={() => setSelectedTrolley(trolley)}
-                    className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">{trolley.id} - {trolley.cartType}</h4>
-                        <p className="text-sm text-gray-600">{trolley.contents.join(', ')}</p>
-                      </div>
-                      <i className="ri-arrow-right-s-line text-gray-400"></i>
-                    </div>
-                  </button>
-                ))}
               </div>
             </div>
           </div>
@@ -740,7 +405,6 @@ function GalleyMapContent() {
             <p className="text-sm text-gray-600">8 galleys total - Tap any galley to explore</p>
           </div>
 
-          {/* Full Aircraft Map */}
           <div className="px-4 py-6">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-4 border-b">
@@ -748,11 +412,8 @@ function GalleyMapContent() {
                 <p className="text-sm text-gray-600">Complete galley overview</p>
               </div>
 
-              {/* Clean Aircraft Body matching your design with extended bottom */}
               <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 flex justify-center items-center py-8">
-                {/* Fixed-size aircraft container */}
                 <div className="relative" style={{ width: '400px', height: '700px' }}>
-                  {/* Main aircraft fuselage - extended to cover all galleys */}
                   <div className="absolute bg-gray-300 shadow-xl"
                        style={{
                          width: '230px',
@@ -765,31 +426,6 @@ function GalleyMapContent() {
                        }}>
                   </div>
 
-                  {/* Wings - realistic swept wings matching your image */}
-                  <div className="absolute bg-gray-300 shadow-lg"
-                       style={{
-                         width: '120px',
-                         height: '80px',
-                         left: '-60px',
-                         top: '45%',
-                         transform: 'translateY(-50%)',
-                         clipPath: 'polygon(30% 20%, 100% 30%, 100% 70%, 30% 80%)',
-                         background: 'linear-gradient(to right, #9ca3af, #d1d5db)'
-                       }}>
-                  </div>
-                  <div className="absolute bg-gray-300 shadow-lg"
-                       style={{
-                         width: '120px',
-                         height: '80px',
-                         right: '-60px',
-                         top: '45%',
-                         transform: 'translateY(-50%)',
-                         clipPath: 'polygon(70% 20%, 0% 30%, 0% 70%, 70% 80%)',
-                         background: 'linear-gradient(to left, #9ca3af, #d1d5db)'
-                       }}>
-                  </div>
-
-                  {/* Galleys positioned with detailed labels */}
                   {Object.values(galleys).map((galley: any) => (
                     <div key={galley.id} className="absolute" style={galley.position}>
                       <button
@@ -801,25 +437,11 @@ function GalleyMapContent() {
                         <div className="text-[10px] font-extrabold leading-tight">{galley.id}</div>
                         <div className="text-[7px] opacity-90 leading-tight">{galley.type.replace(' Class', '').replace(' ', '')}</div>
                       </button>
-                      {/* Detailed label popup on hover */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
-                        <div className="bg-black text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap">
-                          {galley.name}
-                        </div>
-                        <div className="w-2 h-2 bg-black transform rotate-45 absolute top-full left-1/2 -translate-x-1/2 -translate-y-1"></div>
-                      </div>
                     </div>
                   ))}
-
-                  {/* Directional indicator */}
-                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/90 px-3 py-1 rounded-full border border-gray-300">
-                    <i className="ri-plane-line text-blue-600"></i>
-                    <span className="text-xs font-medium text-gray-700">← AFT | FORWARD →</span>
-                  </div>
                 </div>
               </div>
 
-              {/* Legend */}
               <div className="p-4 bg-gray-50 border-t">
                 <div className="flex items-center justify-center space-x-6 text-xs">
                   <div className="flex items-center space-x-2">
@@ -843,7 +465,6 @@ function GalleyMapContent() {
             </div>
           </div>
 
-          {/* Galley Summary Cards */}
           <div className="px-4 mb-4">
             <h3 className="font-semibold mb-4">Quick Access</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -857,34 +478,15 @@ function GalleyMapContent() {
                     <div className={`w-3 h-3 rounded-full ${getGalleyTypeColor(galley.type).split(' ')[0]}`}></div>
                     <h4 className="font-medium text-sm">{galley.name}</h4>
                   </div>
-                  <p className="text-xs text-gray-600">{galley.trolleys.length} trolley{galley.trolleys.length !== 1 ? 's' : ''}</p>
+                  <p className="text-xs text-gray-600">{galley.trolleys?.length || 0} trolley{(galley.trolleys?.length || 0) !== 1 ? 's' : ''}</p>
                 </button>
               ))}
             </div>
           </div>
-
-          {/* Quick Report Issue */}
-          <div className="px-4 mb-4">
-            <Link
-              href="/issues"
-              className="block bg-orange-50 border border-orange-200 rounded-xl p-4 hover:bg-orange-100 transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <i className="ri-error-warning-line text-orange-600"></i>
-                </div>
-                <div>
-                  <h3 className="font-medium text-orange-900">Report Issue</h3>
-                  <p className="text-sm text-orange-700">Log problems across all galleys</p>
-                </div>
-                <i className="ri-arrow-right-line text-orange-600 ml-auto"></i>
-              </div>
-            </Link>
-          </div>
         </div>
       )}
 
-      {/* CRITICAL FIX: Modal is now at the ROOT level, completely outside both conditional views */}
+      {/* Enhanced Trolley Modal */}
       {selectedTrolley && (
         <div className="fixed inset-0 bg-black/50 z-[70] flex items-end">
           <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-hidden">
@@ -892,7 +494,7 @@ function GalleyMapContent() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-xl font-semibold">
-                    {selectedTrolley.cartType || selectedTrolley.type || 'Cart'} {selectedTrolley.id}
+                    {selectedTrolley.configuration?.name || selectedTrolley.code || 'Cart'} 
                   </h2>
                   <p className="text-sm text-gray-600">Position: {selectedTrolley.code}</p>
                 </div>
@@ -904,64 +506,209 @@ function GalleyMapContent() {
                 </button>
               </div>
 
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium ${getCartTypeColor(selectedTrolley.cartType || selectedTrolley.type || 'Standard')}`}>
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium bg-blue-500">
                 <i className="ri-shopping-cart-line mr-2"></i>
-                {selectedTrolley.cartType || selectedTrolley.type || 'Standard Cart'}
+                {selectedTrolley.configuration?.type || selectedTrolley.cartType || 'Standard Cart'}
               </div>
             </div>
 
             <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
               <div className="p-6">
-                <h3 className="font-medium text-gray-900 mb-3">Current Contents</h3>
-                {selectedTrolley.contents && selectedTrolley.contents.length > 0 ? (
-                  <div className="space-y-2">
-                    {selectedTrolley.contents.map((item: any, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <span className="font-medium">{item}</span>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-sm text-green-600">Stocked</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No contents listed for this position</p>
-                  </div>
-                )}
-
-                {selectedTrolley.items && selectedTrolley.items.length > 0 && (
+                {selectedTrolley.hasConfiguration && selectedTrolley.configuration ? (
+                  // NEW: Trolley Configuration View
                   <>
-                    <h3 className="font-medium text-gray-900 mb-3 mt-6">Detailed Inventory</h3>
-                    <div className="space-y-3">
-                      {selectedTrolley.items.map((item: any, index: number) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <h5 className="font-medium text-gray-900">{item.name}</h5>
-                            <p className="text-xs text-gray-600">{item.position}</p>
+                    {/* Trolley Layout Table */}
+                    <div className="bg-white border-2 border-gray-800 rounded-lg overflow-hidden mb-6">
+                      <div className="bg-gray-800 text-white text-center py-2 font-bold">
+                        Carro Full Size
+                      </div>
+                      
+                      {/* Table */}
+                      <table className="w-full border-collapse">
+                        <thead className="bg-gray-800 text-white">
+                          <tr>
+                            <th className="w-10 py-2 border-r border-white"></th>
+                            <th className="py-2 font-bold text-center border-r border-white">Front</th>
+                            <th className="py-2 font-bold text-center">Rear</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* Row 1-3: Multi-row items */}
+                          <tr className="border-b border-gray-800">
+                            <td className="w-10 text-center bg-gray-100 border-r border-gray-800 font-bold text-sm align-top py-3" rowSpan={3}>
+                              1
+                            </td>
+                            <td className="p-3 text-sm border-r border-gray-800 bg-white align-top" rowSpan={3}>
+                              <div className="font-medium">
+                                <div>1x Jugos CJ BOEING</div>
+                                <div className="mt-1">1x Leche Light 1 LT ( CJ )*</div>
+                                <div className="mt-1">(Aplica de acuerdo a QTY en Matriz)</div>
+                              </div>
+                            </td>
+                            <td className="p-3 text-sm bg-white align-top" rowSpan={2}>
+                              <div className="font-medium">
+                                <div>01x Agua 1.5L</div>
+                                <div className="mt-1">en GAVETA DE PLASTICO</div>
+                              </div>
+                            </td>
+                          </tr>
+                          {/* Row 2 - no content, handled by rowspan above */}
+                          <tr className="border-b border-gray-800"></tr>
+                          
+                          {/* Row 3 - new rear item starts */}
+                          <tr className="border-b border-gray-800">
+                            <td className="p-3 text-sm bg-white align-top" rowSpan={2}>
+                              <div className="font-medium">
+                                <div>01x Agua 1.5L</div>
+                                <div className="mt-1">en GAVETA DE PLASTICO</div>
+                              </div>
+                            </td>
+                          </tr>
+                          
+                          {/* Row 4 - empty front */}
+                          <tr className="border-b border-gray-800">
+                            <td className="w-10 text-center bg-gray-100 border-r border-gray-800 font-bold text-sm py-3">4</td>
+                            <td className="p-3 text-sm border-r border-gray-800 bg-white"></td>
+                          </tr>
+                          
+                          {/* Row 5-6: Front item + Rear item */}
+                          <tr className="border-b border-gray-800">
+                            <td className="w-10 text-center bg-gray-100 border-r border-gray-800 font-bold text-sm align-top py-3" rowSpan={2}>5</td>
+                            <td className="p-3 text-sm border-r border-gray-800 bg-white align-top" rowSpan={2}>
+                              <div className="font-medium">
+                                <div>01x Agua 1.5L</div>
+                                <div className="mt-1">en GAVETA DE PLASTICO</div>
+                              </div>
+                            </td>
+                            <td className="p-3 text-sm bg-white align-top" rowSpan={2}>
+                              <div className="font-medium">
+                                <div>01x Agua 1.5L</div>
+                                <div className="mt-1">en GAVETA DE PLASTICO</div>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr className="border-b border-gray-800"></tr>
+                          
+                          {/* Row 7 - empty */}
+                          <tr className="border-b border-gray-800">
+                            <td className="w-10 text-center bg-gray-100 border-r border-gray-800 font-bold text-sm py-3">7</td>
+                            <td className="p-3 text-sm border-r border-gray-800 bg-white"></td>
+                            <td className="p-3 text-sm bg-white"></td>
+                          </tr>
+                          
+                          {/* Row 8-10: Front item + Rear item starts */}
+                          <tr className="border-b border-gray-800">
+                            <td className="w-10 text-center bg-gray-100 border-r border-gray-800 font-bold text-sm align-top py-3" rowSpan={3}>8</td>
+                            <td className="p-3 text-sm border-r border-gray-800 bg-white align-top" rowSpan={3}>
+                              <div className="font-medium">01x Refrescos ( lata )</div>
+                            </td>
+                            <td className="p-3 text-sm bg-white align-top" rowSpan={3}>
+                              <div className="font-medium">01x KIT DE HIELO</div>
+                            </td>
+                          </tr>
+                          <tr className="border-b border-gray-800"></tr>
+                          <tr className="border-b border-gray-800"></tr>
+                          
+                          {/* Row 11 - empty front, empty rear */}
+                          <tr className="border-b border-gray-800">
+                            <td className="w-10 text-center bg-gray-100 border-r border-gray-800 font-bold text-sm py-3">11</td>
+                            <td className="p-3 text-sm border-r border-gray-800 bg-white align-top" rowSpan={4}>
+                              <div className="font-medium">01x CERVEZA FRÍA PREMIER</div>
+                            </td>
+                            <td className="p-3 text-sm bg-white"></td>
+                          </tr>
+                          
+                          {/* Row 12-14: Rear item */}
+                          <tr className="border-b border-gray-800">
+                            <td className="w-10 text-center bg-gray-100 border-r border-gray-800 font-bold text-sm align-top py-3" rowSpan={3}>12</td>
+                            <td className="p-3 text-sm bg-white align-top" rowSpan={3}>
+                              <div className="font-medium">01x KIT DE HIELO</div>
+                            </td>
+                          </tr>
+                          <tr className="border-b border-gray-800"></tr>
+                          <tr></tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Combined Current Contents & Detailed Inventory */}
+                    <h3 className="font-medium text-gray-900 mb-3">Current Inventory</h3>
+                    <div className="space-y-2">
+                      {selectedTrolley.contents.map((item: any, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        >
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">{item}</span>
+                            <div className="text-xs text-gray-600 mt-1">
+                              Position {index + 1} • Status: Stocked
+                            </div>
                           </div>
-                          <span className="font-medium text-gray-900">{item.quantity}</span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-sm text-green-600 font-medium">Available</span>
+                          </div>
                         </div>
                       ))}
                     </div>
+                  </>
+                ) : (
+                  // Fallback to original view for trolleys without configuration
+                  <>
+                    <h3 className="font-medium text-gray-900 mb-3">Current Inventory</h3>
+                    {selectedTrolley.contents && selectedTrolley.contents.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedTrolley.contents.map((item: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                          >
+                            <div className="flex-1">
+                              <span className="font-medium text-gray-900">{item}</span>
+                              <div className="text-xs text-gray-600 mt-1">
+                                Position {index + 1} • Status: Stocked
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm text-green-600 font-medium">Available</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No contents listed for this position</p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
             </div>
 
             <div className="p-6 pt-4 border-t bg-gray-50">
-              <Link
-                href="/issues"
-                className="flex items-center justify-center w-full py-3 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-orange-200"
-                onClick={() => setSelectedTrolley(null)}
-              >
-                <i className="ri-error-warning-line mr-2"></i>
-                Report Issue with this Cart
-              </Link>
+              <div className="flex space-x-3">
+                <Link
+                  href="/issues"
+                  className="flex-1 flex items-center justify-center py-3 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-orange-200"
+                  onClick={() => setSelectedTrolley(null)}
+                >
+                  <i className="ri-error-warning-line mr-2"></i>
+                  Report Issue
+                </Link>
+                {selectedTrolley.hasConfiguration && (
+                  <button
+                    onClick={() => {
+                      console.log('Edit configuration for', selectedTrolley.id);
+                    }}
+                    className="flex-1 flex items-center justify-center py-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                  >
+                    <i className="ri-edit-line mr-2"></i>
+                    Edit Configuration
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
