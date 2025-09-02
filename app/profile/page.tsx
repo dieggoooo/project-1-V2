@@ -1,670 +1,393 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
-import Link from 'next/link';
 
-function GalleyMapContent() {
-  const searchParams = useSearchParams();
-  const highlightItem = searchParams.get('item');
-  const [selectedGalley, setSelectedGalley] = useState<string | null>(null);
-  const [selectedTrolley, setSelectedTrolley] = useState<any>(null);
-  const [viewMode, setViewMode] = useState('front');
+// Validation schemas
+const signInSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
 
-  // Trolley configurations - NEW FEATURE!
-  const trolleyConfigurations: { [key: string]: any } = {
-    '1F1C03': {
-      name: 'Pos 1F1C03 Carro 1/1',
-      type: 'First Class Beverage Cart',
-      layout: {
-        front: [
-          { slot: 1, item: '', description: '' },
-          { slot: 2, item: '01x Soda Cans', description: '', showNumber: true },
-          { slot: 3, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 4, item: '', description: '' },
-          { slot: 5, item: '1x Juices CJ Boeing', description: '', showNumber: true },
-          { slot: 6, item: '1x Light Milk 1LT (CJ)', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 7, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 8, item: '', description: '' },
-          { slot: 9, item: '01x Water 1.5L', description: '', showNumber: true },
-          { slot: 10, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 11, item: '', description: '' },
-          { slot: 12, item: '01x Premier Cold Beer', description: '', showNumber: true },
-          { slot: 13, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 14, item: '', description: '', showNumber: false }  // Multi-row continuation
-        ],
-        back: [
-          { slot: 1, item: '', description: '' },
-          { slot: 2, item: '01x Soda Cans', description: '', showNumber: true },
-          { slot: 3, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 4, item: '', description: '' },
-          { slot: 5, item: '01x Water 1.5L', description: '', showNumber: true },
-          { slot: 6, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 7, item: '01x Water 1.5L', description: '', showNumber: true },
-          { slot: 8, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 9, item: '01x Water 1.5L', description: '', showNumber: true },
-          { slot: 10, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 11, item: '', description: '' },
-          { slot: 12, item: '01x Ice Kit', description: '', showNumber: true },
-          { slot: 13, item: '', description: '', showNumber: false }, // Multi-row continuation
-          { slot: 14, item: '', description: '', showNumber: false }  // Multi-row continuation
-        ]
-      }
-    }
-  };
+const profileSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  employeeId: z.string().min(3, 'Employee ID must be at least 3 characters'),
+  position: z.string().min(2, 'Position must be at least 2 characters'),
+  phone: z.string().optional(),
+  emergencyContact: z.string().optional(),
+});
 
-  // All 8 galleys positioned exactly like your image
-  const galleys = {
-    '1F1C': {
-      id: '1F1C',
-      name: 'Forward First Class Galley Center',
-      position: { top: '20%', left: '50%', transform: 'translateX(-50%)' },
-      type: 'First Class',
-      configuration: {
-        positions: [
-          // Top row - Standard boxes (CAJA STD)
-          { id: '1F1C20', code: 'Pos 1F1C20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['2x Mantel Carro', '1x Charolas Servicio', '1x Sobrecargos'], row: 0, col: 0 },
-          { id: '1F1C21F', code: 'Pos 1F1C21F CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['2x Hielera Metálica'], row: 0, col: 1 },
-          { id: '1F1C22F', code: 'Pos 1F1C22F CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['1x Canastas Premier'], row: 0, col: 2 },
-          { id: '1F1C23F', code: 'Pos 1F1C23F CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['2x Misc para Café y Té'], row: 0, col: 3 },
-          
-          // Second row - Standard boxes (CAJA STD)  
-          { id: '1F1C21R', code: 'Pos 1F1C21R CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['2x Hielera Metálica'], row: 1, col: 1 },
-          { id: '1F1C22R', code: 'Pos 1F1C22R CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
-            contents: ['1x Canasta Snack Premier (regreso)'], row: 1, col: 2 },
-          { id: '1F1C23R', code: 'Pos 1F1C23R CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
-            contents: ['Caja STD VACÍA'], row: 1, col: 3 },
-          
-          // Third row - Ovens (Horno)
-          { id: '1F1C08', code: 'Pos 1F1C08 Horno', type: 'oven', category: 'empty', size: 'large', 
-            contents: [], row: 2, col: 0 },
-          { id: '1F1C10', code: 'Pos 1F1C10 Horno', type: 'oven', category: 'empty', size: 'large', 
-            contents: [], row: 2, col: 1 },
-          { id: '1F1C12', code: 'Pos 1F1C12 Horno', type: 'oven', category: 'empty', size: 'large', 
-            contents: [], row: 2, col: 2 },
-          { id: '1F1C14', code: 'Pos 1F1C14 Horno', type: 'oven', category: 'empty', size: 'large', 
-            contents: [], row: 2, col: 3 },
-          { id: '1F1C16', code: 'Pos 1F1C16', type: 'coffee', category: 'miscellaneous', size: 'small', 
-            contents: ['CAFETERA 1x Jarra Metálica'], row: 2, col: 4 },
-          { id: '1F1C17', code: 'Pos 1F1C17', type: 'coffee', category: 'empty', size: 'small', 
-            contents: ['CAFETERA EXPRESS'], row: 2, col: 5 },
-          
-          // Bottom row - Carts (Carro 1/1) - These are the clickable trolleys!
-          { id: '1F1C01', code: 'Pos 1F1C01 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos', '1x Canasta Snack Premier (ida)'], 
-            row: 3, col: 0 },
-          { id: '1F1C02', code: 'Pos 1F1C02 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['Nal', '1x Charola de Pan', '1x Kit de platos'], row: 3, col: 1 },
-          { id: '1F1C03', code: 'Pos 1F1C03 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Leche Light 1 LT', 
-                      '01x Kit Agua 1.5L en Gaveta de Plástico', '01x Cerveza Fría Premier'], 
-            row: 3, col: 2 },
-          { id: '1F1C04', code: 'Pos 1F1C04 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Hielo'], row: 3, col: 3 },
-          { id: '1F1C05', code: 'Pos 1F1C05 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['ADELANTE', '5x Cristalería', '2x Tazas para café'], row: 3, col: 4 },
-          { id: '1F1C06', code: 'Pos 1F1C06 Carro 1/1', type: 'cart', category: 'bar', size: 'large', 
-            contents: ['BAR PREMIER', '1x Cubitera para hielo', '2x Pinzas para Servicio'], row: 3, col: 5 }
-        ]
-      },
-      trolleys: [
-        {
-          id: '1F1C',
-          position: { top: '30%', left: '50%' },
-          contents: ['Premium Champagne', 'Fine Wines', 'Crystal Glassware'],
-          code: '1F1C01',
-          cartType: 'First Class Beverage Cart',
-          sections: ['Premium Wines', 'Champagne', 'Spirits', 'Crystal'],
-          items: [
-            { name: 'Dom Pérignon', position: 'Top Shelf', quantity: 4 },
-            { name: 'Cristal Champagne', position: 'Champagne Bay', quantity: 2 },
-            { name: 'Crystal Flutes', position: 'Glass Rack', quantity: 12 }
-          ]
-        }
-      ]
-    },
-    'OFCR': {
-      id: 'OFCR',
-      name: 'Forward Crew Rest & Office Area',
-      position: { top: '28%', left: '50%', transform: 'translateX(-50%)' },
-      type: 'First Class',
-      configuration: {
-        positions: [
-          { id: 'FCR3F', code: 'Pos FCR3 F Carro 1/2', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['2x Mantel Carro', '1x Apios'], row: 0, col: 0 },
-          { id: 'FCR3R', code: 'Pos FCR3 R Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 0 },
-          { id: 'FCR1', code: 'Pos FCR1 Carro 1/1', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 0, col: 1 },
-          { id: 'FCR2', code: 'Pos FCR2 Carro 1/1', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 1, col: 1 }
-        ]
-      },
-      trolleys: []
-    },
-    '2A1C': {
-      id: '2A1C',
-      name: 'Mid Forward Business Class Left',
-      position: { top: '45%', left: '50%', transform: 'translateX(-50%)' },
-      type: 'Business Class',
-      configuration: {
-        positions: [
-          { id: '2A1C13', code: 'Pos 2A1C13 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
-            contents: ['Audífonos Premier'], row: 0, col: 0 },
-          { id: '2A1C01', code: 'Pos 2A1C01 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 0 }
-        ]
-      },
-      trolleys: []
-    }
-  };
+type SignInFormData = z.infer<typeof signInSchema>;
+type ProfileFormData = z.infer<typeof profileSchema>;
 
-  const getGalleyTypeColor = (type: string) => {
-    switch (type) {
-      case 'First Class': return 'bg-purple-500 border-purple-600 text-white';
-      case 'Business Class': return 'bg-blue-500 border-blue-600 text-white';
-      case 'Economy': return 'bg-green-500 border-green-600 text-white';
-      case 'Utility': return 'bg-gray-500 border-gray-600 text-white';
-      default: return 'bg-gray-400 border-gray-500 text-white';
-    }
-  };
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  employeeId: string;
+  position: string;
+  phone?: string;
+  emergencyContact?: string;
+}
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'liquids': return 'bg-blue-200 border-blue-300 text-blue-800';
-      case 'food': return 'bg-orange-200 border-orange-300 text-orange-800';
-      case 'miscellaneous': return 'bg-green-200 border-green-300 text-green-800';
-      case 'bar': return 'bg-red-200 border-red-300 text-red-800';
-      case 'otros': return 'bg-purple-200 border-purple-300 text-purple-800';
-      case 'empty': return 'bg-gray-100 border-gray-300 text-gray-600';
-      default: return 'bg-gray-100 border-gray-300 text-gray-600';
-    }
-  };
+export default function Profile() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const getPositionSize = (size: string) => {
-    switch (size) {
-      case 'small': return 'h-16';
-      case 'medium': return 'h-20';
-      case 'large': return 'h-32';
-      default: return 'h-20';
-    }
-  };
+  const signInForm = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+  });
 
-  const handleTrolleyClick = (position: any) => {
-    console.log('Trolley clicked:', position);
+  const profileForm = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+  });
+
+  const onSignIn = (data: SignInFormData) => {
+    // Simulate authentication
+    const mockUser: User = {
+      id: '1',
+      email: data.email,
+      firstName: 'John',
+      lastName: 'Doe',
+      employeeId: 'EMP001',
+      position: 'Flight Attendant',
+      phone: '+1 (555) 123-4567',
+      emergencyContact: 'Jane Doe +1 (555) 987-6543',
+    };
     
-    // Check if this trolley has a configuration
-    if (trolleyConfigurations[position.id]) {
-      setSelectedTrolley({
-        id: position.id,
-        code: position.code,
-        cartType: position.type,
-        contents: position.contents || [],
-        configuration: trolleyConfigurations[position.id],
-        hasConfiguration: true
-      });
-    } else {
-      // Fallback to old modal format
-      setSelectedTrolley({
-        id: position.id,
-        code: position.code,
-        cartType: position.type,
-        contents: position.contents || [],
-        items: (position.contents || []).map((content: string, index: number) => ({
-          name: content,
-          position: `Position ${index + 1}`,
-          quantity: 1
-        })),
-        hasConfiguration: false
-      });
+    setUser(mockUser);
+    setIsSignedIn(true);
+    
+    // Pre-fill profile form with user data
+    profileForm.reset({
+      firstName: mockUser.firstName,
+      lastName: mockUser.lastName,
+      employeeId: mockUser.employeeId,
+      position: mockUser.position,
+      phone: mockUser.phone,
+      emergencyContact: mockUser.emergencyContact,
+    });
+  };
+
+  const onProfileUpdate = (data: ProfileFormData) => {
+    if (user) {
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      setIsEditing(false);
     }
   };
+
+  const handleSignOut = () => {
+    setIsSignedIn(false);
+    setUser(null);
+    setIsEditing(false);
+  };
+
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        
+        <div className="pt-16 pb-20 px-4">
+          <div className="max-w-md mx-auto">
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i className="ri-user-line text-blue-600 text-2xl"></i>
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
+                <p className="text-gray-600 mt-2">Access your crew profile</p>
+              </div>
+
+              <form onSubmit={signInForm.handleSubmit(onSignIn)} className="space-y-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i className="ri-mail-line text-gray-400"></i>
+                    </div>
+                    <input
+                      {...signInForm.register('email')}
+                      type="email"
+                      id="email"
+                      placeholder="Enter your email"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {signInForm.formState.errors.email && (
+                    <p className="text-red-500 text-sm mt-1">{signInForm.formState.errors.email.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i className="ri-lock-line text-gray-400"></i>
+                    </div>
+                    <input
+                      {...signInForm.register('password')}
+                      type="password"
+                      id="password"
+                      placeholder="Enter your password"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {signInForm.formState.errors.password && (
+                    <p className="text-red-500 text-sm mt-1">{signInForm.formState.errors.password.message}</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Sign In
+                </button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Demo: Use any valid email and password (6+ characters)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      {selectedGalley ? (
-        // Galley Detail View
-        <div className="pt-16 pb-20">
-          <div className="px-4 py-4 bg-white border-b">
-            <div className="flex items-center mb-4">
-              <button 
-                onClick={() => setSelectedGalley(null)}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3"
-              >
-                <i className="ri-arrow-left-line text-gray-600"></i>
-              </button>
-              <div>
-                <h2 className="text-lg font-semibold">{galleys[selectedGalley as keyof typeof galleys]?.name}</h2>
-                <p className="text-sm text-gray-600">Service Type: {galleys[selectedGalley as keyof typeof galleys]?.type}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Galley Configuration Grid */}
-          <div className="px-4 py-6">
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold">Galley Configuration</h3>
-                    <p className="text-sm text-gray-600">Physical layout and storage positions</p>
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-medium">Weight: 538.00</span>
-                    <button className="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded">Report</button>
-                  </div>
+      <div className="pt-16 pb-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          {/* Profile Header */}
+          <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <i className="ri-user-line text-blue-600 text-2xl"></i>
                 </div>
-                
-                {/* Legend */}
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-blue-200 border border-blue-300 rounded"></div>
-                    <span>Liquids</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-orange-200 border border-orange-300 rounded"></div>
-                    <span>Food</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-green-200 border border-green-300 rounded"></div>
-                    <span>Miscellaneous</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-red-200 border border-red-300 rounded"></div>
-                    <span>Bar</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Configuration Grid */}
-              <div className="p-4">
-                {galleys[selectedGalley as keyof typeof galleys]?.configuration ? (
-                  <div className="space-y-2">
-                    {selectedGalley === 'OFCR' ? (
-                      // OFCR Layout
-                      <div className="flex gap-4 max-w-4xl mx-auto">
-                        <div className="flex flex-col gap-3 flex-1">
-                          {galleys[selectedGalley as keyof typeof galleys].configuration?.positions
-                            .filter((pos: any) => pos.col === 0)
-                            .sort((a: any, b: any) => a.row - b.row)
-                            .map((position: any) => (
-                            <button
-                              key={position.id}
-                              onClick={() => handleTrolleyClick(position)}
-                              className={`p-4 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
-                                getCategoryColor(position.category)
-                              } h-32 flex items-center justify-center`}
-                            >
-                              <div className="text-center">
-                                <div className="text-[11px] font-bold">{position.code}</div>
-                                {trolleyConfigurations[position.id] && (
-                                  <div className="absolute top-1 right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <i className="ri-settings-line text-white text-[8px]"></i>
-                                  </div>
-                                )}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-3 flex-1">
-                          {galleys[selectedGalley as keyof typeof galleys].configuration?.positions
-                            .filter((pos: any) => pos.col === 1)
-                            .sort((a: any, b: any) => a.row - b.row)
-                            .map((position: any) => (
-                            <button
-                              key={position.id}
-                              onClick={() => handleTrolleyClick(position)}
-                              className={`p-3 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
-                                getCategoryColor(position.category)
-                              } h-64 flex items-center justify-center`}
-                            >
-                              <div className="text-center">
-                                <div className="text-[11px] font-bold">{position.code}</div>
-                                {trolleyConfigurations[position.id] && (
-                                  <div className="absolute top-1 right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <i className="ri-settings-line text-white text-[8px]"></i>
-                                  </div>
-                                )}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      // Standard Grid Layout
-                      <div className="space-y-2">
-                        {[0, 1, 2, 3].map(rowIndex => {
-                          const rowPositions = galleys[selectedGalley as keyof typeof galleys].configuration?.positions
-                            .filter((pos: any) => pos.row === rowIndex)
-                            .sort((a: any, b: any) => a.col - b.col);
-                          
-                          if (!rowPositions || rowPositions.length === 0) return null;
-                          
-                          const maxCols = Math.max(...rowPositions.map((pos: any) => pos.col)) + 1;
-                          const gridCols = maxCols <= 4 ? 'grid-cols-4' : 'grid-cols-6';
-                          
-                          return (
-                            <div key={rowIndex} className={`grid ${gridCols} gap-2`}>
-                              {rowPositions.map((position: any) => (
-                                <button
-                                  key={position.id}
-                                  onClick={() => handleTrolleyClick(position)}
-                                  className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
-                                    getCategoryColor(position.category)
-                                  } ${getPositionSize(position.size)} flex items-center justify-center`}
-                                >
-                                  <div className="text-center">
-                                    <div className="text-[10px] font-bold">{position.code}</div>
-                                    {trolleyConfigurations[position.id] && (
-                                      <div className="absolute top-1 right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
-                                        <i className="ri-settings-line text-white text-[8px]"></i>
-                                      </div>
-                                    )}
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>Configuration layout not available for this galley</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        // Main Galley Map View
-        <div className="pt-16 pb-20">
-          <div className="px-4 py-4 bg-white border-b">
-            <h1 className="text-xl font-semibold">Aircraft Galley Map</h1>
-            <p className="text-sm text-gray-600">8 galleys total - Tap any galley to explore</p>
-          </div>
-
-          <div className="px-4 py-6">
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold">Boeing 777-300ER Layout</h2>
-                <p className="text-sm text-gray-600">Complete galley overview</p>
-              </div>
-
-              <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 flex justify-center items-center py-8">
-                <div className="relative" style={{ width: '400px', height: '700px' }}>
-                  <div className="absolute bg-gray-300 shadow-xl"
-                       style={{
-                         width: '230px',
-                         height: '675px',
-                         left: '50%',
-                         top: '40px',
-                         transform: 'translateX(-50%)',
-                         borderRadius: '100px 100px 30px 30px',
-                         background: 'linear-gradient(to bottom, #d1d5db, #9ca3af)'
-                       }}>
-                  </div>
-
-                  {Object.values(galleys).map((galley: any) => (
-                    <div key={galley.id} className="absolute" style={galley.position}>
-                      <button
-                        onClick={() => setSelectedGalley(galley.id)}
-                        className={`relative w-20 h-10 rounded-lg border-2 flex flex-col items-center justify-center text-[9px] font-bold transition-all transform hover:scale-110 shadow-lg ${
-                          getGalleyTypeColor(galley.type)
-                        }`}
-                      >
-                        <div className="text-[10px] font-extrabold leading-tight">{galley.id}</div>
-                        <div className="text-[7px] opacity-90 leading-tight">{galley.type.replace(' Class', '').replace(' ', '')}</div>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-4 bg-gray-50 border-t">
-                <div className="flex items-center justify-center space-x-6 text-xs">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-purple-500 rounded"></div>
-                    <span>First Class</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                    <span>Business Class</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded"></div>
-                    <span>Economy</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-gray-500 rounded"></div>
-                    <span>Utility</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="px-4 mb-4">
-            <h3 className="font-semibold mb-4">Quick Access</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.values(galleys).map((galley: any) => (
-                <button
-                  key={galley.id}
-                  onClick={() => setSelectedGalley(galley.id)}
-                  className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow text-left"
-                >
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className={`w-3 h-3 rounded-full ${getGalleyTypeColor(galley.type).split(' ')[0]}`}></div>
-                    <h4 className="font-medium text-sm">{galley.name}</h4>
-                  </div>
-                  <p className="text-xs text-gray-600">{galley.trolleys?.length || 0} trolley{(galley.trolleys?.length || 0) !== 1 ? 's' : ''}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Enhanced Trolley Modal */}
-      {selectedTrolley && (
-        <div className="fixed inset-0 bg-black/50 z-[70] flex items-end">
-          <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold">
-                    {selectedTrolley.configuration?.name || selectedTrolley.code || 'Cart'} 
-                  </h2>
-                  <p className="text-sm text-gray-600">Position: {selectedTrolley.code}</p>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {user?.firstName} {user?.lastName}
+                  </h1>
+                  <p className="text-gray-600">{user?.position}</p>
                 </div>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="text-red-600 hover:text-red-700 text-sm font-medium"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+
+          {/* Profile Form */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
+              {!isEditing && (
                 <button
-                  onClick={() => setSelectedTrolley(null)}
-                  className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center ml-4"
+                  onClick={() => setIsEditing(true)}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  <i className="ri-close-line text-gray-600"></i>
+                  Edit Profile
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={profileForm.handleSubmit(onProfileUpdate)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name
+                  </label>
+                  <input
+                    {...profileForm.register('firstName')}
+                    type="text"
+                    id="firstName"
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  />
+                  {profileForm.formState.errors.firstName && (
+                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.firstName.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    {...profileForm.register('lastName')}
+                    type="text"
+                    id="lastName"
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  />
+                  {profileForm.formState.errors.lastName && (
+                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.lastName.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-2">
+                    Employee ID
+                  </label>
+                  <input
+                    {...profileForm.register('employeeId')}
+                    type="text"
+                    id="employeeId"
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  />
+                  {profileForm.formState.errors.employeeId && (
+                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.employeeId.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-2">
+                    Position
+                  </label>
+                  <input
+                    {...profileForm.register('position')}
+                    type="text"
+                    id="position"
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  />
+                  {profileForm.formState.errors.position && (
+                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.position.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  {...profileForm.register('phone')}
+                  type="tel"
+                  id="phone"
+                  disabled={!isEditing}
+                  placeholder="+1 (555) 123-4567"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700 mb-2">
+                  Emergency Contact
+                </label>
+                <input
+                  {...profileForm.register('emergencyContact')}
+                  type="text"
+                  id="emergencyContact"
+                  disabled={!isEditing}
+                  placeholder="Name and phone number"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                />
+              </div>
+
+              {isEditing && (
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditing(false);
+                      profileForm.reset();
+                    }}
+                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Account Settings */}
+          <div className="bg-white rounded-xl p-6 shadow-sm mt-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Settings</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i className="ri-mail-line text-blue-600"></i>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Email Address</h3>
+                    <p className="text-sm text-gray-600">{user?.email}</p>
+                  </div>
+                </div>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  Change
                 </button>
               </div>
 
-              <div className="inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium bg-blue-500">
-                <i className="ri-shopping-cart-line mr-2"></i>
-                {selectedTrolley.configuration?.type || selectedTrolley.cartType || 'Standard Cart'}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i className="ri-lock-line text-green-600"></i>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Password</h3>
+                    <p className="text-sm text-gray-600">Last changed 30 days ago</p>
+                  </div>
+                </div>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  Change
+                </button>
               </div>
-            </div>
 
-            <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
-              <div className="p-6">
-                {selectedTrolley.hasConfiguration && selectedTrolley.configuration ? (
-                  // NEW: Trolley Configuration View
-                  <>
-                    {/* Trolley Layout Table */}
-                    <div className="bg-white border-2 border-gray-800 rounded-lg overflow-hidden mb-6">
-                      <div className="bg-gray-800 text-white text-center py-2 font-bold">
-                        Carro Full Size
-                      </div>
-                      <div className="bg-gray-800 text-white grid" style={{ gridTemplateColumns: '40px 1fr 1fr' }}>
-                        <div className="py-2 border-r border-white"></div>
-                        <div className="py-2 font-bold text-center border-r border-white">Front</div>
-                        <div className="py-2 font-bold text-center">Rear</div>
-                      </div>
-                      
-                      {/* Table Rows */}
-                      <div className="divide-y divide-gray-800">
-                        {Array.from({ length: 14 }, (_, index) => {
-                          const frontSlot = selectedTrolley.configuration.layout.front[index];
-                          const backSlot = selectedTrolley.configuration.layout.back[index];
-                          
-                          // Check if this is a continuation row (empty row number means it's part of multi-row item)
-                          const showRowNumber = frontSlot?.showNumber !== false && backSlot?.showNumber !== false;
-                          
-                          return (
-                            <div key={index} className="grid border-b border-gray-800 min-h-[40px]" style={{ gridTemplateColumns: '40px 1fr 1fr' }}>
-                              {/* Row Number - narrower column */}
-                              <div className="flex items-center justify-center bg-gray-100 border-r border-gray-800 font-bold text-sm">
-                                {showRowNumber ? index + 1 : ''}
-                              </div>
-                              
-                              {/* Front Content - more space */}
-                              <div className="flex items-center p-3 text-sm border-r border-gray-800 bg-white">
-                                <div className="font-medium">
-                                  {frontSlot?.item || ''}
-                                  {frontSlot?.description && (
-                                    <div className="text-gray-600 text-xs mt-1">
-                                      {frontSlot.description}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {/* Back Content - more space */}
-                              <div className="flex items-center p-3 text-sm bg-white">
-                                <div className="font-medium">
-                                  {backSlot?.item || ''}
-                                  {backSlot?.description && (
-                                    <div className="text-gray-600 text-xs mt-1">
-                                      {backSlot.description}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Combined Current Contents & Detailed Inventory */}
-                    <h3 className="font-medium text-gray-900 mb-3">Current Inventory</h3>
-                    <div className="space-y-2">
-                      {selectedTrolley.contents.map((item: any, index: number) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div className="flex-1">
-                            <span className="font-medium text-gray-900">{item}</span>
-                            <div className="text-xs text-gray-600 mt-1">
-                              Position {index + 1} • Status: Stocked
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-sm text-green-600 font-medium">Available</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  // Fallback to original view for trolleys without configuration
-                  <>
-                    <h3 className="font-medium text-gray-900 mb-3">Current Inventory</h3>
-                    {selectedTrolley.contents && selectedTrolley.contents.length > 0 ? (
-                      <div className="space-y-2">
-                        {selectedTrolley.contents.map((item: any, index: number) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                          >
-                            <div className="flex-1">
-                              <span className="font-medium text-gray-900">{item}</span>
-                              <div className="text-xs text-gray-600 mt-1">
-                                Position {index + 1} • Status: Stocked
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span className="text-sm text-green-600 font-medium">Available</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>No contents listed for this position</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="p-6 pt-4 border-t bg-gray-50">
-              <div className="flex space-x-3">
-                <Link
-                  href="/issues"
-                  className="flex-1 flex items-center justify-center py-3 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-orange-200"
-                  onClick={() => setSelectedTrolley(null)}
-                >
-                  <i className="ri-error-warning-line mr-2"></i>
-                  Report Issue
-                </Link>
-                {selectedTrolley.hasConfiguration && (
-                  <button
-                    onClick={() => {
-                      console.log('Edit configuration for', selectedTrolley.id);
-                    }}
-                    className="flex-1 flex items-center justify-center py-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
-                  >
-                    <i className="ri-edit-line mr-2"></i>
-                    Edit Configuration
-                  </button>
-                )}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i className="ri-notification-line text-purple-600"></i>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Notifications</h3>
+                    <p className="text-sm text-gray-600">Manage your preferences</p>
+                  </div>
+                </div>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  Configure
+                </button>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       <BottomNav />
     </div>
-  );
-}
-
-export default function GalleyPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <i className="ri-loader-4-line text-2xl text-blue-600 animate-spin mb-2"></i>
-            <p className="text-gray-600">Loading galley map...</p>
-          </div>
-        </div>
-      }
-    >
-      <GalleyMapContent />
-    </Suspense>
   );
 }

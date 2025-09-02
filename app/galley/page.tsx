@@ -64,7 +64,7 @@ function GalleyMapContent() {
     }
   };
 
-  // All 8 galleys positioned exactly like your image
+  // All galleys positioned exactly like your image
   const galleys = {
     '1F1C': {
       id: '1F1C',
@@ -167,11 +167,196 @@ function GalleyMapContent() {
         positions: [
           { id: '2A1C13', code: 'Pos 2A1C13 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
             contents: ['Audífonos Premier'], row: 0, col: 0 },
+          { id: '2A1C14', code: 'Pos 2A1C14 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
+            contents: ['Audífonos Premier'], row: 0, col: 1 },
+          { id: '2A1C15', code: 'Pos 2A1C15 CAJA STD', type: 'standard', category: 'empty', size: 'medium', 
+            contents: [], row: 0, col: 2 },
+          { id: '2A1C16', code: 'Pos 2A1C16 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['1x Canastas Premier'], row: 0, col: 3 },
           { id: '2A1C01', code: 'Pos 2A1C01 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
-            contents: [], row: 3, col: 0 }
+            contents: [], row: 3, col: 0 },
+          { id: '2A1C02', code: 'Pos 2A1C02 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 3, col: 1 },
+          { id: '2A1C03', code: 'Pos 2A1C03 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 3, col: 2 },
+          { id: '2A1C04', code: 'Pos 2A1C04 WASTE', type: 'waste', category: 'empty', size: 'large', 
+            contents: [], row: 3, col: 3 }
         ]
       },
-      trolleys: []
+      trolleys: [
+        {
+          id: '2A1C',
+          position: { top: '40%', left: '15%' },
+          contents: ['Premium Spirits', 'Wine Selection', 'Cocktail Tools'],
+          code: '2A1C01',
+          cartType: 'Business Class Liquid Trolley',
+          sections: ['Spirits', 'Wines', 'Mixers', 'Tools'],
+          items: [
+            { name: 'Johnnie Walker Blue', position: 'Spirit Rack', quantity: 2 },
+            { name: 'Premium Wine Selection', position: 'Wine Bay', quantity: 8 },
+            { name: 'Cocktail Shaker', position: 'Tool Section', quantity: 1 }
+          ]
+        }
+      ]
+    },
+    '2A1R': {
+      id: '2A1R',
+      name: 'Mid Forward Business Class Right',
+      position: { top: '53%', left: '50%', transform: 'translateX(-50%)' },
+      type: 'Business Class',
+      configuration: {
+        positions: [
+          { id: '2A1R13', code: 'Pos 2A1R13 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
+            contents: ['Audífonos Business'], row: 0, col: 0 },
+          { id: '2A1R14', code: 'Pos 2A1R14 CAJA STD', type: 'standard', category: 'otros', size: 'medium', 
+            contents: ['Audífonos Business'], row: 0, col: 1 },
+          { id: '2A1R01', code: 'Pos 2A1R01 Carro 1/2', type: 'cart', category: 'food', size: 'large', 
+            contents: ['Business Meals', 'Quality Cutlery', 'Fine China'], row: 3, col: 0 },
+          { id: '2A1R02', code: 'Pos 2A1R02 Carro 1/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 3, col: 1 }
+        ]
+      },
+      trolleys: [
+        {
+          id: '2A1R',
+          position: { top: '40%', right: '15%' },
+          contents: ['Business Meals', 'Quality Cutlery', 'Fine China'],
+          code: '2A1R01',
+          cartType: 'Business Class Meal Service',
+          sections: ['Hot Meals', 'Fine China', 'Cutlery', 'Linens'],
+          items: [
+            { name: 'Grilled Salmon', position: 'Hot Section A', quantity: 12 },
+            { name: 'Chicken Teriyaki', position: 'Hot Section B', quantity: 10 },
+            { name: 'Fine China', position: 'Plate Stack', quantity: 24 }
+          ]
+        }
+      ]
+    },
+    '4A1C-center': {
+      id: '4A1C-center',
+      name: 'Aft Center Galley',
+      position: { top: '82%', left: '50%', transform: 'translateX(-50%)' },
+      type: 'Economy',
+      configuration: {
+        positions: [
+          { id: '4A1C20', code: 'Pos 4A1C20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Economy Service Items'], row: 0, col: 0 },
+          { id: '4A1C21', code: 'Pos 4A1C21 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Napkins & Utensils'], row: 0, col: 1 },
+          { id: '4A1C01', code: 'Pos 4A1C01 Carro 2/2', type: 'cart', category: 'liquids', size: 'large', 
+            contents: ['Soft Drinks', 'Juices', 'Water Bottles'], row: 1, col: 0 },
+          { id: '4A1C02', code: 'Pos 4A1C02 Carro 2/2', type: 'cart', category: 'empty', size: 'large', 
+            contents: [], row: 1, col: 1 }
+        ]
+      },
+      trolleys: [
+        {
+          id: '4A1C-T1',
+          position: { top: '70%', right: '15%' },
+          contents: ['Soft Drinks', 'Juices', 'Water Bottles'],
+          code: '4A1C01',
+          cartType: 'Economy Beverage Cart',
+          sections: ['Soft Drinks', 'Juices', 'Water', 'Ice'],
+          items: [
+            { name: 'Coca Cola', position: 'Soda Section', quantity: 48 },
+            { name: 'Orange Juice', position: 'Juice Bay', quantity: 24 },
+            { name: 'Bottled Water', position: 'Water Storage', quantity: 72 }
+          ]
+        }
+      ]
+    },
+    '4A1C-left': {
+      id: '4A1C-left',
+      name: 'Aft Galley Left',
+      position: { top: '88%', left: '35%', transform: 'translateX(-50%)' },
+      type: 'Economy',
+      configuration: {
+        positions: [
+          { id: '4A1CL10', code: 'Pos 4A1CL10 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 0, col: 0 },
+          { id: '4A1CL11', code: 'Pos 4A1CL11 Horno', type: 'oven', category: 'empty', size: 'large', 
+            contents: [], row: 0, col: 1 },
+          { id: '4A1CL01', code: 'Pos 4A1CL01 Carro 2/2', type: 'cart', category: 'food', size: 'large', 
+            contents: ['Economy Meals', 'Plastic Cutlery', 'Napkins'], row: 1, col: 0 }
+        ]
+      },
+      trolleys: [
+        {
+          id: '4A1C-T1',
+          position: { top: '90%', left: '20%' },
+          contents: ['Economy Meals', 'Plastic Cutlery', 'Napkins'],
+          code: '4A1C01',
+          cartType: 'Economy Meal Service',
+          sections: ['Meals', 'Cutlery', 'Napkins', 'Condiments'],
+          items: [
+            { name: 'Chicken Rice Bowl', position: 'Hot Compartment A', quantity: 45 },
+            { name: 'Vegetable Pasta', position: 'Hot Compartment B', quantity: 30 },
+            { name: 'Plastic Cutlery Sets', position: 'Utensil Storage', quantity: 100 }
+          ]
+        }
+      ]
+    },
+    '4A1C-right': {
+      id: '4A1C-right',
+      name: 'Aft Galley Right',
+      position: { top: '88%', right: '35%', transform: 'translateX(50%)' },
+      type: 'Economy',
+      configuration: {
+        positions: [
+          { id: '4A1CR16', code: 'Pos 4A1CR16', type: 'coffee', category: 'miscellaneous', size: 'small', 
+            contents: ['CAFETERA Economy'], row: 0, col: 0 },
+          { id: '4A1CR17', code: 'Pos 4A1CR17', type: 'coffee', category: 'miscellaneous', size: 'small', 
+            contents: ['Hot Water Station'], row: 0, col: 1 },
+          { id: '4A1CR01', code: 'Pos 4A1CR01 Carro 2/2', type: 'cart', category: 'miscellaneous', size: 'large', 
+            contents: ['Snack Service', 'Cookies', 'Nuts'], row: 1, col: 0 },
+          { id: '4A1CR02', code: 'Pos 4A1CR02 Carro 2/2', type: 'cart', category: 'liquids', size: 'large', 
+            contents: ['Coffee Service', 'Tea Bags', 'Sugar'], row: 1, col: 1 }
+        ]
+      },
+      trolleys: [
+        {
+          id: '4A1C-CT1',
+          position: { top: '88%', left: '40%' },
+          contents: ['Snack Service', 'Cookies', 'Nuts'],
+          code: '4A1C02',
+          cartType: 'Economy Snack Cart',
+          sections: ['Snacks', 'Cookies', 'Nuts', 'Crackers'],
+          items: [
+            { name: 'Mixed Nuts', position: 'Snack Bay A', quantity: 60 },
+            { name: 'Cookies', position: 'Snack Bay B', quantity: 80 },
+            { name: 'Crackers', position: 'Snack Bay C', quantity: 40 }
+          ]
+        }
+      ]
+    },
+    '4A1C-bottom': {
+      id: '4A1C-bottom',
+      name: 'Aft Bottom Galley',
+      position: { top: '94%', left: '50%', transform: 'translateX(-50%)' },
+      type: 'Economy',
+      configuration: {
+        positions: [
+          { id: '4A1CB20', code: 'Pos 4A1CB20 CAJA STD', type: 'standard', category: 'miscellaneous', size: 'medium', 
+            contents: ['Cleaning Supplies'], row: 0, col: 0 },
+          { id: '4A1CB01', code: 'Pos 4A1CB01 Carro 2/2', type: 'cart', category: 'miscellaneous', size: 'large', 
+            contents: ['Waste Management', 'Recycling', 'Cleaning'], row: 1, col: 0 }
+        ]
+      },
+      trolleys: [
+        {
+          id: '4A1C-RT1',
+          position: { top: '90%', right: '20%' },
+          contents: ['Waste Management', 'Recycling', 'Cleaning'],
+          code: '4A1C04',
+          cartType: 'Utility Cart',
+          sections: ['Waste', 'Recycling', 'Cleaning', 'Maintenance'],
+          items: [
+            { name: 'Waste Bags', position: 'Waste Section', quantity: 50 },
+            { name: 'Recycling Bags', position: 'Recycle Bay', quantity: 30 },
+            { name: 'Sanitizing Wipes', position: 'Cleaning Storage', quantity: 20 }
+          ]
+        }
+      ]
     }
   };
 
@@ -402,7 +587,7 @@ function GalleyMapContent() {
         <div className="pt-16 pb-20">
           <div className="px-4 py-4 bg-white border-b">
             <h1 className="text-xl font-semibold">Aircraft Galley Map</h1>
-            <p className="text-sm text-gray-600">8 galleys total - Tap any galley to explore</p>
+            <p className="text-sm text-gray-600">12 galleys total - Tap any galley to explore</p>
           </div>
 
           <div className="px-4 py-6">
@@ -426,6 +611,7 @@ function GalleyMapContent() {
                        }}>
                   </div>
 
+                  {/* All galleys - clickable ones with data + demo ones without data */}
                   {Object.values(galleys).map((galley: any) => (
                     <div key={galley.id} className="absolute" style={galley.position}>
                       <button
@@ -439,7 +625,7 @@ function GalleyMapContent() {
                       </button>
                     </div>
                   ))}
-                </div>
+ç                </div>
               </div>
 
               <div className="p-4 bg-gray-50 border-t">
