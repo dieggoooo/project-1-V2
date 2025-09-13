@@ -419,16 +419,22 @@ export default function InventoryPage() {
                   })}
                 </div>
               ) : (
-                // Non-Alcohol Items - Regular Table
+                // Non-Alcohol Items - Updated Mobile-Friendly Table
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between mb-3 px-3 pt-3">
+                    <span className="font-medium text-gray-900">Positions</span>
+                    <span className="text-xs text-gray-600">
+                      Unit: {selectedItem.positions?.[0]?.unitOfMeasure || 'units'}
+                    </span>
+                  </div>
+                  
                   <div className="bg-gray-800 text-white">
-                    <div className="grid grid-cols-6 gap-2 p-3 text-sm font-medium">
+                    <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
                       <div>Position</div>
                       <div className="text-center">QTY</div>
-                      <div className="text-center">Unit</div>
-                      <div className="text-center">Consumed</div>
-                      <div className="text-center">Available</div>
-                      <div className="text-center">% Available</div>
+                      <div className="text-center">Used</div>
+                      <div className="text-center">Avail</div>
+                      <div className="text-center">%</div>
                     </div>
                   </div>
                   
@@ -436,11 +442,10 @@ export default function InventoryPage() {
                     {selectedItem.positions.map((position: any) => (
                       <div 
                         key={position.id} 
-                        className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                        className={`grid grid-cols-5 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
                       >
                         <div className="font-medium text-gray-900">{position.positionCode}</div>
                         <div className="text-center text-gray-700">{position.quantity}</div>
-                        <div className="text-center text-gray-700">{position.unitOfMeasure}</div>
                         <div className="text-center">
                           <input
                             type="number"
@@ -451,12 +456,12 @@ export default function InventoryPage() {
                               const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
                               updatePositionLevel(selectedItem.id, position.id, newConsumed, false);
                             }}
-                            className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-12 px-1 py-1 border border-gray-300 rounded text-center text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div className="text-center font-medium text-gray-900">{position.available}</div>
                         <div className="text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                          <span className={`px-1 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
                             {position.percentageAvailable}%
                           </span>
                         </div>
@@ -468,14 +473,13 @@ export default function InventoryPage() {
                       const totals = getItemTotals(selectedItem.id);
                       return (
                         <div className="bg-gray-100 border-t-2 border-gray-300">
-                          <div className="grid grid-cols-6 gap-2 p-3 text-sm font-bold">
+                          <div className="grid grid-cols-5 gap-2 p-3 text-sm font-bold">
                             <div className="text-gray-900">TOTAL</div>
                             <div className="text-center text-gray-900">{totals.totalQuantity}</div>
-                            <div className="text-center text-gray-700">-</div>
                             <div className="text-center text-gray-900">{totals.totalConsumed}</div>
                             <div className="text-center text-gray-900">{totals.totalAvailable}</div>
                             <div className="text-center">
-                              <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                              <span className={`px-1 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
                                 {totals.totalPercentage}%
                               </span>
                             </div>

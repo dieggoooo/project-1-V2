@@ -1,6 +1,6 @@
 'use client';
  
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
@@ -47,6 +47,14 @@ interface Category {
   subcategories?: Subcategory[];
 }
 
+interface SearchSuggestion {
+  id: number;
+  name: string;
+  code: string;
+  type: 'item' | 'category' | 'code';
+  category?: string;
+}
+
 function ItemSearchContent() {
   const searchParams = useSearchParams();
   const filter = searchParams.get('filter');
@@ -56,6 +64,10 @@ function ItemSearchContent() {
   const [itemImages, setItemImages] = useState<{ [key: number]: string }>({});
   const [uploadingImage, setUploadingImage] = useState<number | null>(null);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'name' | 'code' | 'availability' | 'category'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Use the unified inventory system
   const { 
@@ -105,6 +117,142 @@ function ItemSearchContent() {
     }
   ];
 
+  // Load search history from localStorage on component mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('searchHistory');
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  // Generate search suggestions based on current input
+  const searchSuggestions = useMemo(() => {
+    if (!searchTerm || searchTerm.length < 2) return [];
+
+    const suggestions: SearchSuggestion[] = [];
+    const lowerSearchTerm = searchTerm.toLowerCase();
+
+    // Search through items
+    items.forEach((item: InventoryItem) => {
+      // Match by name
+      if (item.name.toLowerCase().includes(lowerSearchTerm)) {
+        suggestions.push({
+          id: item.id,
+          name: item.name,
+          code: item.code,
+          type: 'item',
+          category: item.category
+        });
+      }
+      // Match by code
+      else if (item.code.toLowerCase().includes(lowerSearchTerm)) {
+        suggestions.push({
+          id: item.id,
+          name: item.name,
+          code: item.code,
+          type: 'code',
+          category: item.category
+        });
+      }
+    });
+
+    // Search through categories
+    categories.forEach(category => {
+      if (category.name.toLowerCase().includes(lowerSearchTerm)) {
+        suggestions.push({
+          id: 0,
+          name: category.name,
+          code: category.id,
+          type: 'category'
+        });
+      }
+    });
+
+    return suggestions.slice(0, 8); // Limit to 8 suggestions
+  }, [searchTerm, items]);
+
+  // Enhanced filtering with search, category, and sorting
+  const filteredAndSortedItems = useMemo(() => {
+    let filtered = items.filter((item: InventoryItem) => {
+      const matchesSearch = !searchTerm || 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.type.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesFilter = filter === 'common' ? item.common : true;
+      const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
+      const matchesSubcategory = selectedSubcategory ? item.subcategory === selectedSubcategory : true;
+      
+      return matchesSearch && matchesFilter && matchesCategory && matchesSubcategory;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'code':
+          aValue = a.code.toLowerCase();
+          bValue = b.code.toLowerCase();
+          break;
+        case 'availability':
+          aValue = getItemTotals(a.id).totalPercentage;
+          bValue = getItemTotals(b.id).totalPercentage;
+          break;
+        case 'category':
+          aValue = a.category.toLowerCase();
+          bValue = b.category.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [items, searchTerm, filter, selectedCategory, selectedSubcategory, sortBy, sortOrder, getItemTotals]);
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setShowSuggestions(false);
+    
+    // Add to search history if it's a meaningful search
+    if (term.length > 2) {
+      const newHistory = [term, ...searchHistory.filter(h => h !== term)].slice(0, 10);
+      setSearchHistory(newHistory);
+      localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    if (suggestion.type === 'category') {
+      setSelectedCategory(suggestion.code);
+      setSearchTerm('');
+    } else {
+      handleSearch(suggestion.name);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setShowSuggestions(false);
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('searchHistory');
+  };
+
   const handleImageUpload = (itemId: number, file: File) => {
     setUploadingImage(itemId);
     
@@ -141,17 +289,24 @@ function ItemSearchContent() {
     return '';
   };
 
-  const filteredItems = items.filter((item: InventoryItem) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === 'common' ? item.common : true;
-    const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
-    const matchesSubcategory = selectedSubcategory ? item.subcategory === selectedSubcategory : true;
-    return matchesSearch && matchesFilter && matchesCategory && matchesSubcategory;
-  });
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) return 'ri-arrow-up-down-line';
+    return sortOrder === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line';
+  };
+
+  const handleSort = (column: 'name' | 'code' | 'availability' | 'category') => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
  
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setSelectedSubcategory(null);
+    setSearchTerm('');
   };
  
   const handleBack = () => {
@@ -165,28 +320,127 @@ function ItemSearchContent() {
   const getCurrentCategory = () => categories.find(cat => cat.id === selectedCategory);
   const getCurrentSubcategory = () => getCurrentCategory()?.subcategories?.find(sub => sub.id === selectedSubcategory);
  
-  if (!selectedCategory) {
+  if (!selectedCategory && !searchTerm) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="pt-16 pb-20 px-4">
+          {/* Enhanced Search Section */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Browse Items</h1>
-            <p className="text-gray-600">Select a category to view items</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {categories.map(category => (
-              <div key={category.id} className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCategorySelect(category.id)}>
-                <div className="text-center">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${category.color}`}>
-                    <i className={`${category.icon} text-2xl`}></i>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
-                  <p className="text-sm text-gray-500">{items.filter((item: InventoryItem) => item.category === category.id).length} items</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Search Items</h1>
+            
+            <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i className="ri-search-line text-gray-400"></i>
                 </div>
+                <input 
+                  type="text" 
+                  placeholder="Search by name, code, or description..." 
+                  value={searchTerm} 
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setShowSuggestions(e.target.value.length > 1);
+                  }}
+                  onFocus={() => setShowSuggestions(searchTerm.length > 1)}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                />
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <i className="ri-close-line text-gray-400 hover:text-gray-600"></i>
+                  </button>
+                )}
               </div>
-            ))}
+
+              {/* Search Suggestions */}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto">
+                  {searchSuggestions.map((suggestion, index) => (
+                    <button
+                      key={`${suggestion.type}-${suggestion.id}-${index}`}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-3"
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        suggestion.type === 'category' ? 'bg-blue-100' : 
+                        suggestion.type === 'code' ? 'bg-purple-100' : 'bg-green-100'
+                      }`}>
+                        <i className={`${
+                          suggestion.type === 'category' ? 'ri-folder-line text-blue-600' :
+                          suggestion.type === 'code' ? 'ri-barcode-line text-purple-600' :
+                          'ri-box-3-line text-green-600'
+                        } text-sm`}></i>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{suggestion.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {suggestion.type === 'category' ? 'Category' : 
+                           suggestion.type === 'code' ? `Code: ${suggestion.code}` :
+                           `Code: ${suggestion.code}`}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Search History */}
+              {!showSuggestions && searchHistory.length > 0 && searchTerm.length === 0 && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Recent Searches</span>
+                    <button
+                      onClick={clearSearchHistory}
+                      className="text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {searchHistory.slice(0, 5).map((term, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSearch(term)}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {filter === 'common' && (
+              <div className="mb-4 flex items-center text-sm text-blue-600 bg-blue-50 rounded-lg p-3">
+                <i className="ri-star-fill mr-2"></i>
+                Showing common items only
+              </div>
+            )}
           </div>
+
+          {/* Category Grid */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-4">Browse by Category</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {categories.map(category => (
+                <div key={category.id} className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCategorySelect(category.id)}>
+                  <div className="text-center">
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${category.color}`}>
+                      <i className={`${category.icon} text-2xl`}></i>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
+                    <p className="text-sm text-gray-500">{items.filter((item: InventoryItem) => item.category === category.id).length} items</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+
         </div>
         <BottomNav />
       </div>
@@ -235,27 +489,73 @@ function ItemSearchContent() {
           <button onClick={handleBack} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3">
             <i className="ri-arrow-left-line text-gray-600"></i>
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{selectedSubcategory ? getCurrentSubcategory()?.name : getCurrentCategory()?.name}</h1>
-            <p className="text-gray-600">{filteredItems.length} items available</p>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {searchTerm ? `Search: "${searchTerm}"` : 
+               selectedSubcategory ? getCurrentSubcategory()?.name : 
+               getCurrentCategory()?.name}
+            </h1>
+            <p className="text-gray-600">{filteredAndSortedItems.length} items found</p>
           </div>
         </div>
+
+        {/* Enhanced Search Bar */}
         <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
-          <div className="relative">
+          <div className="relative mb-4">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <i className="ri-search-line text-gray-400"></i>
             </div>
-            <input type="text" placeholder="Search items..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input 
+              type="text" 
+              placeholder="Search items..." 
+              value={searchTerm} 
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowSuggestions(e.target.value.length > 1);
+              }}
+              onFocus={() => setShowSuggestions(searchTerm.length > 1)}
+              className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+            />
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <i className="ri-close-line text-gray-400 hover:text-gray-600"></i>
+              </button>
+            )}
           </div>
-          {filter === 'common' && (
-            <div className="mt-3 flex items-center text-sm text-blue-600">
-              <i className="ri-star-fill mr-2"></i>
-              Showing common items only
+
+          {/* Sort Controls */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <div className="flex space-x-2">
+              {[
+                { key: 'name', label: 'Name' },
+                { key: 'code', label: 'Code' },
+                { key: 'availability', label: 'Stock' },
+                { key: 'category', label: 'Category' }
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => handleSort(key as any)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center space-x-1 ${
+                    sortBy === key
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>{label}</span>
+                  <i className={`${getSortIcon(key)} text-xs`}></i>
+                </button>
+              ))}
             </div>
-          )}
+          </div>
         </div>
+
+        {/* Results */}
         <div className="space-y-3">
-          {filteredItems.map((item: InventoryItem) => {
+          {filteredAndSortedItems.map((item: InventoryItem) => {
             const totals = getItemTotals(item.id);
             return (
               <div key={`item-${item.id}`} className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedItem(item)}>
@@ -276,6 +576,11 @@ function ItemSearchContent() {
                         {totals.totalAvailable}/{totals.totalQuantity} ({totals.totalPercentage}%)
                       </span>
                     </div>
+                    {searchTerm && item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()) && (
+                      <div className="text-xs text-gray-600 mt-1">
+                        {item.description}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Link href={`/galley?item=${item.id}`} className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -288,15 +593,21 @@ function ItemSearchContent() {
             );
           })}
         </div>
-        {filteredItems.length === 0 && (
+
+        {filteredAndSortedItems.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <i className="ri-search-line text-gray-400 text-2xl"></i>
             </div>
-            <p className="text-gray-500">No items found</p>
+            <p className="text-gray-500 mb-2">No items found</p>
+            {searchTerm && (
+              <p className="text-sm text-gray-400">Try adjusting your search or browse by category</p>
+            )}
           </div>
         )}
       </div>
+
+      {/* Item Details Modal */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
@@ -361,17 +672,21 @@ function ItemSearchContent() {
 
             {/* Position Breakdown Table */}
             <div className="mb-6">
-              <h3 className="font-medium text-gray-900 mb-3">Position Breakdown</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium text-gray-900">Position Breakdown</h3>
+                <span className="text-xs text-gray-600">
+                  Unit: {selectedItem.positions?.[0]?.unitOfMeasure || 'units'}
+                </span>
+              </div>
               <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                 {/* Table Header */}
                 <div className="bg-gray-800 text-white">
-                  <div className="grid grid-cols-6 gap-2 p-3 text-sm font-medium">
+                  <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
                     <div>Position</div>
                     <div className="text-center">QTY</div>
-                    <div className="text-center">Unit of Measure</div>
-                    <div className="text-center">Consumed</div>
-                    <div className="text-center">Available</div>
-                    <div className="text-center">% Available</div>
+                    <div className="text-center">Used</div>
+                    <div className="text-center">Avail</div>
+                    <div className="text-center">%</div>
                   </div>
                 </div>
 
@@ -380,11 +695,10 @@ function ItemSearchContent() {
                   {selectedItem.positions && selectedItem.positions.map((position: Position) => (
                     <div 
                       key={`position-${position.id}`} 
-                      className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                      className={`grid grid-cols-5 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
                     >
                       <div className="font-medium text-gray-900">{position.positionCode}</div>
                       <div className="text-center text-gray-700">{position.quantity}</div>
-                      <div className="text-center text-gray-700">{position.unitOfMeasure}</div>
                       <div className="text-center">
                         <input
                           type="number"
@@ -395,12 +709,12 @@ function ItemSearchContent() {
                             const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
                             updatePositionConsumption(selectedItem.id, position.id, newConsumed);
                           }}
-                          className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-12 px-1 py-1 border border-gray-300 rounded text-center text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                       <div className="text-center font-medium text-gray-900">{position.available}</div>
                       <div className="text-center">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                        <span className={`px-1 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
                           {position.percentageAvailable}%
                         </span>
                       </div>
@@ -412,14 +726,13 @@ function ItemSearchContent() {
                     const totals = getItemTotals(selectedItem.id);
                     return (
                       <div className="bg-gray-100 border-t-2 border-gray-300">
-                        <div className="grid grid-cols-6 gap-2 p-3 text-sm font-bold">
+                        <div className="grid grid-cols-5 gap-2 p-3 text-sm font-bold">
                           <div className="text-gray-900">TOTAL</div>
                           <div className="text-center text-gray-900">{totals.totalQuantity}</div>
-                          <div className="text-center text-gray-700">-</div>
                           <div className="text-center text-gray-900">{totals.totalConsumed}</div>
                           <div className="text-center text-gray-900">{totals.totalAvailable}</div>
                           <div className="text-center">
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                            <span className={`px-1 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
                               {totals.totalPercentage}%
                             </span>
                           </div>

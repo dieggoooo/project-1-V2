@@ -625,7 +625,7 @@ function GalleyMapContent() {
                       </button>
                     </div>
                   ))}
-ç                </div>
+                </div>
               </div>
 
               <div className="p-4 bg-gray-50 border-t">
