@@ -11,7 +11,7 @@ function GalleyMapContent() {
   const highlightItem = searchParams.get('item');
   const [selectedGalley, setSelectedGalley] = useState<string | null>(null);
   const [selectedTrolley, setSelectedTrolley] = useState<any>(null);
-  const [viewMode, setViewMode] = useState('front');
+  // Removed unused viewMode and setViewMode variables
 
   // Trolley configurations - NEW FEATURE!
   const trolleyConfigurations: { [key: string]: any } = {
@@ -420,6 +420,9 @@ function GalleyMapContent() {
       });
     }
   };
+
+  // Add a note about the unused highlightItem variable for future use
+  console.log('Highlight item from URL:', highlightItem); // This is for future use when implementing item highlighting
 
   return (
     <div className="min-h-screen bg-gray-50">
