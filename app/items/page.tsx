@@ -83,8 +83,8 @@ function ItemSearchContent() {
       icon: 'ri-cup-line',
       color: 'bg-blue-100 text-blue-600',
       subcategories: [
-        { id: 'alcoholic', name: 'Alcoholic', icon: 'ri-wine-glass-line' },
-        { id: 'non-alcoholic', name: 'Non-Alcoholic', icon: 'ri-glass-line' },
+        { id: 'alcoholic', name: 'Alcoholic', icon: 'ri-goblet-line' },
+        { id: 'non-alcoholic', name: 'Non-Alcoholic', icon: 'ri-cup-line' },
         { id: 'hot-drinks', name: 'Hot Drinks', icon: 'ri-fire-line' },
         { id: 'juice', name: 'Juice', icon: 'ri-drop-line' },
         { id: 'soda', name: 'Soda', icon: 'ri-bubble-chart-line' },

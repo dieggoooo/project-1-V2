@@ -112,13 +112,13 @@ function GalleyMapContent() {
           { id: '1F1C02', code: 'Pos 1F1C02 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
             contents: ['Nal', '1x Charola de Pan', '1x Kit de platos'], row: 3, col: 1 },
           { id: '1F1C03', code: 'Pos 1F1C03 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Leche Light 1 LT', 
+            contents: ['Test', '01x Refrescos (lata)', '01x Jugos CJ', '01x Leche Light 1 LT', 
                       '01x Kit Agua 1.5L en Gaveta de Plástico', '01x Cerveza Fría Premier'], 
             row: 3, col: 2 },
           { id: '1F1C04', code: 'Pos 1F1C04 Carro 1/1', type: 'cart', category: 'liquids', size: 'large', 
-            contents: ['ADELANTE', '01x Refrescos (lata)', '01x Jugos CJ', '01x Hielo'], row: 3, col: 3 },
+            contents: ['Test', '01x Refrescos (lata)', '01x Jugos CJ', '01x Hielo'], row: 3, col: 3 },
           { id: '1F1C05', code: 'Pos 1F1C05 Carro 1/1', type: 'cart', category: 'miscellaneous', size: 'large', 
-            contents: ['ADELANTE', '5x Cristalería', '2x Tazas para café'], row: 3, col: 4 },
+            contents: ['Test', '5x Cristalería', '2x Tazas para café'], row: 3, col: 4 },
           { id: '1F1C06', code: 'Pos 1F1C06 Carro 1/1', type: 'cart', category: 'bar', size: 'large', 
             contents: ['BAR PREMIER', '1x Cubitera para hielo', '2x Pinzas para Servicio'], row: 3, col: 5 }
         ]

@@ -5,9 +5,10 @@ import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 
 // Type definitions
-type IssueType = 'misplacement' | 'damage' | 'missing' | 'other';
+type IssueType = 'misplacement' | 'damage' | 'missing' | 'monetary-consumption' | 'customer-impact' | 'other';
 type SeverityType = 'high' | 'medium' | 'low';
 type StatusType = 'open' | 'resolved';
+type PassengersAffected = 'NA' | '0-10' | '10-25' | '25-50' | '50-75' | '75-100';
 
 interface Issue {
   id: number;
@@ -16,6 +17,7 @@ interface Issue {
   location: string;
   description: string;
   severity: SeverityType;
+  passengersAffected?: PassengersAffected;
   status: StatusType;
   reportedBy: string;
   reportedAt: string;
@@ -28,6 +30,7 @@ interface FormData {
   location: string;
   description: string;
   severity: SeverityType;
+  passengersAffected: PassengersAffected;
   flight: string;
 }
 
@@ -39,6 +42,7 @@ export default function IssuesPage() {
     location: '',
     description: '',
     severity: 'medium',
+    passengersAffected: 'NA',
     flight: ''
   });
 
@@ -50,6 +54,7 @@ export default function IssuesPage() {
       location: '1F1C03',
       description: 'Coffee pot found in wrong trolley position',
       severity: 'medium',
+      passengersAffected: '10-25',
       status: 'open',
       reportedBy: 'Sarah Johnson',
       reportedAt: '2024-01-15 14:30',
@@ -62,6 +67,7 @@ export default function IssuesPage() {
       location: '1F2C05',
       description: '2 wine glasses cracked, need replacement',
       severity: 'high',
+      passengersAffected: '0-10',
       status: 'resolved',
       reportedBy: 'Mike Chen',
       reportedAt: '2024-01-15 12:15',
@@ -69,11 +75,12 @@ export default function IssuesPage() {
     },
     {
       id: 3,
-      type: 'missing',
+      type: 'customer-impact',
       item: 'Ice Bucket',
       location: '2A2C01',
-      description: 'Ice bucket missing from designated position',
+      description: 'Ice bucket missing from designated position, affecting beverage service',
       severity: 'high',
+      passengersAffected: '50-75',
       status: 'open',
       reportedBy: 'Emma Davis',
       reportedAt: '2024-01-15 10:45',
@@ -97,6 +104,7 @@ export default function IssuesPage() {
       location: '',
       description: '',
       severity: 'medium',
+      passengersAffected: 'NA',
       flight: ''
     });
     setActiveTab('history');
@@ -111,13 +119,39 @@ export default function IssuesPage() {
     }
   };
 
+  const getPassengersAffectedColor = (passengers: PassengersAffected): string => {
+    switch (passengers) {
+      case 'NA': return 'bg-gray-100 text-gray-700';
+      case '0-10': return 'bg-green-100 text-green-700';
+      case '10-25': return 'bg-yellow-100 text-yellow-700';
+      case '25-50': return 'bg-orange-100 text-orange-700';
+      case '50-75': return 'bg-red-100 text-red-700';
+      case '75-100': return 'bg-red-200 text-red-800';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
   const getTypeIcon = (type: IssueType): string => {
     switch (type) {
       case 'misplacement': return 'ri-map-pin-line';
       case 'damage': return 'ri-tools-line';
       case 'missing': return 'ri-error-warning-line';
+      case 'monetary-consumption': return 'ri-money-dollar-circle-line';
+      case 'customer-impact': return 'ri-user-heart-line';
       case 'other': return 'ri-question-line';
       default: return 'ri-alert-line';
+    }
+  };
+
+  const getTypeLabel = (type: IssueType): string => {
+    switch (type) {
+      case 'misplacement': return 'Item Misplacement';
+      case 'damage': return 'Damage/Broken';
+      case 'missing': return 'Missing Item';
+      case 'monetary-consumption': return 'Monetary Consumption';
+      case 'customer-impact': return 'Customer Impact';
+      case 'other': return 'Other Issue';
+      default: return type;
     }
   };
 
@@ -171,6 +205,8 @@ export default function IssuesPage() {
                     <option value="misplacement">Item Misplacement</option>
                     <option value="damage">Damage/Broken</option>
                     <option value="missing">Missing Item</option>
+                    <option value="monetary-consumption">Monetary Consumption</option>
+                    <option value="customer-impact">Customer Impact</option>
                     <option value="other">Other Issue</option>
                   </select>
                 </div>
@@ -227,9 +263,28 @@ export default function IssuesPage() {
                     className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
-                    <option value="low">Low - Minor inconvenience</option>
-                    <option value="medium">Medium - Affects service</option>
-                    <option value="high">High - Critical for operation</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Passengers Affected
+                  </label>
+                  <select
+                    value={formData.passengersAffected}
+                    onChange={(e) => setFormData({...formData, passengersAffected: e.target.value as PassengersAffected})}
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="NA">Not Applicable</option>
+                    <option value="0-10">0-10% of passengers</option>
+                    <option value="10-25">10-25% of passengers</option>
+                    <option value="25-50">25-50% of passengers</option>
+                    <option value="50-75">50-75% of passengers</option>
+                    <option value="75-100">75-100% of passengers</option>
                   </select>
                 </div>
 
@@ -279,19 +334,27 @@ export default function IssuesPage() {
                       <div>
                         <h3 className="font-semibold">{issue.item}</h3>
                         <p className="text-sm text-gray-600">{issue.location} • {issue.flight}</p>
+                        <p className="text-xs text-gray-500">{getTypeLabel(issue.type)}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getSeverityColor(issue.severity)}`}>
-                        {issue.severity.toUpperCase()}
-                      </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        issue.status === 'open' 
-                          ? 'bg-orange-100 text-orange-700' 
-                          : 'bg-green-100 text-green-700'
-                      }`}>
-                        {issue.status.toUpperCase()}
-                      </span>
+                    <div className="flex flex-col items-end space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getSeverityColor(issue.severity)}`}>
+                          {issue.severity.toUpperCase()}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          issue.status === 'open' 
+                            ? 'bg-orange-100 text-orange-700' 
+                            : 'bg-green-100 text-green-700'
+                        }`}>
+                          {issue.status.toUpperCase()}
+                        </span>
+                      </div>
+                      {issue.passengersAffected && (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPassengersAffectedColor(issue.passengersAffected)}`}>
+                          {issue.passengersAffected === 'NA' ? 'No PAX Impact' : `${issue.passengersAffected}% PAX`}
+                        </span>
+                      )}
                     </div>
                   </div>
                   
