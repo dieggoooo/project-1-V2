@@ -2,6 +2,7 @@
 'use client';
  
 import { useState, Suspense, useMemo, useEffect } from 'react';
+import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
@@ -70,12 +71,27 @@ function ItemSearchContent() {
   const [sortBy, setSortBy] = useState<'name' | 'code' | 'availability' | 'category'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
+  // Ref for click outside detection
+  const searchRef = React.useRef<HTMLDivElement>(null);
+  
   // Use the unified inventory system
   const { 
     items = [], 
     updatePositionConsumption = () => {}, 
     getItemTotals = () => ({ totalQuantity: 0, totalConsumed: 0, totalAvailable: 0, totalPercentage: 0 })
   } = useInventory() || {};
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const categories: Category[] = [
     {
@@ -315,6 +331,10 @@ function ItemSearchContent() {
       setSelectedSubcategory(null);
     } else if (selectedCategory) {
       setSelectedCategory(null);
+    } else if (searchTerm) {
+      // Clear search when back button is pressed from search results
+      setSearchTerm('');
+      setShowSuggestions(false);
     }
   };
  
@@ -327,7 +347,7 @@ function ItemSearchContent() {
         <Header />
         <div className="pt-16 pb-20 px-4">
           {/* Enhanced Search Section */}
-          <div className="mb-6">
+          <div className="mb-6" ref={searchRef}>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Search Items</h1>
             
             <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
@@ -341,9 +361,9 @@ function ItemSearchContent() {
                   value={searchTerm} 
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setShowSuggestions(e.target.value.length > 1);
+                    setShowSuggestions(true); // Always show when typing
                   }}
-                  onFocus={() => setShowSuggestions(searchTerm.length > 1)}
+                  onFocus={() => setShowSuggestions(true)} // Show all items on focus
                   className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                 />
                 {searchTerm && (
@@ -356,35 +376,92 @@ function ItemSearchContent() {
                 )}
               </div>
 
-              {/* Search Suggestions */}
-              {showSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto">
-                  {searchSuggestions.map((suggestion, index) => (
-                    <button
-                      key={`${suggestion.type}-${suggestion.id}-${index}`}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-3"
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        suggestion.type === 'category' ? 'bg-blue-100' : 
-                        suggestion.type === 'code' ? 'bg-purple-100' : 'bg-green-100'
-                      }`}>
-                        <i className={`${
-                          suggestion.type === 'category' ? 'ri-folder-line text-blue-600' :
-                          suggestion.type === 'code' ? 'ri-barcode-line text-purple-600' :
-                          'ri-box-3-line text-green-600'
-                        } text-sm`}></i>
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{suggestion.name}</div>
-                        <div className="text-sm text-gray-500">
-                          {suggestion.type === 'category' ? 'Category' : 
-                           suggestion.type === 'code' ? `Code: ${suggestion.code}` :
-                           `Code: ${suggestion.code}`}
+              {/* Enhanced Dropdown - Shows all items or filtered results */}
+              {showSuggestions && (
+                <div className="absolute z-50 w-full left-0 right-0 mx-4 bg-white border border-gray-200 rounded-lg shadow-lg mt-2 max-h-96 overflow-y-auto">
+                  {(() => {
+                    // If no search term, show all items
+                    // If search term exists, show filtered suggestions
+                    const displayItems = searchTerm.length === 0 
+                      ? items.map(item => ({
+                          id: item.id,
+                          name: item.name,
+                          code: item.code,
+                          type: 'item' as const,
+                          category: item.category
+                        }))
+                      : searchSuggestions;
+
+                    if (displayItems.length === 0) {
+                      return (
+                        <div className="p-8 text-center text-gray-500">
+                          <i className="ri-search-line text-4xl mb-2 text-gray-300"></i>
+                          <p className="font-medium">No items found</p>
+                          <p className="text-sm mt-1">Try a different search term</p>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      );
+                    }
+
+                    return (
+                      <>
+                        {searchTerm.length === 0 && (
+                          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 sticky top-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-700">
+                                All Items ({displayItems.length})
+                              </span>
+                              <button
+                                onClick={() => setShowSuggestions(false)}
+                                className="text-sm text-blue-600 hover:text-blue-800"
+                              >
+                                Close
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {displayItems.map((suggestion, index) => {
+                          const totals = getItemTotals(suggestion.id);
+                          const stockColor = totals.totalPercentage >= 70 ? 'text-green-600' :
+                                           totals.totalPercentage >= 40 ? 'text-orange-600' : 'text-red-600';
+                          
+                          return (
+                            <button
+                              key={`${suggestion.type}-${suggestion.id}-${index}`}
+                              onClick={() => handleSuggestionClick(suggestion)}
+                              className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3 flex-1">
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                    suggestion.type === 'category' ? 'bg-blue-100' : 
+                                    suggestion.type === 'code' ? 'bg-purple-100' : 'bg-green-100'
+                                  }`}>
+                                    <i className={`${
+                                      suggestion.type === 'category' ? 'ri-folder-line text-blue-600' :
+                                      suggestion.type === 'code' ? 'ri-barcode-line text-purple-600' :
+                                      'ri-box-3-line text-green-600'
+                                    } text-lg`}></i>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-gray-900 truncate">{suggestion.name}</div>
+                                    <div className="text-sm text-gray-500 font-mono">{suggestion.code}</div>
+                                  </div>
+                                </div>
+                                {suggestion.type === 'item' && (
+                                  <div className="flex items-center space-x-2 ml-3">
+                                    <span className={`text-sm font-semibold ${stockColor}`}>
+                                      {totals.totalPercentage}%
+                                    </span>
+                                    <i className="ri-arrow-right-s-line text-gray-400"></i>
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
 
@@ -608,7 +685,7 @@ function ItemSearchContent() {
         )}
       </div>
 
-      {/* Item Details Modal */}
+      {/* Item Details Modal - UPDATED TABLE */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
@@ -671,7 +748,7 @@ function ItemSearchContent() {
               </div>
             </div>
 
-            {/* Position Breakdown Table */}
+            {/* Position Breakdown Table - IMPROVED VERSION */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900">Position Breakdown</h3>
@@ -685,9 +762,9 @@ function ItemSearchContent() {
                   <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
                     <div>Position</div>
                     <div className="text-center">QTY</div>
-                    <div className="text-center">Used</div>
-                    <div className="text-center">Avail</div>
-                    <div className="text-center">%</div>
+                    <div className="text-center">Consumed</div>
+                    <div className="text-center">Available</div>
+                    <div className="text-center">% Available</div>
                   </div>
                 </div>
 
@@ -710,12 +787,12 @@ function ItemSearchContent() {
                             const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
                             updatePositionConsumption(selectedItem.id, position.id, newConsumed);
                           }}
-                          className="w-12 px-1 py-1 border border-gray-300 rounded text-center text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                       <div className="text-center font-medium text-gray-900">{position.available}</div>
                       <div className="text-center">
-                        <span className={`px-1 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
                           {position.percentageAvailable}%
                         </span>
                       </div>
@@ -733,7 +810,7 @@ function ItemSearchContent() {
                           <div className="text-center text-gray-900">{totals.totalConsumed}</div>
                           <div className="text-center text-gray-900">{totals.totalAvailable}</div>
                           <div className="text-center">
-                            <span className={`px-1 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
                               {totals.totalPercentage}%
                             </span>
                           </div>

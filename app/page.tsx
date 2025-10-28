@@ -35,6 +35,21 @@ export default function Home() {
     destination: ''
   });
 
+  // Quick Item Lookup state
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState('');
+  const [itemSearchTerm, setItemSearchTerm] = useState('');
+
+  // Sample inventory items (these would come from your InventoryContext in production)
+  const inventoryItems: DropdownOption[] = [
+    { value: 'COF0407', label: 'BAG OF AMERICAN COFFEE (DECAF) 2.52KG FINE GRIND 70G', code: 'COF0407' },
+    { value: 'CHA0001', label: 'Dom Pérignon 2012', code: 'CHA0001' },
+    { value: 'SPR0001', label: 'Hennessy Paradis', code: 'SPR0001' },
+    { value: 'WHI0001', label: 'Johnnie Walker Blue', code: 'WHI0001' },
+    { value: 'VOD0001', label: 'Grey Goose Vodka', code: 'VOD0001' },
+    { value: 'JUI0002', label: 'Fresh Orange Juice', code: 'JUI0002' },
+    { value: 'SOD0001', label: 'Coca Cola', code: 'SOD0001' },
+  ];
+
   // Sample data for dropdowns
   const aircraftOptions: DropdownOption[] = [
     { value: 'N123AA', label: 'Boeing 777-300ER (N123AA)', code: 'N123AA' },
@@ -234,16 +249,99 @@ export default function Home() {
         {/* Quick Item Lookup */}
         <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Quick Item Lookup</h2>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="ri-search-line text-gray-400"></i>
+          
+          <div className="relative" ref={dropdownRef}>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i className="ri-search-line text-gray-400"></i>
+              </div>
+              <input
+                type="text"
+                placeholder="Search items (e.g., Coffee, Champagne, Dom Pérignon)"
+                value={itemSearchTerm}
+                onChange={(e) => {
+                  setItemSearchTerm(e.target.value);
+                  setOpenDropdown('itemSearch');
+                }}
+                onFocus={() => setOpenDropdown('itemSearch')}
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Search items (e.g., Coffee Pot)"
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+
+            {/* Dropdown Results */}
+            {openDropdown === 'itemSearch' && (
+              <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                {(() => {
+                  const searchLower = itemSearchTerm.toLowerCase();
+                  const filtered = inventoryItems.filter(item => 
+                    item.label.toLowerCase().includes(searchLower) ||
+                    item.code?.toLowerCase().includes(searchLower)
+                  );
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-gray-500">
+                        <i className="ri-search-line text-2xl mb-2"></i>
+                        <p>No items found</p>
+                      </div>
+                    );
+                  }
+
+                  return filtered.map((item) => (
+                    <button
+                      key={item.value}
+                      onClick={() => {
+                        setSelectedInventoryItem(item.value);
+                        setItemSearchTerm(item.label);
+                        setOpenDropdown(null);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{item.label}</div>
+                          <div className="text-sm text-gray-600 font-mono">{item.code}</div>
+                        </div>
+                        <i className="ri-arrow-right-s-line text-gray-400"></i>
+                      </div>
+                    </button>
+                  ));
+                })()}
+              </div>
+            )}
           </div>
+
+          {/* Selected Item Display */}
+          {selectedInventoryItem && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <i className="ri-checkbox-circle-fill text-blue-600"></i>
+                  <span className="font-medium text-gray-900">Item Selected</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedInventoryItem('');
+                    setItemSearchTerm('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <i className="ri-close-line"></i>
+                </button>
+              </div>
+              <div className="text-sm text-gray-700">
+                <div className="font-medium">{inventoryItems.find(i => i.value === selectedInventoryItem)?.label}</div>
+                <div className="text-gray-600 font-mono mt-1">Code: {selectedInventoryItem}</div>
+              </div>
+              <Link
+                href={`/items?code=${selectedInventoryItem}`}
+                className="mt-3 inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium"
+              >
+                <span>View Details</span>
+                <i className="ri-arrow-right-line"></i>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
