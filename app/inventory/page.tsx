@@ -9,6 +9,7 @@ export default function InventoryPage() {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [bottleLevels, setBottleLevels] = useState<{ [key: string]: number[] }>({});
   
   // Use the unified inventory system
   const { items, toggleItemChecked, getItemTotals, updatePositionConsumption } = useInventory();
@@ -53,6 +54,55 @@ export default function InventoryPage() {
            item.type === 'Whisky' || 
            item.type === 'Vodka' ||
            item.category === 'alcoholic';
+  };
+
+  // Initialize bottle levels for a position
+  const initializeBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
+    if (!bottleLevels[positionId]) {
+      // Initialize all bottles to the current average level
+      const levels = Array(quantity).fill(availablePercentage);
+      setBottleLevels(prev => ({ ...prev, [positionId]: levels }));
+      return levels;
+    }
+    return bottleLevels[positionId];
+  };
+
+  // Update individual bottle level
+  const updateBottleLevel = (positionId: string, bottleIndex: number, newLevel: number) => {
+    setBottleLevels(prev => {
+      const currentLevels = prev[positionId] || [];
+      const updatedLevels = [...currentLevels];
+      updatedLevels[bottleIndex] = newLevel;
+      
+      // Calculate average and update position
+      const averageLevel = Math.round(updatedLevels.reduce((sum, level) => sum + level, 0) / updatedLevels.length);
+      
+      // Update the position consumption based on average
+      if (selectedItem) {
+        const position = selectedItem.positions.find((p: any) => p.id === positionId);
+        if (position) {
+          const consumed = Math.round((position.quantity * (100 - averageLevel)) / 100);
+          updatePositionConsumption(selectedItem.id, positionId, consumed);
+        }
+      }
+      
+      return { ...prev, [positionId]: updatedLevels };
+    });
+  };
+
+  // Set all bottles to same level
+  const setAllBottles = (positionId: string, quantity: number, level: number) => {
+    const levels = Array(quantity).fill(level);
+    setBottleLevels(prev => ({ ...prev, [positionId]: levels }));
+    
+    // Update position
+    if (selectedItem) {
+      const position = selectedItem.positions.find((p: any) => p.id === positionId);
+      if (position) {
+        const consumed = Math.round((position.quantity * (100 - level)) / 100);
+        updatePositionConsumption(selectedItem.id, positionId, consumed);
+      }
+    }
   };
 
   // Update position with percentage (for alcohol) or discrete count (for other items)
@@ -270,7 +320,7 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Level Update Modal - UPDATED WITH SIMPLER TABLE */}
+      {/* Level Update Modal - INDIVIDUAL BOTTLE SLIDERS */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
@@ -306,11 +356,11 @@ export default function InventoryPage() {
               <p className="text-gray-600">Overall Level</p>
             </div>
 
-            {/* Position Breakdown - SIMPLIFIED VERSION */}
+            {/* Position Breakdown - INDIVIDUAL BOTTLE CONTROLS */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900">
-                  {isAlcoholItem(selectedItem) ? 'Alcohol Levels by Bottle' : 'Update by Position'}
+                  {isAlcoholItem(selectedItem) ? 'Individual Bottle Levels' : 'Update by Position'}
                 </h3>
                 <span className="text-xs text-gray-600">
                   Unit: {selectedItem.positions?.[0]?.unitOfMeasure || 'units'}
@@ -318,64 +368,97 @@ export default function InventoryPage() {
               </div>
               
             {isAlcoholItem(selectedItem) ? (
-                // Alcohol Items - Average Percentage Sliders
-                <div className="space-y-4">
+                // Alcohol Items - Individual Bottle Sliders
+                <div className="space-y-6">
                   {selectedItem.positions.map((position: any) => {
-                    const averageLevel = position.bottleLevels 
-                      ? Math.round(position.bottleLevels.reduce((sum: number, level: number) => sum + level, 0) / position.bottleLevels.length)
-                      : Math.round((position.available / position.quantity) * 100);
+                    const currentLevels = initializeBottleLevels(
+                      position.id, 
+                      position.quantity, 
+                      Math.round((position.available / position.quantity) * 100)
+                    );
+                    const averageLevel = Math.round(currentLevels.reduce((sum: number, level: number) => sum + level, 0) / currentLevels.length);
                     
                     return (
-                      <div key={position.id} className={`p-4 border rounded-lg ${getStockLevelBg(averageLevel)}`}>
-                        <div className="flex items-center justify-between mb-3">
+                      <div key={position.id} className={`p-4 border-2 rounded-lg ${getStockLevelBg(averageLevel)}`}>
+                        <div className="flex items-center justify-between mb-4">
                           <div>
-                            <div className="font-medium text-gray-900">{position.positionCode}</div>
+                            <div className="font-medium text-gray-900 text-lg">{position.positionCode}</div>
                             <div className="text-sm text-gray-600">{position.galleyName} - {position.trolleyName}</div>
-                            <div className="text-sm text-blue-600">{position.quantity} bottles • Average Level</div>
                           </div>
-                          <div className={`px-3 py-1 rounded-lg text-lg font-bold ${getStockLevelColor(averageLevel)}`}>
+                          <div className={`px-3 py-2 rounded-lg text-xl font-bold ${getStockLevelColor(averageLevel)}`}>
                             {averageLevel}%
                           </div>
                         </div>
                         
-                        {/* Average Level Slider */}
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-4">
-                            <div className="flex-1">
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                value={averageLevel}
-                                onChange={(e) => {
-                                  const newPercentage = parseInt(e.target.value);
-                                  updatePositionLevel(selectedItem.id, position.id, newPercentage, true);
-                                }}
-                                className="w-full h-3 rounded-lg cursor-pointer"
-                                style={{
-                                  background: `linear-gradient(to right, 
-                                    #ef4444 0%, #ef4444 25%, 
-                                    #f59e0b 25%, #f59e0b 50%, 
-                                    #eab308 50%, #eab308 75%, 
-                                    #10b981 75%, #10b981 100%)`
-                                }}
-                              />
-                            </div>
-                            <div className="text-sm text-gray-600 min-w-[60px]">
-                              {averageLevel}% Full
-                            </div>
-                          </div>
-                          
-                          {/* Slider Scale Labels */}
-                          <div className="flex justify-between text-xs text-gray-500 px-1">
-                            <span>Empty</span>
-                            <span>25%</span>
-                            <span>50%</span>
-                            <span>75%</span>
-                            <span>Full</span>
-                          </div>
+                        {/* Quick Set All Buttons */}
+                        <div className="mb-4 flex space-x-2">
+                          <button
+                            onClick={() => setAllBottles(position.id, position.quantity, 0)}
+                            className="flex-1 bg-red-100 text-red-700 py-2 px-3 rounded text-xs font-medium hover:bg-red-200 transition-colors"
+                          >
+                            All Empty
+                          </button>
+                          <button
+                            onClick={() => setAllBottles(position.id, position.quantity, 50)}
+                            className="flex-1 bg-orange-100 text-orange-700 py-2 px-3 rounded text-xs font-medium hover:bg-orange-200 transition-colors"
+                          >
+                            All Half
+                          </button>
+                          <button
+                            onClick={() => setAllBottles(position.id, position.quantity, 75)}
+                            className="flex-1 bg-yellow-100 text-yellow-700 py-2 px-3 rounded text-xs font-medium hover:bg-yellow-200 transition-colors"
+                          >
+                            All Mostly
+                          </button>
+                          <button
+                            onClick={() => setAllBottles(position.id, position.quantity, 100)}
+                            className="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded text-xs font-medium hover:bg-green-200 transition-colors"
+                          >
+                            All Full
+                          </button>
                         </div>
-                        
+
+                        {/* Individual Bottle Sliders */}
+                        <div className="space-y-3">
+                          {Array.from({ length: position.quantity }).map((_, index) => {
+                            const bottleLevel = currentLevels[index] || 100;
+                            return (
+                              <div key={index} className="bg-white p-3 rounded-lg border border-gray-200">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center space-x-2">
+                                    <i className="ri-wine-bottle-line text-purple-600"></i>
+                                    <span className="font-medium text-sm">Bottle {index + 1}</span>
+                                  </div>
+                                  <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(bottleLevel)}`}>
+                                    {bottleLevel}%
+                                  </span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={bottleLevel}
+                                  onChange={(e) => updateBottleLevel(position.id, index, parseInt(e.target.value))}
+                                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                                  style={{
+                                    background: `linear-gradient(to right, 
+                                      #ef4444 0%, #ef4444 ${bottleLevel * 0.25}%, 
+                                      #f59e0b ${bottleLevel * 0.25}%, #f59e0b ${bottleLevel * 0.50}%, 
+                                      #eab308 ${bottleLevel * 0.50}%, #eab308 ${bottleLevel * 0.75}%, 
+                                      #10b981 ${bottleLevel * 0.75}%, #10b981 ${bottleLevel}%,
+                                      #e5e7eb ${bottleLevel}%, #e5e7eb 100%)`
+                                  }}
+                                />
+                                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                  <span>Empty</span>
+                                  <span>Half</span>
+                                  <span>Full</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
                         {/* Position Summary */}
                         <div className="mt-4 grid grid-cols-3 gap-4 text-center text-sm bg-gray-50 p-3 rounded">
                           <div>
@@ -391,40 +474,12 @@ export default function InventoryPage() {
                             <div className="text-gray-600">Equivalent Consumed</div>
                           </div>
                         </div>
-
-                        {/* Quick Preset Buttons */}
-                        <div className="mt-3 flex space-x-2">
-                          <button
-                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 100, true)}
-                            className="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded text-xs font-medium hover:bg-green-200 transition-colors"
-                          >
-                            Full (100%)
-                          </button>
-                          <button
-                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 75, true)}
-                            className="flex-1 bg-yellow-100 text-yellow-700 py-2 px-3 rounded text-xs font-medium hover:bg-yellow-200 transition-colors"
-                          >
-                            Mostly (75%)
-                          </button>
-                          <button
-                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 50, true)}
-                            className="flex-1 bg-orange-100 text-orange-700 py-2 px-3 rounded text-xs font-medium hover:bg-orange-200 transition-colors"
-                          >
-                            Half (50%)
-                          </button>
-                          <button
-                            onClick={() => updatePositionLevel(selectedItem.id, position.id, 0, true)}
-                            className="flex-1 bg-red-100 text-red-700 py-2 px-3 rounded text-xs font-medium hover:bg-red-200 transition-colors"
-                          >
-                            Empty (0%)
-                          </button>
-                        </div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                // Non-Alcohol Items - SIMPLIFIED TABLE (matching Items page style)
+                // Non-Alcohol Items - TABLE
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <div className="bg-gray-800 text-white">
                     <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
