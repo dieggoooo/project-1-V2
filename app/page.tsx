@@ -81,11 +81,13 @@ export default function Home() {
   ];
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const itemDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          itemDropdownRef.current && !itemDropdownRef.current.contains(event.target as Node)) {
         setOpenDropdown(null);
       }
     };
@@ -112,8 +114,18 @@ export default function Home() {
   };
 
   const handleOptionSelect = (field: keyof FlightData, option: DropdownOption) => {
-    setFlightData(prev => ({ ...prev, [field]: option.value }));
-    setSearchTerms(prev => ({ ...prev, [field]: option.value }));
+    console.log('Option selected:', field, option.value); // Debug log
+    // Update both the flight data and the search term to show the selected value
+    setFlightData(prev => {
+      const updated = { ...prev, [field]: option.value };
+      console.log('Updated flightData:', updated); // Debug log
+      return updated;
+    });
+    setSearchTerms(prev => {
+      const updated = { ...prev, [field]: option.value };
+      console.log('Updated searchTerms:', updated); // Debug log
+      return updated;
+    });
     setOpenDropdown(null);
   };
 
@@ -157,8 +169,13 @@ export default function Home() {
               filteredOptions.map((option, index) => (
                 <button
                   key={`${field}-${option.value}-${index}`}
-                  onClick={() => handleOptionSelect(field, option)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleOptionSelect(field, option);
+                  }}
+                  type="button"
+                  className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none transition-colors"
                 >
                   <div className="font-medium text-gray-900">{option.value}</div>
                   <div className="text-sm text-gray-500">{option.label}</div>
@@ -183,9 +200,10 @@ export default function Home() {
       
       <div className="pt-16 pb-20 px-4">
         {/* Enhanced Flight Search Section */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm" ref={dropdownRef}>
-          <h2 className="text-lg font-semibold mb-4">Flight Search</h2>
-          <div className="space-y-4">
+        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
+          <div ref={dropdownRef}>
+            <h2 className="text-lg font-semibold mb-4">Flight Search</h2>
+            <div className="space-y-4">
             {/* Aircraft Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -244,13 +262,14 @@ export default function Home() {
               </div>
             )}
           </div>
+          </div>
         </div>
 
         {/* Quick Item Lookup */}
         <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Quick Item Lookup</h2>
           
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative" ref={itemDropdownRef}>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <i className="ri-search-line text-gray-400"></i>

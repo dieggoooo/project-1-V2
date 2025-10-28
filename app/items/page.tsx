@@ -835,8 +835,13 @@ function ItemSearchContent() {
               <Link href={`/galley?item=${selectedItem.id}`} className="flex-1 bg-blue-600 text-white py-3 rounded-lg text-center font-medium" onClick={() => setSelectedItem(null)}>
                 View on Map
               </Link>
-              <Link href="/issues" className="px-6 py-3 border border-orange-200 bg-orange-50 text-orange-700 rounded-lg font-medium hover:bg-orange-100 transition-colors" onClick={() => setSelectedItem(null)}>
-                Report Issue
+              <Link 
+                href={`/issues?item=${selectedItem.code}&name=${encodeURIComponent(selectedItem.name)}`} 
+                className="flex-1 border-2 border-red-500 text-red-600 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors flex items-center justify-center space-x-2" 
+                onClick={() => setSelectedItem(null)}
+              >
+                <i className="ri-error-warning-line"></i>
+                <span>Report Issue</span>
               </Link>
             </div>
           </div>

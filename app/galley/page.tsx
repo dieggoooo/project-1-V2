@@ -675,7 +675,7 @@ function GalleyMapContent() {
         </div>
       )}
 
-      {/* Enhanced Trolley Modal */}
+      {/* Enhanced Trolley Modal - UPDATED FOOTER */}
       {selectedTrolley && (
         <div className="fixed inset-0 bg-black/50 z-[70] flex items-end">
           <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-hidden">
@@ -876,28 +876,16 @@ function GalleyMapContent() {
               </div>
             </div>
 
-            <div className="p-6 pt-4 border-t bg-gray-50">
-              <div className="flex space-x-3">
-                <Link
-                  href="/issues"
-                  className="flex-1 flex items-center justify-center py-3 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-orange-200"
-                  onClick={() => setSelectedTrolley(null)}
-                >
-                  <i className="ri-error-warning-line mr-2"></i>
-                  Report Issue
-                </Link>
-                {selectedTrolley.hasConfiguration && (
-                  <button
-                    onClick={() => {
-                      console.log('Edit configuration for', selectedTrolley.id);
-                    }}
-                    className="flex-1 flex items-center justify-center py-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
-                  >
-                    <i className="ri-edit-line mr-2"></i>
-                    Edit Configuration
-                  </button>
-                )}
-              </div>
+            {/* UPDATED FOOTER - Only Report Issue button with reduced padding */}
+            <div className="p-2 pt-3 border-t bg-gray-50">
+              <Link
+                href="/issues"
+                className="w-full flex items-center justify-center py-3 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-orange-200 font-medium"
+                onClick={() => setSelectedTrolley(null)}
+              >
+                <i className="ri-error-warning-line mr-2"></i>
+                Report Issue
+              </Link>
             </div>
           </div>
         </div>

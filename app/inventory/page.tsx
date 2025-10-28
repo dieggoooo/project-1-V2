@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import { useInventory } from '../contexts/InventoryContext';
@@ -867,12 +868,22 @@ export default function InventoryPage() {
               )}
             </div>
 
-            <button
-              onClick={() => setSelectedItem(null)}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium"
-            >
-              Save Changes
-            </button>
+            {/* Action Buttons */}
+            <div className="flex space-x-3 mt-4">
+              <Link
+                href={`/issues?item=${selectedItem.code}&name=${encodeURIComponent(selectedItem.name)}`}
+                className="flex-1 border-2 border-red-500 text-red-600 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors flex items-center justify-center space-x-2"
+              >
+                <i className="ri-error-warning-line"></i>
+                <span>Report Issue</span>
+              </Link>
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </div>
       )}
