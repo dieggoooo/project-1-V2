@@ -29,6 +29,38 @@ export default function InventoryPage() {
     trolleyName: ''
   });
 
+  // Get unique items for dropdown (grouped by name)
+  const uniqueItems = Array.from(
+    new Map(items.map(item => [item.name, item])).values()
+  );
+
+  // Handle item selection from dropdown
+  const handleItemSelection = (itemName: string) => {
+    const selectedExistingItem = items.find(item => item.name === itemName);
+    if (selectedExistingItem) {
+      setNewItem({
+        ...newItem,
+        name: selectedExistingItem.name,
+        code: selectedExistingItem.code,
+        category: selectedExistingItem.category,
+        subcategory: selectedExistingItem.subcategory || '',
+        type: selectedExistingItem.type,
+        unitOfMeasure: selectedExistingItem.positions[0]?.unitOfMeasure || 'units',
+      });
+    } else {
+      // Custom item - reset auto-populated fields
+      setNewItem({
+        ...newItem,
+        name: itemName,
+        code: '',
+        category: 'beverages',
+        subcategory: '',
+        type: 'Supplies',
+        unitOfMeasure: 'units',
+      });
+    }
+  };
+
   const getLevelColor = (level: number) => {
     if (level >= 70) return 'text-green-600 bg-green-100';
     if (level >= 40) return 'text-orange-600 bg-orange-100';
@@ -132,7 +164,8 @@ export default function InventoryPage() {
 
   // Handle add item form submission
   const handleAddItem = () => {
-    if (!newItem.name || !newItem.code || !newItem.positionCode) {
+    // Check if custom item was selected but name not entered
+    if (newItem.name === '__custom__' || !newItem.name || !newItem.code || !newItem.positionCode) {
       alert('Please fill in all required fields');
       return;
     }
@@ -381,21 +414,39 @@ export default function InventoryPage() {
             </div>
 
             <div className="space-y-4">
-              {/* Item Name */}
+              {/* Item Name - Dropdown with Custom Option */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Item Name <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={newItem.name}
-                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  placeholder="e.g., Premium Coffee Blend"
+                  onChange={(e) => handleItemSelection(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
+                  <option value="">Select an item...</option>
+                  {uniqueItems.map((item) => (
+                    <option key={item.id} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+                  <option value="__custom__">+ Add Custom Item</option>
+                </select>
+                
+                {/* Custom Item Name Input */}
+                {newItem.name === '__custom__' && (
+                  <input
+                    type="text"
+                    value=""
+                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                    placeholder="Enter custom item name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2"
+                    autoFocus
+                  />
+                )}
               </div>
 
-              {/* Item Code */}
+              {/* Item Code - Auto-populated or editable */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Item Code <span className="text-red-500">*</span>
@@ -405,11 +456,15 @@ export default function InventoryPage() {
                   value={newItem.code}
                   onChange={(e) => setNewItem({ ...newItem, code: e.target.value.toUpperCase() })}
                   placeholder="e.g., COF0001"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                  disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                 />
+                {newItem.name !== '' && newItem.name !== '__custom__' && (
+                  <p className="text-xs text-gray-500 mt-1">Auto-populated from selected item</p>
+                )}
               </div>
 
-              {/* Category & Type */}
+              {/* Category & Type - Auto-populated or editable */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -418,7 +473,8 @@ export default function InventoryPage() {
                   <select
                     value={newItem.category}
                     onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="beverages">Beverages</option>
                     <option value="snacks">Snacks</option>
@@ -426,6 +482,9 @@ export default function InventoryPage() {
                     <option value="supplies">Supplies</option>
                     <option value="equipment">Equipment</option>
                   </select>
+                  {newItem.name !== '' && newItem.name !== '__custom__' && (
+                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
+                  )}
                 </div>
 
                 <div>
@@ -435,7 +494,8 @@ export default function InventoryPage() {
                   <select
                     value={newItem.type}
                     onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="Supplies">Supplies</option>
                     <option value="Alcohol">Alcohol</option>
@@ -447,10 +507,13 @@ export default function InventoryPage() {
                     <option value="Food">Food</option>
                     <option value="Equipment">Equipment</option>
                   </select>
+                  {newItem.name !== '' && newItem.name !== '__custom__' && (
+                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
+                  )}
                 </div>
               </div>
 
-              {/* Subcategory (optional for beverages) */}
+              {/* Subcategory (optional for beverages) - Auto-populated or editable */}
               {newItem.category === 'beverages' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -459,7 +522,8 @@ export default function InventoryPage() {
                   <select
                     value={newItem.subcategory}
                     onChange={(e) => setNewItem({ ...newItem, subcategory: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="">None</option>
                     <option value="alcoholic">Alcoholic</option>
@@ -469,10 +533,13 @@ export default function InventoryPage() {
                     <option value="soda">Soda</option>
                     <option value="water">Water</option>
                   </select>
+                  {newItem.name !== '' && newItem.name !== '__custom__' && (
+                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
+                  )}
                 </div>
               )}
 
-              {/* Quantity & Unit */}
+              {/* Quantity & Unit - Unit auto-populated */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -494,7 +561,8 @@ export default function InventoryPage() {
                   <select
                     value={newItem.unitOfMeasure}
                     onChange={(e) => setNewItem({ ...newItem, unitOfMeasure: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="bottles">Bottles</option>
                     <option value="cans">Cans</option>
@@ -505,6 +573,9 @@ export default function InventoryPage() {
                     <option value="pieces">Pieces</option>
                     <option value="packs">Packs</option>
                   </select>
+                  {newItem.name !== '' && newItem.name !== '__custom__' && (
+                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
+                  )}
                 </div>
               </div>
 
