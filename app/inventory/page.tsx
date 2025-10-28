@@ -10,9 +10,24 @@ export default function InventoryPage() {
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [bottleLevels, setBottleLevels] = useState<{ [key: string]: number[] }>({});
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
   
   // Use the unified inventory system
-  const { items, toggleItemChecked, getItemTotals, updatePositionConsumption } = useInventory();
+  const { items, toggleItemChecked, getItemTotals, updatePositionConsumption, addItem } = useInventory();
+
+  // Form state for new item
+  const [newItem, setNewItem] = useState({
+    name: '',
+    code: '',
+    category: 'beverages',
+    subcategory: '',
+    type: 'Supplies',
+    unitOfMeasure: 'units',
+    quantity: 1,
+    positionCode: '',
+    galleyName: '',
+    trolleyName: ''
+  });
 
   const getLevelColor = (level: number) => {
     if (level >= 70) return 'text-green-600 bg-green-100';
@@ -59,7 +74,6 @@ export default function InventoryPage() {
   // Initialize bottle levels for a position
   const initializeBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
     if (!bottleLevels[positionId]) {
-      // Initialize all bottles to the current average level
       const levels = Array(quantity).fill(availablePercentage);
       setBottleLevels(prev => ({ ...prev, [positionId]: levels }));
       return levels;
@@ -74,10 +88,8 @@ export default function InventoryPage() {
       const updatedLevels = [...currentLevels];
       updatedLevels[bottleIndex] = newLevel;
       
-      // Calculate average and update position
       const averageLevel = Math.round(updatedLevels.reduce((sum, level) => sum + level, 0) / updatedLevels.length);
       
-      // Update the position consumption based on average
       if (selectedItem) {
         const position = selectedItem.positions.find((p: any) => p.id === positionId);
         if (position) {
@@ -95,7 +107,6 @@ export default function InventoryPage() {
     const levels = Array(quantity).fill(level);
     setBottleLevels(prev => ({ ...prev, [positionId]: levels }));
     
-    // Update position
     if (selectedItem) {
       const position = selectedItem.positions.find((p: any) => p.id === positionId);
       if (position) {
@@ -108,7 +119,6 @@ export default function InventoryPage() {
   // Update position with percentage (for alcohol) or discrete count (for other items)
   const updatePositionLevel = (itemId: number, positionId: string, newValue: number, isPercentage: boolean = false) => {
     if (isPercentage) {
-      // For alcohol - newValue is the percentage remaining (0-100)
       const item = items.find(i => i.id === itemId);
       const position = item?.positions.find((p: any) => p.id === positionId);
       if (position) {
@@ -116,9 +126,46 @@ export default function InventoryPage() {
         updatePositionConsumption(itemId, positionId, consumed);
       }
     } else {
-      // For non-alcohol - newValue is consumed count
       updatePositionConsumption(itemId, positionId, newValue);
     }
+  };
+
+  // Handle add item form submission
+  const handleAddItem = () => {
+    if (!newItem.name || !newItem.code || !newItem.positionCode) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    addItem({
+      name: newItem.name,
+      code: newItem.code,
+      category: newItem.category,
+      subcategory: newItem.subcategory,
+      type: newItem.type,
+      quantity: newItem.quantity,
+      unitOfMeasure: newItem.unitOfMeasure,
+      positionCode: newItem.positionCode,
+      galleyName: newItem.galleyName,
+      trolleyName: newItem.trolleyName
+    });
+
+    // Reset form
+    setNewItem({
+      name: '',
+      code: '',
+      category: 'beverages',
+      subcategory: '',
+      type: 'Supplies',
+      unitOfMeasure: 'units',
+      quantity: 1,
+      positionCode: '',
+      galleyName: '',
+      trolleyName: ''
+    });
+
+    setShowAddItemModal(false);
+    alert('Item added successfully!');
   };
 
   const filteredItems = items.filter(item => {
@@ -277,24 +324,7 @@ export default function InventoryPage() {
                       ></div>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        {isAlcohol ? (
-                          <>
-                            {totals.totalAvailable} available of {totals.totalQuantity}
-                            {item.positions.length > 1 && (
-                              <span className="ml-2 text-blue-600">({item.positions.length} bottles)</span>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            {totals.totalAvailable} available of {totals.totalQuantity}
-                            {item.positions.length > 1 && (
-                              <span className="ml-2 text-blue-600">({item.positions.length} locations)</span>
-                            )}
-                          </>
-                        )}
-                      </span>
+                    <div className="flex items-center justify-end">
                       <button
                         onClick={() => setSelectedItem(item)}
                         className="text-sm text-blue-600 hover:text-blue-800"
@@ -307,6 +337,22 @@ export default function InventoryPage() {
               </div>
             );
           })}
+
+          {/* Add Item Card */}
+          <button
+            onClick={() => setShowAddItemModal(true)}
+            className="w-full bg-white rounded-xl p-6 shadow-sm border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+          >
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                <i className="ri-add-line text-blue-600 text-2xl"></i>
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Add New Item</div>
+                <div className="text-sm text-gray-600">Add an item to this inventory</div>
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* Action Buttons */}
@@ -320,7 +366,212 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Level Update Modal - INDIVIDUAL BOTTLE SLIDERS */}
+      {/* Add Item Modal */}
+      {showAddItemModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold">Add New Item</h2>
+              <button
+                onClick={() => setShowAddItemModal(false)}
+                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+              >
+                <i className="ri-close-line text-gray-600"></i>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Item Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Item Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  placeholder="e.g., Premium Coffee Blend"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Item Code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Item Code <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newItem.code}
+                  onChange={(e) => setNewItem({ ...newItem, code: e.target.value.toUpperCase() })}
+                  placeholder="e.g., COF0001"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Category & Type */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={newItem.category}
+                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="beverages">Beverages</option>
+                    <option value="snacks">Snacks</option>
+                    <option value="meals">Meals</option>
+                    <option value="supplies">Supplies</option>
+                    <option value="equipment">Equipment</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type
+                  </label>
+                  <select
+                    value={newItem.type}
+                    onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="Supplies">Supplies</option>
+                    <option value="Alcohol">Alcohol</option>
+                    <option value="Champagne">Champagne</option>
+                    <option value="Cognac">Cognac</option>
+                    <option value="Whisky">Whisky</option>
+                    <option value="Vodka">Vodka</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Food">Food</option>
+                    <option value="Equipment">Equipment</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Subcategory (optional for beverages) */}
+              {newItem.category === 'beverages' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subcategory (Optional)
+                  </label>
+                  <select
+                    value={newItem.subcategory}
+                    onChange={(e) => setNewItem({ ...newItem, subcategory: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">None</option>
+                    <option value="alcoholic">Alcoholic</option>
+                    <option value="non-alcoholic">Non-Alcoholic</option>
+                    <option value="hot-drinks">Hot Drinks</option>
+                    <option value="juice">Juice</option>
+                    <option value="soda">Soda</option>
+                    <option value="water">Water</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Quantity & Unit */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Unit of Measure
+                  </label>
+                  <select
+                    value={newItem.unitOfMeasure}
+                    onChange={(e) => setNewItem({ ...newItem, unitOfMeasure: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="bottles">Bottles</option>
+                    <option value="cans">Cans</option>
+                    <option value="bags">Bags</option>
+                    <option value="boxes">Boxes</option>
+                    <option value="servings">Servings</option>
+                    <option value="units">Units</option>
+                    <option value="pieces">Pieces</option>
+                    <option value="packs">Packs</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Position Code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Position Code <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newItem.positionCode}
+                  onChange={(e) => setNewItem({ ...newItem, positionCode: e.target.value.toUpperCase() })}
+                  placeholder="e.g., 1F1C01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Galley & Trolley */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Galley Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newItem.galleyName}
+                    onChange={(e) => setNewItem({ ...newItem, galleyName: e.target.value })}
+                    placeholder="e.g., Forward Galley"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Trolley Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newItem.trolleyName}
+                    onChange={(e) => setNewItem({ ...newItem, trolleyName: e.target.value })}
+                    placeholder="e.g., Trolley 1/1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={() => setShowAddItemModal(false)}
+                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddItem}
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Add Item
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Level Update Modal - INDIVIDUAL BOTTLE CONTROLS */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">

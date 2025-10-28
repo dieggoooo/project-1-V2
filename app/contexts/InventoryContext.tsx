@@ -37,6 +37,18 @@ interface InventoryContextType {
     totalAvailable: number;
     totalPercentage: number;
   };
+  addItem: (newItemData: {
+    name: string;
+    code: string;
+    category: string;
+    subcategory?: string;
+    type: string;
+    quantity: number;
+    unitOfMeasure: string;
+    positionCode: string;
+    galleyName: string;
+    trolleyName: string;
+  }) => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -334,11 +346,53 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     return { totalQuantity, totalConsumed, totalAvailable, totalPercentage };
   };
 
+  const addItem = (newItemData: {
+    name: string;
+    code: string;
+    category: string;
+    subcategory?: string;
+    type: string;
+    quantity: number;
+    unitOfMeasure: string;
+    positionCode: string;
+    galleyName: string;
+    trolleyName: string;
+  }) => {
+    const newId = Math.max(...items.map(item => item.id), 0) + 1;
+    
+    const newItem: InventoryItem = {
+      id: newId,
+      name: newItemData.name,
+      code: newItemData.code,
+      category: newItemData.category,
+      subcategory: newItemData.subcategory,
+      type: newItemData.type,
+      common: false,
+      checked: false,
+      positions: [
+        {
+          id: '1',
+          positionCode: newItemData.positionCode,
+          quantity: newItemData.quantity,
+          consumed: 0,
+          available: newItemData.quantity,
+          percentageAvailable: 100,
+          unitOfMeasure: newItemData.unitOfMeasure,
+          galleyName: newItemData.galleyName,
+          trolleyName: newItemData.trolleyName
+        }
+      ]
+    };
+
+    setItems(prevItems => [...prevItems, newItem]);
+  };
+
   const contextValue: InventoryContextType = {
     items,
     updatePositionConsumption,
     toggleItemChecked,
     getItemTotals,
+    addItem,
   };
 
   return (
