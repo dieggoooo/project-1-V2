@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
  
 import { useState, Suspense, useMemo, useEffect } from 'react';
@@ -169,11 +170,11 @@ function ItemSearchContent() {
     });
 
     return suggestions.slice(0, 8); // Limit to 8 suggestions
-  }, [searchTerm, items]);
+  }, [searchTerm, items, categories]);
 
   // Enhanced filtering with search, category, and sorting
   const filteredAndSortedItems = useMemo(() => {
-    let filtered = items.filter((item: InventoryItem) => {
+    const filtered = items.filter((item: InventoryItem) => {
       const matchesSearch = !searchTerm || 
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
