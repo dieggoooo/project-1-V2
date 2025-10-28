@@ -270,7 +270,7 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Level Update Modal */}
+      {/* Level Update Modal - UPDATED WITH SIMPLER TABLE */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
@@ -306,14 +306,19 @@ export default function InventoryPage() {
               <p className="text-gray-600">Overall Level</p>
             </div>
 
-            {/* Position Breakdown */}
+            {/* Position Breakdown - SIMPLIFIED VERSION */}
             <div className="mb-6">
-              <h3 className="font-medium text-gray-900 mb-3">
-                {isAlcoholItem(selectedItem) ? 'Alcohol Levels by Bottle' : 'Update by Position'}
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium text-gray-900">
+                  {isAlcoholItem(selectedItem) ? 'Alcohol Levels by Bottle' : 'Update by Position'}
+                </h3>
+                <span className="text-xs text-gray-600">
+                  Unit: {selectedItem.positions?.[0]?.unitOfMeasure || 'units'}
+                </span>
+              </div>
               
             {isAlcoholItem(selectedItem) ? (
-                // Alcohol Items - Average Percentage Sliders (Option A)
+                // Alcohol Items - Average Percentage Sliders
                 <div className="space-y-4">
                   {selectedItem.positions.map((position: any) => {
                     const averageLevel = position.bottleLevels 
@@ -419,16 +424,15 @@ export default function InventoryPage() {
                   })}
                 </div>
               ) : (
-                // Non-Alcohol Items - Regular Table
+                // Non-Alcohol Items - SIMPLIFIED TABLE (matching Items page style)
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <div className="bg-gray-800 text-white">
-                    <div className="grid grid-cols-6 gap-2 p-3 text-sm font-medium">
+                    <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
                       <div>Position</div>
                       <div className="text-center">QTY</div>
-                      <div className="text-center">Unit</div>
-                      <div className="text-center">Consumed</div>
-                      <div className="text-center">Available</div>
-                      <div className="text-center">% Available</div>
+                      <div className="text-center">Used</div>
+                      <div className="text-center">Avail</div>
+                      <div className="text-center">%</div>
                     </div>
                   </div>
                   
@@ -436,11 +440,10 @@ export default function InventoryPage() {
                     {selectedItem.positions.map((position: any) => (
                       <div 
                         key={position.id} 
-                        className={`grid grid-cols-6 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                        className={`grid grid-cols-5 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
                       >
                         <div className="font-medium text-gray-900">{position.positionCode}</div>
                         <div className="text-center text-gray-700">{position.quantity}</div>
-                        <div className="text-center text-gray-700">{position.unitOfMeasure}</div>
                         <div className="text-center">
                           <input
                             type="number"
@@ -468,10 +471,9 @@ export default function InventoryPage() {
                       const totals = getItemTotals(selectedItem.id);
                       return (
                         <div className="bg-gray-100 border-t-2 border-gray-300">
-                          <div className="grid grid-cols-6 gap-2 p-3 text-sm font-bold">
+                          <div className="grid grid-cols-5 gap-2 p-3 text-sm font-bold">
                             <div className="text-gray-900">TOTAL</div>
                             <div className="text-center text-gray-900">{totals.totalQuantity}</div>
-                            <div className="text-center text-gray-700">-</div>
                             <div className="text-center text-gray-900">{totals.totalConsumed}</div>
                             <div className="text-center text-gray-900">{totals.totalAvailable}</div>
                             <div className="text-center">

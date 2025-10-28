@@ -93,6 +93,7 @@ export default function Home() {
   const handleInputChange = (field: keyof FlightData, value: string) => {
     setSearchTerms(prev => ({ ...prev, [field]: value }));
     setFlightData(prev => ({ ...prev, [field]: value }));
+    setOpenDropdown(field); // Open dropdown when typing
   };
 
   const handleOptionSelect = (field: keyof FlightData, option: DropdownOption) => {
@@ -117,7 +118,7 @@ export default function Home() {
     const filteredOptions = getFilteredOptions(field, options);
 
     return (
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <i className={`${icon} text-gray-400`}></i>
@@ -130,7 +131,7 @@ export default function Home() {
             onFocus={() => setOpenDropdown(field)}
             className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
             <i className={`ri-arrow-${isOpen ? 'up' : 'down'}-s-line text-gray-400 transition-transform`}></i>
           </div>
         </div>
@@ -140,7 +141,7 @@ export default function Home() {
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option, index) => (
                 <button
-                  key={option.value}
+                  key={`${field}-${option.value}-${index}`}
                   onClick={() => handleOptionSelect(field, option)}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none"
                 >
@@ -167,7 +168,7 @@ export default function Home() {
       
       <div className="pt-16 pb-20 px-4">
         {/* Enhanced Flight Search Section */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm" ref={dropdownRef}>
           <h2 className="text-lg font-semibold mb-4">Flight Search</h2>
           <div className="space-y-4">
             {/* Aircraft Number */}
