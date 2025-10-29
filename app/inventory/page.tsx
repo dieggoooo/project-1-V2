@@ -149,20 +149,6 @@ export default function InventoryPage() {
     }
   };
 
-  // Update position with percentage (for alcohol) or discrete count (for other items)
-  const updatePositionLevel = (itemId: number, positionId: string, newValue: number, isPercentage: boolean = false) => {
-    if (isPercentage) {
-      const item = items.find(i => i.id === itemId);
-      const position = item?.positions.find((p: any) => p.id === positionId);
-      if (position) {
-        const consumed = Math.round((position.quantity * (100 - newValue)) / 100);
-        updatePositionConsumption(itemId, positionId, consumed);
-      }
-    } else {
-      updatePositionConsumption(itemId, positionId, newValue);
-    }
-  };
-
   // Handle add item form submission
   const handleAddItem = () => {
     // Check if custom item was selected but name not entered
@@ -802,7 +788,7 @@ export default function InventoryPage() {
                   })}
                 </div>
               ) : (
-                // Non-Alcohol Items - TABLE
+                // Non-Alcohol Items - TABLE WITH FIXED INPUT
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <div className="bg-gray-800 text-white">
                     <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
@@ -830,7 +816,25 @@ export default function InventoryPage() {
                             value={position.consumed}
                             onChange={(e) => {
                               const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
-                              updatePositionLevel(selectedItem.id, position.id, newConsumed, false);
+                              // Update the context
+                              updatePositionConsumption(selectedItem.id, position.id, newConsumed);
+                              // Also update the local selectedItem state to reflect changes immediately
+                              setSelectedItem((prev: any) => {
+                                if (!prev) return prev;
+                                return {
+                                  ...prev,
+                                  positions: prev.positions.map((p: any) => 
+                                    p.id === position.id 
+                                      ? {
+                                          ...p,
+                                          consumed: newConsumed,
+                                          available: p.quantity - newConsumed,
+                                          percentageAvailable: p.quantity > 0 ? Math.round(((p.quantity - newConsumed) / p.quantity) * 100) : 0
+                                        }
+                                      : p
+                                  )
+                                };
+                              });
                             }}
                             className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                           />
