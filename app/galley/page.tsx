@@ -430,7 +430,7 @@ function GalleyMapContent() {
       
       {selectedGalley ? (
         // Galley Detail View
-        <div className="pt-16 pb-20">
+        <div className="pb-20 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
           <div className="px-4 py-4 bg-white border-b">
             <div className="flex items-center mb-4">
               <button 

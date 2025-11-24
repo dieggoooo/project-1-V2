@@ -95,7 +95,7 @@ export default function Profile() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         
-        <div className="pt-16 pb-20 px-4">
+        <div className="pb-20 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
           <div className="max-w-md mx-auto">
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <div className="text-center mb-6">
@@ -175,7 +175,7 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pt-16 pb-20 px-4">
+      <div className="pb-20 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
         <div className="max-w-2xl mx-auto">
           {/* Profile Header */}
           <div className="bg-white rounded-xl p-6 shadow-sm mb-6">

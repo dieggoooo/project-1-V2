@@ -3,7 +3,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Add this to your app/globals.css file */
+/* Safe area support for iOS notch/Dynamic Island */
+@supports (padding: max(0px)) {
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 1rem);
+  }
+  
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* Fallback for non-iOS devices */
+.pt-safe {
+  padding-top: 1rem;
+}
+
+.pb-safe {
+  padding-bottom: 1rem;
+}
 
 /* Range slider styling */
 input[type="range"] {

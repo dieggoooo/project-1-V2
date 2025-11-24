@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   typescript: {
     // ignoreBuildErrors: true,
   },
+  // IMPORTANT: Add this for Capacitor
+  trailingSlash: true,
 };
 
 export default nextConfig;
