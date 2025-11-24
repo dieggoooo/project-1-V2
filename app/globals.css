@@ -3,6 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ======================
+   CREWGALLEY DESIGN SYSTEM
+   ====================== */
+
 /* Safe area support for iOS notch/Dynamic Island */
 @supports (padding: max(0px)) {
   .pt-safe {
@@ -23,7 +27,242 @@
   padding-bottom: 1rem;
 }
 
-/* Range slider styling */
+/* ======================
+   LAYOUT SPACING
+   ====================== */
+
+/* Consistent page spacing */
+.page-container {
+  @apply pt-28 pb-20 px-4;
+}
+
+/* Consistent section spacing */
+.section-spacing {
+  @apply mb-6;
+}
+
+/* ======================
+   CARDS & CONTAINERS
+   ====================== */
+
+/* Standard card */
+.card {
+  @apply bg-white rounded-xl shadow-sm;
+}
+
+/* Card with padding */
+.card-padded {
+  @apply bg-white rounded-xl shadow-sm p-4;
+}
+
+/* Card with hover effect */
+.card-hover {
+  @apply bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer;
+}
+
+/* Interactive card (for list items) */
+.card-interactive {
+  @apply bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow;
+}
+
+/* ======================
+   BUTTONS
+   ====================== */
+
+/* Primary button */
+.btn-primary {
+  @apply w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed;
+}
+
+/* Secondary button */
+.btn-secondary {
+  @apply w-full border-2 border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors;
+}
+
+/* Danger button */
+.btn-danger {
+  @apply w-full border-2 border-red-500 text-red-600 py-3 px-4 rounded-lg font-medium hover:bg-red-50 transition-colors;
+}
+
+/* Small button */
+.btn-sm {
+  @apply px-3 py-1.5 rounded-lg text-sm font-medium transition-colors;
+}
+
+/* Icon button */
+.btn-icon {
+  @apply w-8 h-8 rounded-full flex items-center justify-center transition-colors;
+}
+
+/* ======================
+   FORM INPUTS
+   ====================== */
+
+/* Standard input */
+.input {
+  @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+/* Input with icon */
+.input-icon {
+  @apply w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+/* Disabled input */
+.input-disabled {
+  @apply bg-gray-50 text-gray-500 cursor-not-allowed;
+}
+
+/* Select dropdown */
+.select {
+  @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none;
+}
+
+/* Textarea */
+.textarea {
+  @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none;
+}
+
+/* ======================
+   BADGES & PILLS
+   ====================== */
+
+/* Status badge base */
+.badge {
+  @apply px-2 py-1 rounded-full text-xs font-medium;
+}
+
+/* Stock level colors */
+.stock-full {
+  @apply bg-green-100 text-green-800;
+}
+
+.stock-medium {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.stock-low {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.stock-empty {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Severity colors */
+.severity-low {
+  @apply bg-green-100 text-green-700 border-green-200;
+}
+
+.severity-medium {
+  @apply bg-yellow-100 text-yellow-700 border-yellow-200;
+}
+
+.severity-high {
+  @apply bg-red-100 text-red-700 border-red-200;
+}
+
+/* Status colors */
+.status-open {
+  @apply bg-orange-100 text-orange-700;
+}
+
+.status-resolved {
+  @apply bg-green-100 text-green-700;
+}
+
+/* ======================
+   DROPDOWNS
+   ====================== */
+
+.dropdown {
+  @apply absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto;
+}
+
+.dropdown-item {
+  @apply w-full px-4 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors;
+}
+
+/* ======================
+   MODALS
+   ====================== */
+
+.modal-overlay {
+  @apply fixed inset-0 bg-black/50 z-50 flex items-end;
+}
+
+.modal-content {
+  @apply bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto;
+}
+
+.modal-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.modal-title {
+  @apply text-xl font-semibold text-gray-900;
+}
+
+.modal-close {
+  @apply w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors;
+}
+
+/* ======================
+   TABLES
+   ====================== */
+
+.table-container {
+  @apply bg-white border border-gray-200 rounded-lg overflow-hidden;
+}
+
+.table-header {
+  @apply bg-gray-800 text-white;
+}
+
+.table-header-row {
+  @apply grid gap-2 p-3 text-sm font-medium;
+}
+
+.table-row {
+  @apply grid gap-2 p-3 text-sm border-b border-gray-200 last:border-b-0;
+}
+
+.table-cell {
+  @apply text-gray-900;
+}
+
+.table-cell-center {
+  @apply text-center text-gray-900;
+}
+
+/* ======================
+   ICONS & AVATARS
+   ====================== */
+
+.icon-circle {
+  @apply rounded-full flex items-center justify-center;
+}
+
+.icon-sm {
+  @apply w-8 h-8;
+}
+
+.icon-md {
+  @apply w-10 h-10;
+}
+
+.icon-lg {
+  @apply w-12 h-12;
+}
+
+.icon-xl {
+  @apply w-16 h-16;
+}
+
+/* ======================
+   RANGE SLIDER
+   ====================== */
+
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -32,14 +271,12 @@ input[type="range"] {
   outline: none;
 }
 
-/* Slider track */
 input[type="range"]::-webkit-slider-track {
   height: 12px;
   border-radius: 6px;
   background: transparent;
 }
 
-/* Slider thumb (the blue circle you drag) */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -58,7 +295,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.1);
 }
 
-/* Firefox support */
 input[type="range"]::-moz-range-track {
   height: 12px;
   border-radius: 6px;
@@ -79,4 +315,59 @@ input[type="range"]::-moz-range-thumb {
 
 input[type="range"]::-moz-range-thumb:hover {
   background: #2563eb;
+}
+
+/* ======================
+   UTILITY CLASSES
+   ====================== */
+
+/* Text colors for stock levels */
+.text-stock-full {
+  @apply text-green-600;
+}
+
+.text-stock-medium {
+  @apply text-yellow-600;
+}
+
+.text-stock-low {
+  @apply text-orange-600;
+}
+
+.text-stock-empty {
+  @apply text-red-600;
+}
+
+/* Background colors for stock levels */
+.bg-stock-full {
+  @apply bg-green-50;
+}
+
+.bg-stock-medium {
+  @apply bg-yellow-50;
+}
+
+.bg-stock-low {
+  @apply bg-orange-50;
+}
+
+.bg-stock-empty {
+  @apply bg-red-50;
+}
+
+/* Progress bar colors */
+.progress-full {
+  @apply bg-green-500;
+}
+
+.progress-medium {
+  @apply bg-yellow-500;
+}
+
+.progress-low {
+  @apply bg-orange-500;
+}
+
+.progress-empty {
+  @apply bg-red-500;
 }

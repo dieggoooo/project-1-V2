@@ -5,6 +5,14 @@ import Link from 'next/link';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import { useInventory } from '../contexts/InventoryContext';
+// Import utility functions from the design system
+import {
+  getStockLevelClass,
+  getStockLevelBg,
+  getProgressBarClass,
+  isAlcoholItem,
+  getStockLevelLabel
+} from '../utils/styling';
 
 export default function InventoryPage() {
   const [selectedFilter, setSelectedFilter] = useState('All');
@@ -62,48 +70,6 @@ export default function InventoryPage() {
     }
   };
 
-  const getLevelColor = (level: number) => {
-    if (level >= 70) return 'text-green-600 bg-green-100';
-    if (level >= 40) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
-  };
-
-  const getLevelBarColor = (level: number) => {
-    if (level >= 70) return 'bg-green-500';
-    if (level >= 40) return 'bg-orange-500';
-    return 'bg-red-500';
-  };
-
-  const getLevelCategory = (level: number) => {
-    if (level >= 70) return 'Good';
-    if (level >= 40) return 'Medium';
-    return 'Low';
-  };
-
-  const getStockLevelColor = (percentage: number) => {
-    if (percentage === 0) return 'bg-red-100 text-red-800';
-    if (percentage <= 25) return 'bg-orange-100 text-orange-800';
-    if (percentage <= 50) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
-  };
-
-  const getStockLevelBg = (percentage: number) => {
-    if (percentage === 0) return 'bg-red-50';
-    if (percentage <= 25) return 'bg-orange-50';
-    if (percentage <= 50) return 'bg-yellow-50';
-    return '';
-  };
-
-  // Check if item is alcohol
-  const isAlcoholItem = (item: any) => {
-    return item.subcategory === 'alcoholic' || 
-           item.type === 'Champagne' || 
-           item.type === 'Cognac' || 
-           item.type === 'Whisky' || 
-           item.type === 'Vodka' ||
-           item.category === 'alcoholic';
-  };
-
   // Initialize bottle levels for a position
   const initializeBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
     if (!bottleLevels[positionId]) {
@@ -151,7 +117,6 @@ export default function InventoryPage() {
 
   // Handle add item form submission
   const handleAddItem = () => {
-    // Check if custom item was selected but name not entered
     if (newItem.name === '__custom__' || !newItem.name || !newItem.code || !newItem.positionCode) {
       alert('Please fill in all required fields');
       return;
@@ -191,7 +156,7 @@ export default function InventoryPage() {
   const filteredItems = items.filter(item => {
     const totals = getItemTotals(item.id);
     const typeMatch = selectedFilter === 'All' || item.type === selectedFilter;
-    const levelMatch = !levelFilter || getLevelCategory(totals.totalPercentage) === levelFilter;
+    const levelMatch = !levelFilter || getStockLevelLabel(totals.totalPercentage) === levelFilter;
     return typeMatch && levelMatch;
   });
 
@@ -202,20 +167,21 @@ export default function InventoryPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pb-20 px-4 pt-32">
-        <div className="mb-6">
+      {/* UPDATED: Using page-container class */}
+      <div className="page-container">
+        <div className="section-spacing">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Post-Flight Inventory</h1>
           <p className="text-gray-600">Check remaining levels for alcohol, equipment, and supplies</p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
+        {/* Filter Tabs - UPDATED: Using card-padded and section-spacing */}
+        <div className="card-padded section-spacing">
           <div className="flex flex-wrap gap-2">
             {['All', 'Alcohol', 'Equipment', 'Supplies', 'Glassware', 'Food', 'Drinks'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(filter)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                className={`btn-sm ${
                   selectedFilter === filter
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -227,8 +193,8 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        {/* Progress Summary */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        {/* Progress Summary - UPDATED: Using card-padded */}
+        <div className="card-padded section-spacing">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold">Inventory Progress</h3>
             <span className="text-sm text-gray-600">{completedItems}/{filteredItems.length} checked</span>
@@ -285,7 +251,7 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        {/* Inventory List */}
+        {/* Inventory List - UPDATED: Using design system classes and utility functions */}
         <div className="space-y-3">
           {filteredItems.map((item) => {
             const totals = getItemTotals(item.id);
@@ -293,7 +259,7 @@ export default function InventoryPage() {
             return (
               <div
                 key={item.id}
-                className={`bg-white rounded-xl p-4 shadow-sm transition-all ${
+                className={`card-interactive ${
                   item.checked ? 'bg-green-50 border border-green-200' : ''
                 }`}
               >
@@ -317,7 +283,7 @@ export default function InventoryPage() {
                         <div className="flex items-center space-x-2">
                           <h4 className="font-semibold text-gray-900">{item.name}</h4>
                           {isAlcohol && (
-                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                            <span className="badge bg-purple-100 text-purple-700">
                               <i className="ri-wine-glass-line mr-1"></i>
                               Alcohol
                             </span>
@@ -331,15 +297,16 @@ export default function InventoryPage() {
                           <span>{totals.totalQuantity} {item.positions[0]?.unitOfMeasure || 'units'}</span>
                         </div>
                       </div>
-                      <div className={`px-2 py-1 rounded text-xs font-medium ${getLevelColor(totals.totalPercentage)}`}>
+                      {/* UPDATED: Using design system badge classes */}
+                      <div className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
                         {totals.totalPercentage}%
                       </div>
                     </div>
 
-                    {/* Level Bar */}
+                    {/* Level Bar - UPDATED: Using design system progress class */}
                     <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                       <div 
-                        className={`h-2 rounded-full transition-all ${getLevelBarColor(totals.totalPercentage)}`}
+                        className={`h-2 rounded-full transition-all ${getProgressBarClass(totals.totalPercentage)}`}
                         style={{ width: `${totals.totalPercentage}%` }}
                       ></div>
                     </div>
@@ -358,13 +325,13 @@ export default function InventoryPage() {
             );
           })}
 
-          {/* Add Item Card */}
+          {/* Add Item Card - UPDATED: Using card classes */}
           <button
             onClick={() => setShowAddItemModal(true)}
-            className="w-full bg-white rounded-xl p-6 shadow-sm border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+            className="w-full card-padded border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all group"
           >
             <div className="flex items-center justify-center space-x-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+              <div className="icon-circle icon-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
                 <i className="ri-add-line text-blue-600 text-2xl"></i>
               </div>
               <div className="text-left">
@@ -375,26 +342,26 @@ export default function InventoryPage() {
           </button>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - UPDATED: Using design system button classes */}
         <div className="mt-8 space-y-3">
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium">
+          <button className="btn-primary">
             Submit Inventory Report
           </button>
-          <button className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium">
+          <button className="btn-secondary">
             Save as Draft
           </button>
         </div>
       </div>
 
-      {/* Add Item Modal */}
+      {/* Add Item Modal - UPDATED: Using design system modal classes */}
       {showAddItemModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">Add New Item</h2>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2 className="modal-title">Add New Item</h2>
               <button
                 onClick={() => setShowAddItemModal(false)}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+                className="modal-close"
               >
                 <i className="ri-close-line text-gray-600"></i>
               </button>
@@ -409,7 +376,7 @@ export default function InventoryPage() {
                 <select
                   value={newItem.name}
                   onChange={(e) => handleItemSelection(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="select"
                 >
                   <option value="">Select an item...</option>
                   {uniqueItems.map((item) => (
@@ -427,13 +394,13 @@ export default function InventoryPage() {
                     value=""
                     onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                     placeholder="Enter custom item name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2"
+                    className="input mt-2"
                     autoFocus
                   />
                 )}
               </div>
 
-              {/* Item Code - Auto-populated or editable */}
+              {/* Item Code - UPDATED: Using input class */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Item Code <span className="text-red-500">*</span>
@@ -443,7 +410,7 @@ export default function InventoryPage() {
                   value={newItem.code}
                   onChange={(e) => setNewItem({ ...newItem, code: e.target.value.toUpperCase() })}
                   placeholder="e.g., COF0001"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                  className={`input ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
                   disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                 />
                 {newItem.name !== '' && newItem.name !== '__custom__' && (
@@ -451,7 +418,7 @@ export default function InventoryPage() {
                 )}
               </div>
 
-              {/* Category & Type - Auto-populated or editable */}
+              {/* Category & Type - UPDATED: Using select class */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -460,7 +427,7 @@ export default function InventoryPage() {
                   <select
                     value={newItem.category}
                     onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
                     disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="beverages">Beverages</option>
@@ -481,7 +448,7 @@ export default function InventoryPage() {
                   <select
                     value={newItem.type}
                     onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
                     disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="Supplies">Supplies</option>
@@ -500,7 +467,7 @@ export default function InventoryPage() {
                 </div>
               </div>
 
-              {/* Subcategory (optional for beverages) - Auto-populated or editable */}
+              {/* Subcategory (optional for beverages) */}
               {newItem.category === 'beverages' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -509,7 +476,7 @@ export default function InventoryPage() {
                   <select
                     value={newItem.subcategory}
                     onChange={(e) => setNewItem({ ...newItem, subcategory: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
                     disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="">None</option>
@@ -526,7 +493,7 @@ export default function InventoryPage() {
                 </div>
               )}
 
-              {/* Quantity & Unit - Unit auto-populated */}
+              {/* Quantity & Unit */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -537,7 +504,7 @@ export default function InventoryPage() {
                     min="1"
                     value={newItem.quantity}
                     onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                   />
                 </div>
 
@@ -548,7 +515,7 @@ export default function InventoryPage() {
                   <select
                     value={newItem.unitOfMeasure}
                     onChange={(e) => setNewItem({ ...newItem, unitOfMeasure: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
                     disabled={newItem.name !== '' && newItem.name !== '__custom__'}
                   >
                     <option value="bottles">Bottles</option>
@@ -576,7 +543,7 @@ export default function InventoryPage() {
                   value={newItem.positionCode}
                   onChange={(e) => setNewItem({ ...newItem, positionCode: e.target.value.toUpperCase() })}
                   placeholder="e.g., 1F1C01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="input"
                 />
               </div>
 
@@ -591,7 +558,7 @@ export default function InventoryPage() {
                     value={newItem.galleyName}
                     onChange={(e) => setNewItem({ ...newItem, galleyName: e.target.value })}
                     placeholder="e.g., Forward Galley"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                   />
                 </div>
 
@@ -604,22 +571,22 @@ export default function InventoryPage() {
                     value={newItem.trolleyName}
                     onChange={(e) => setNewItem({ ...newItem, trolleyName: e.target.value })}
                     placeholder="e.g., Trolley 1/1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                   />
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons - UPDATED: Using design system button classes */}
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={() => setShowAddItemModal(false)}
-                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddItem}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="btn-primary"
                 >
                   Add Item
                 </button>
@@ -629,16 +596,16 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* Level Update Modal - INDIVIDUAL BOTTLE CONTROLS */}
+      {/* Level Update Modal - UPDATED: Using design system classes and utilities */}
       {selectedItem && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
               <div>
                 <div className="flex items-center space-x-2">
-                  <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
+                  <h2 className="modal-title">{selectedItem.name}</h2>
                   {isAlcoholItem(selectedItem) && (
-                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                    <span className="badge bg-purple-100 text-purple-700">
                       <i className="ri-wine-glass-line mr-1"></i>
                       Alcohol
                     </span>
@@ -648,7 +615,7 @@ export default function InventoryPage() {
               </div>
               <button
                 onClick={() => setSelectedItem(null)}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+                className="modal-close"
               >
                 <i className="ri-close-line text-gray-600"></i>
               </button>
@@ -665,7 +632,7 @@ export default function InventoryPage() {
               <p className="text-gray-600">Overall Level</p>
             </div>
 
-            {/* Position Breakdown - INDIVIDUAL BOTTLE CONTROLS */}
+            {/* Position Breakdown */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900">
@@ -676,7 +643,7 @@ export default function InventoryPage() {
                 </span>
               </div>
               
-            {isAlcoholItem(selectedItem) ? (
+              {isAlcoholItem(selectedItem) ? (
                 // Alcohol Items - Individual Bottle Sliders
                 <div className="space-y-6">
                   {selectedItem.positions.map((position: any) => {
@@ -688,13 +655,14 @@ export default function InventoryPage() {
                     const averageLevel = Math.round(currentLevels.reduce((sum: number, level: number) => sum + level, 0) / currentLevels.length);
                     
                     return (
-                      <div key={position.id} className={`p-4 border-2 rounded-lg ${getStockLevelBg(averageLevel)}`}>
+                      <div key={position.id} className={`card-padded border-2 ${getStockLevelBg(averageLevel)}`}>
                         <div className="flex items-center justify-between mb-4">
                           <div>
                             <div className="font-medium text-gray-900 text-lg">{position.positionCode}</div>
                             <div className="text-sm text-gray-600">{position.galleyName} - {position.trolleyName}</div>
                           </div>
-                          <div className={`px-3 py-2 rounded-lg text-xl font-bold ${getStockLevelColor(averageLevel)}`}>
+                          {/* UPDATED: Using design system badge classes */}
+                          <div className={`badge text-xl font-bold ${getStockLevelClass(averageLevel)}`}>
                             {averageLevel}%
                           </div>
                         </div>
@@ -703,25 +671,25 @@ export default function InventoryPage() {
                         <div className="mb-4 flex space-x-2">
                           <button
                             onClick={() => setAllBottles(position.id, position.quantity, 0)}
-                            className="flex-1 bg-red-100 text-red-700 py-2 px-3 rounded text-xs font-medium hover:bg-red-200 transition-colors"
+                            className="btn-sm flex-1 bg-red-100 text-red-700 hover:bg-red-200"
                           >
                             All Empty
                           </button>
                           <button
                             onClick={() => setAllBottles(position.id, position.quantity, 50)}
-                            className="flex-1 bg-orange-100 text-orange-700 py-2 px-3 rounded text-xs font-medium hover:bg-orange-200 transition-colors"
+                            className="btn-sm flex-1 bg-orange-100 text-orange-700 hover:bg-orange-200"
                           >
                             All Half
                           </button>
                           <button
                             onClick={() => setAllBottles(position.id, position.quantity, 75)}
-                            className="flex-1 bg-yellow-100 text-yellow-700 py-2 px-3 rounded text-xs font-medium hover:bg-yellow-200 transition-colors"
+                            className="btn-sm flex-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                           >
                             All Mostly
                           </button>
                           <button
                             onClick={() => setAllBottles(position.id, position.quantity, 100)}
-                            className="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded text-xs font-medium hover:bg-green-200 transition-colors"
+                            className="btn-sm flex-1 bg-green-100 text-green-700 hover:bg-green-200"
                           >
                             All Full
                           </button>
@@ -738,7 +706,8 @@ export default function InventoryPage() {
                                     <i className="ri-wine-bottle-line text-purple-600"></i>
                                     <span className="font-medium text-sm">Bottle {index + 1}</span>
                                   </div>
-                                  <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(bottleLevel)}`}>
+                                  {/* UPDATED: Using design system badge classes */}
+                                  <span className={`badge ${getStockLevelClass(bottleLevel)}`}>
                                     {bottleLevel}%
                                   </span>
                                 </div>
@@ -788,10 +757,10 @@ export default function InventoryPage() {
                   })}
                 </div>
               ) : (
-                // Non-Alcohol Items - TABLE WITH FIXED INPUT
-                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-gray-800 text-white">
-                    <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
+                // Non-Alcohol Items - UPDATED: Using design system table classes
+                <div className="table-container">
+                  <div className="table-header">
+                    <div className="table-header-row grid-cols-5">
                       <div>Position</div>
                       <div className="text-center">QTY</div>
                       <div className="text-center">Used</div>
@@ -800,14 +769,14 @@ export default function InventoryPage() {
                     </div>
                   </div>
                   
-                  <div className="divide-y divide-gray-200">
+                  <div>
                     {selectedItem.positions.map((position: any) => (
                       <div 
                         key={position.id} 
-                        className={`grid grid-cols-5 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                        className={`table-row grid-cols-5 ${getStockLevelBg(position.percentageAvailable)}`}
                       >
-                        <div className="font-medium text-gray-900">{position.positionCode}</div>
-                        <div className="text-center text-gray-700">{position.quantity}</div>
+                        <div className="table-cell">{position.positionCode}</div>
+                        <div className="table-cell-center">{position.quantity}</div>
                         <div className="text-center">
                           <input
                             type="number"
@@ -816,9 +785,7 @@ export default function InventoryPage() {
                             value={position.consumed}
                             onChange={(e) => {
                               const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value) || 0));
-                              // Update the context
                               updatePositionConsumption(selectedItem.id, position.id, newConsumed);
-                              // Also update the local selectedItem state to reflect changes immediately
                               setSelectedItem((prev: any) => {
                                 if (!prev) return prev;
                                 return {
@@ -839,9 +806,10 @@ export default function InventoryPage() {
                             className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
-                        <div className="text-center font-medium text-gray-900">{position.available}</div>
+                        <div className="table-cell-center">{position.available}</div>
                         <div className="text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                          {/* UPDATED: Using design system badge classes */}
+                          <span className={`badge ${getStockLevelClass(position.percentageAvailable)}`}>
                             {position.percentageAvailable}%
                           </span>
                         </div>
@@ -853,13 +821,14 @@ export default function InventoryPage() {
                       const totals = getItemTotals(selectedItem.id);
                       return (
                         <div className="bg-gray-100 border-t-2 border-gray-300">
-                          <div className="grid grid-cols-5 gap-2 p-3 text-sm font-bold">
-                            <div className="text-gray-900">TOTAL</div>
-                            <div className="text-center text-gray-900">{totals.totalQuantity}</div>
-                            <div className="text-center text-gray-900">{totals.totalConsumed}</div>
-                            <div className="text-center text-gray-900">{totals.totalAvailable}</div>
+                          <div className="table-row grid-cols-5 font-bold">
+                            <div className="table-cell">TOTAL</div>
+                            <div className="table-cell-center">{totals.totalQuantity}</div>
+                            <div className="table-cell-center">{totals.totalConsumed}</div>
+                            <div className="table-cell-center">{totals.totalAvailable}</div>
                             <div className="text-center">
-                              <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                              {/* UPDATED: Using design system badge classes */}
+                              <span className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
                                 {totals.totalPercentage}%
                               </span>
                             </div>
@@ -872,18 +841,18 @@ export default function InventoryPage() {
               )}
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - UPDATED: Using design system button classes */}
             <div className="flex space-x-3 mt-4">
               <Link
                 href={`/issues?item=${selectedItem.code}&name=${encodeURIComponent(selectedItem.name)}`}
-                className="flex-1 border-2 border-red-500 text-red-600 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors flex items-center justify-center space-x-2"
+                className="btn-danger flex items-center justify-center space-x-2"
               >
                 <i className="ri-error-warning-line"></i>
                 <span>Report Issue</span>
               </Link>
               <button
                 onClick={() => setSelectedItem(null)}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="btn-primary"
               >
                 Save Changes
               </button>

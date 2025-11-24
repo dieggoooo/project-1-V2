@@ -198,7 +198,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pt-28 pb-20 px-4">
+      <div className="page-container">
         {/* Enhanced Flight Search Section */}
         <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
           <div ref={dropdownRef}>
@@ -238,11 +238,7 @@ export default function Home() {
             </div>
 
             {/* Search Button */}
-            <button 
-              onClick={handleFlightSearch}
-              disabled={!flightData.aircraftNumber || !flightData.flightNumber || !flightData.origin || !flightData.destination}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
+            <button className="btn-primary">
               Load Flight Data
             </button>
 

@@ -3,6 +3,15 @@
 import { useState } from 'react';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
+// Import utility functions from the design system
+import {
+  getSeverityClass,
+  getStatusClass,
+  getPassengersAffectedClass,
+  getPassengersAffectedLabel,
+  getIssueTypeIcon,
+  getIssueTypeLabel
+} from '../utils/styling';
 
 // Type definitions
 type IssueType = 'misplacement' | 'damage' | 'missing' | 'monetary-consumption' | 'customer-impact' | 'other';
@@ -110,62 +119,18 @@ export default function IssuesPage() {
     setActiveTab('history');
   };
 
-  const getSeverityColor = (severity: SeverityType): string => {
-    switch (severity) {
-      case 'high': return 'bg-red-100 text-red-700 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-700 border-green-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
-
-  const getPassengersAffectedColor = (passengers: PassengersAffected): string => {
-    switch (passengers) {
-      case 'NA': return 'bg-gray-100 text-gray-700';
-      case '0-10': return 'bg-green-100 text-green-700';
-      case '10-25': return 'bg-yellow-100 text-yellow-700';
-      case '25-50': return 'bg-orange-100 text-orange-700';
-      case '50-75': return 'bg-red-100 text-red-700';
-      case '75-100': return 'bg-red-200 text-red-800';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getTypeIcon = (type: IssueType): string => {
-    switch (type) {
-      case 'misplacement': return 'ri-map-pin-line';
-      case 'damage': return 'ri-tools-line';
-      case 'missing': return 'ri-error-warning-line';
-      case 'monetary-consumption': return 'ri-money-dollar-circle-line';
-      case 'customer-impact': return 'ri-user-heart-line';
-      case 'other': return 'ri-question-line';
-      default: return 'ri-alert-line';
-    }
-  };
-
-  const getTypeLabel = (type: IssueType): string => {
-    switch (type) {
-      case 'misplacement': return 'Item Misplacement';
-      case 'damage': return 'Damage/Broken';
-      case 'missing': return 'Missing Item';
-      case 'monetary-consumption': return 'Monetary Consumption';
-      case 'customer-impact': return 'Customer Impact';
-      case 'other': return 'Other Issue';
-      default: return type;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pt-16 pb-28">
-        {/* Tab Selector */}
-        <div className="px-4 py-4 bg-white border-b">
+      {/* UPDATED: Using page-container class */}
+      <div className="page-container">
+        {/* Tab Selector - UPDATED: Using card-padded */}
+        <div className="card-padded mb-4">
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setActiveTab('report')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors !rounded-button ${
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'report'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-600 hover:text-gray-800'
@@ -175,7 +140,7 @@ export default function IssuesPage() {
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors !rounded-button ${
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'history'
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-600 hover:text-gray-800'
@@ -187,8 +152,9 @@ export default function IssuesPage() {
         </div>
 
         {activeTab === 'report' && (
-          <div className="px-4 py-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
+          <div>
+            {/* UPDATED: Using card-padded */}
+            <div className="card-padded">
               <h2 className="text-lg font-semibold mb-4">Report New Issue</h2>
               
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -196,10 +162,11 @@ export default function IssuesPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Issue Type
                   </label>
+                  {/* UPDATED: Using select class */}
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({...formData, type: e.target.value as IssueType})}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="select"
                     required
                   >
                     <option value="misplacement">Item Misplacement</option>
@@ -215,12 +182,13 @@ export default function IssuesPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Flight Number
                   </label>
+                  {/* UPDATED: Using input class */}
                   <input
                     type="text"
                     value={formData.flight}
                     onChange={(e) => setFormData({...formData, flight: e.target.value})}
                     placeholder="e.g., UA1234"
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                     required
                   />
                 </div>
@@ -234,7 +202,7 @@ export default function IssuesPage() {
                     value={formData.item}
                     onChange={(e) => setFormData({...formData, item: e.target.value})}
                     placeholder="e.g., Coffee Pot, Wine Glasses"
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                     required
                   />
                 </div>
@@ -248,7 +216,7 @@ export default function IssuesPage() {
                     value={formData.location}
                     onChange={(e) => setFormData({...formData, location: e.target.value})}
                     placeholder="e.g., 1F1C03, 2A2C01"
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                     required
                   />
                 </div>
@@ -260,7 +228,7 @@ export default function IssuesPage() {
                   <select
                     value={formData.severity}
                     onChange={(e) => setFormData({...formData, severity: e.target.value as SeverityType})}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="select"
                     required
                   >
                     <option value="low">Low</option>
@@ -276,7 +244,7 @@ export default function IssuesPage() {
                   <select
                     value={formData.passengersAffected}
                     onChange={(e) => setFormData({...formData, passengersAffected: e.target.value as PassengersAffected})}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="select"
                     required
                   >
                     <option value="NA">Not Applicable</option>
@@ -292,11 +260,12 @@ export default function IssuesPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description
                   </label>
+                  {/* UPDATED: Using textarea class */}
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     placeholder="Describe the issue in detail..."
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
+                    className="textarea h-24"
                     maxLength={500}
                     required
                   />
@@ -305,9 +274,10 @@ export default function IssuesPage() {
                   </div>
                 </div>
 
+                {/* UPDATED: Using btn-primary class */}
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors !rounded-button"
+                  className="btn-primary"
                 >
                   Submit Issue Report
                 </button>
@@ -317,42 +287,41 @@ export default function IssuesPage() {
         )}
 
         {activeTab === 'history' && (
-          <div className="px-4 py-6">
-            <div className="mb-4">
+          <div>
+            <div className="section-spacing">
               <h2 className="text-lg font-semibold">Issue History</h2>
               <p className="text-sm text-gray-600">Recent galley issues and reports</p>
             </div>
 
             <div className="space-y-3">
               {issues.map((issue) => (
-                <div key={issue.id} className="bg-white rounded-xl p-4 shadow-sm">
+                // UPDATED: Using card-interactive class
+                <div key={issue.id} className="card-interactive">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <i className={`${getTypeIcon(issue.type)} text-blue-600 text-sm`}></i>
+                      {/* UPDATED: Using icon-circle classes */}
+                      <div className="icon-circle icon-sm bg-blue-100">
+                        <i className={`${getIssueTypeIcon(issue.type)} text-blue-600 text-sm`}></i>
                       </div>
                       <div>
                         <h3 className="font-semibold">{issue.item}</h3>
                         <p className="text-sm text-gray-600">{issue.location} • {issue.flight}</p>
-                        <p className="text-xs text-gray-500">{getTypeLabel(issue.type)}</p>
+                        <p className="text-xs text-gray-500">{getIssueTypeLabel(issue.type)}</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-1">
                       <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getSeverityColor(issue.severity)}`}>
+                        {/* UPDATED: Using design system badge and utility functions */}
+                        <span className={`badge border ${getSeverityClass(issue.severity)}`}>
                           {issue.severity.toUpperCase()}
                         </span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          issue.status === 'open' 
-                            ? 'bg-orange-100 text-orange-700' 
-                            : 'bg-green-100 text-green-700'
-                        }`}>
+                        <span className={`badge ${getStatusClass(issue.status)}`}>
                           {issue.status.toUpperCase()}
                         </span>
                       </div>
                       {issue.passengersAffected && (
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPassengersAffectedColor(issue.passengersAffected)}`}>
-                          {issue.passengersAffected === 'NA' ? 'No PAX Impact' : `${issue.passengersAffected}% PAX`}
+                        <span className={`badge ${getPassengersAffectedClass(issue.passengersAffected)}`}>
+                          {getPassengersAffectedLabel(issue.passengersAffected)}
                         </span>
                       )}
                     </div>
@@ -370,7 +339,8 @@ export default function IssuesPage() {
 
             {issues.length === 0 && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                {/* UPDATED: Using icon-circle classes */}
+                <div className="icon-circle icon-xl mx-auto mb-4 bg-gray-100">
                   <i className="ri-file-list-line text-gray-400 text-2xl"></i>
                 </div>
                 <p className="text-gray-500">No issues reported yet</p>
