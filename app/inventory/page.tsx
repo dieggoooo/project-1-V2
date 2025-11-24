@@ -202,7 +202,7 @@ export default function InventoryPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pb-20 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
+      <div className="pb-20 px-4 pt-28">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Post-Flight Inventory</h1>
           <p className="text-gray-600">Check remaining levels for alcohol, equipment, and supplies</p>

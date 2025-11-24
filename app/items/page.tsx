@@ -345,7 +345,7 @@ function ItemSearchContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="pt-16 pb-20 px-4">
+         <div className="pb-20 pt-28">
           {/* Enhanced Search Section */}
           <div className="mb-6" ref={searchRef}>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Search Items</h1>
@@ -530,7 +530,7 @@ function ItemSearchContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="pt-16 pb-20 px-4">
+        <div className="pb-20 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
           <div className="flex items-center mb-6">
             <button onClick={handleBack} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3">
               <i className="ri-arrow-left-line text-gray-600"></i>
@@ -562,7 +562,7 @@ function ItemSearchContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="pt-16 pb-20 px-4">
+      <div className="pt-20 pb-20 px-4">
         <div className="flex items-center mb-6">
           <button onClick={handleBack} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3">
             <i className="ri-arrow-left-line text-gray-600"></i>

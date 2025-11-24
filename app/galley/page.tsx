@@ -430,7 +430,7 @@ function GalleyMapContent() {
       
       {selectedGalley ? (
         // Galley Detail View
-        <div className="pb-20 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
+        <div className="pt-16 pb-20">
           <div className="px-4 py-4 bg-white border-b">
             <div className="flex items-center mb-4">
               <button 
@@ -587,7 +587,7 @@ function GalleyMapContent() {
         </div>
       ) : (
         // Main Galley Map View
-        <div className="pt-16 pb-20">
+        <div className="pt-28 pb-20">
           <div className="px-4 py-4 bg-white border-b">
             <h1 className="text-xl font-semibold">Aircraft Galley Map</h1>
             <p className="text-sm text-gray-600">12 galleys total - Tap any galley to explore</p>

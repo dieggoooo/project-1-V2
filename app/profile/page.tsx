@@ -175,7 +175,7 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pb-20 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
+      <div className="pb-20 px-4 pt-28">
         <div className="max-w-2xl mx-auto">
           {/* Profile Header */}
           <div className="bg-white rounded-xl p-6 shadow-sm mb-6">

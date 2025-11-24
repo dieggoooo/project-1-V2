@@ -198,7 +198,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pt-16 pb-20 px-4">
+      <div className="pt-28 pb-20 px-4">
         {/* Enhanced Flight Search Section */}
         <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
           <div ref={dropdownRef}>

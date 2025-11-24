@@ -159,7 +159,7 @@ export default function IssuesPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pb-20" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
+      <div className="pt-16 pb-28">
         {/* Tab Selector */}
         <div className="px-4 py-4 bg-white border-b">
           <div className="flex bg-gray-100 rounded-lg p-1">
