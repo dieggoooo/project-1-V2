@@ -156,7 +156,7 @@ export default function Home() {
             value={searchTerms[field]}
             onChange={(e) => handleInputChange(field, e.target.value)}
             onFocus={() => setOpenDropdown(field)}
-            className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="input input-icon"
           />
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
             <i className={`ri-arrow-${isOpen ? 'up' : 'down'}-s-line text-gray-400 transition-transform`}></i>
@@ -164,7 +164,7 @@ export default function Home() {
         </div>
 
         {isOpen && (
-          <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
+          <div className="dropdown">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option, index) => (
                 <button
@@ -175,7 +175,7 @@ export default function Home() {
                     handleOptionSelect(field, option);
                   }}
                   type="button"
-                  className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none transition-colors"
+                  className="dropdown-item"
                 >
                   <div className="font-medium text-gray-900">{option.value}</div>
                   <div className="text-sm text-gray-500">{option.label}</div>
@@ -200,7 +200,7 @@ export default function Home() {
       
       <div className="page-container">
         {/* Enhanced Flight Search Section */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        <div className="card-padded section-spacing">
           <div ref={dropdownRef}>
             <h2 className="text-lg font-semibold mb-4">Flight Search</h2>
             <div className="space-y-4">
@@ -262,7 +262,7 @@ export default function Home() {
         </div>
 
         {/* Quick Item Lookup */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        <div className="card-padded section-spacing">
           <h2 className="text-lg font-semibold mb-4">Quick Item Lookup</h2>
           
           <div className="relative" ref={itemDropdownRef}>
@@ -279,13 +279,13 @@ export default function Home() {
                   setOpenDropdown('itemSearch');
                 }}
                 onFocus={() => setOpenDropdown('itemSearch')}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input input-icon"
               />
             </div>
 
             {/* Dropdown Results */}
             {openDropdown === 'itemSearch' && (
-              <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+              <div className="dropdown">
                 {(() => {
                   const searchLower = itemSearchTerm.toLowerCase();
                   const filtered = inventoryItems.filter(item => 
@@ -310,7 +310,7 @@ export default function Home() {
                         setItemSearchTerm(item.label);
                         setOpenDropdown(null);
                       }}
-                      className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                      className="dropdown-item"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -359,15 +359,15 @@ export default function Home() {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="mb-6">
+        {/* Quick Actions - UPDATED: Using design system card classes */}
+        <div className="section-spacing">
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Link
               href="/galley"
-              className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              className="card-hover p-4"
             >
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
+              <div className="icon-circle icon-lg bg-blue-100 mb-3">
                 <i className="ri-map-line text-blue-600 text-xl"></i>
               </div>
               <h3 className="font-semibold mb-1">Galley Map</h3>
@@ -376,9 +376,9 @@ export default function Home() {
 
             <Link
               href="/items?filter=common"
-              className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              className="card-hover p-4"
             >
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-3">
+              <div className="icon-circle icon-lg bg-orange-100 mb-3">
                 <i className="ri-star-line text-orange-600 text-xl"></i>
               </div>
               <h3 className="font-semibold mb-1">Common Items</h3>
@@ -387,9 +387,9 @@ export default function Home() {
 
             <Link
               href="/issues"
-              className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              className="card-hover p-4"
             >
-              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-3">
+              <div className="icon-circle icon-lg bg-red-100 mb-3">
                 <i className="ri-error-warning-line text-red-600 text-xl"></i>
               </div>
               <h3 className="font-semibold mb-1">Report Issues</h3>
@@ -398,9 +398,9 @@ export default function Home() {
 
             <Link
               href="/inventory"
-              className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              className="card-hover p-4"
             >
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
+              <div className="icon-circle icon-lg bg-purple-100 mb-3">
                 <i className="ri-file-list-line text-purple-600 text-xl"></i>
               </div>
               <h3 className="font-semibold mb-1">Inventory</h3>

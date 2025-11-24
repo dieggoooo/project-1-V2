@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import Link from 'next/link';
+// ADDED: Import design system utilities
+import { getCategoryClass, getPositionSizeClass } from '../utils/styling';
 
 function GalleyMapContent() {
   const searchParams = useSearchParams();
@@ -370,27 +372,6 @@ function GalleyMapContent() {
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'liquids': return 'bg-blue-200 border-blue-300 text-blue-800';
-      case 'food': return 'bg-orange-200 border-orange-300 text-orange-800';
-      case 'miscellaneous': return 'bg-green-200 border-green-300 text-green-800';
-      case 'bar': return 'bg-red-200 border-red-300 text-red-800';
-      case 'otros': return 'bg-purple-200 border-purple-300 text-purple-800';
-      case 'empty': return 'bg-gray-100 border-gray-300 text-gray-600';
-      default: return 'bg-gray-100 border-gray-300 text-gray-600';
-    }
-  };
-
-  const getPositionSize = (size: string) => {
-    switch (size) {
-      case 'small': return 'h-16';
-      case 'medium': return 'h-20';
-      case 'large': return 'h-32';
-      default: return 'h-20';
-    }
-  };
-
   const handleTrolleyClick = (position: any) => {
     console.log('Trolley clicked:', position);
     
@@ -429,13 +410,14 @@ function GalleyMapContent() {
       <Header />
       
       {selectedGalley ? (
-        // Galley Detail View
-        <div className="pt-16 pb-20">
+        // Galley Detail View - UPDATED: Using page-container
+        <div className="page-container">
           <div className="px-4 py-4 bg-white border-b">
             <div className="flex items-center mb-4">
+              {/* UPDATED: Using btn-icon */}
               <button 
                 onClick={() => setSelectedGalley(null)}
-                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3"
+                className="btn-icon bg-gray-100 mr-3"
               >
                 <i className="ri-arrow-left-line text-gray-600"></i>
               </button>
@@ -448,7 +430,8 @@ function GalleyMapContent() {
 
           {/* Galley Configuration Grid */}
           <div className="px-4 py-6">
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* UPDATED: Using card */}
+            <div className="card overflow-hidden">
               <div className="p-4 border-b">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -498,7 +481,7 @@ function GalleyMapContent() {
                               key={position.id}
                               onClick={() => handleTrolleyClick(position)}
                               className={`p-4 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
-                                getCategoryColor(position.category)
+                                getCategoryClass(position.category)
                               } h-32 flex items-center justify-center`}
                             >
                               <div className="text-center">
@@ -522,7 +505,7 @@ function GalleyMapContent() {
                               key={position.id}
                               onClick={() => handleTrolleyClick(position)}
                               className={`p-3 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
-                                getCategoryColor(position.category)
+                                getCategoryClass(position.category)
                               } h-64 flex items-center justify-center`}
                             >
                               <div className="text-center">
@@ -557,8 +540,8 @@ function GalleyMapContent() {
                                   key={position.id}
                                   onClick={() => handleTrolleyClick(position)}
                                   className={`p-2 border-2 rounded-lg text-xs font-medium transition-all hover:scale-105 relative ${
-                                    getCategoryColor(position.category)
-                                  } ${getPositionSize(position.size)} flex items-center justify-center`}
+                                    getCategoryClass(position.category)
+                                  } ${getPositionSizeClass(position.size)} flex items-center justify-center`}
                                 >
                                   <div className="text-center">
                                     <div className="text-[10px] font-bold">{position.code}</div>
@@ -568,7 +551,7 @@ function GalleyMapContent() {
                                       </div>
                                     )}
                                   </div>
-                                </button>
+                                </button>  
                               ))}
                             </div>
                           );
@@ -586,15 +569,16 @@ function GalleyMapContent() {
           </div>
         </div>
       ) : (
-        // Main Galley Map View
-        <div className="pt-28 pb-20">
+        // Main Galley Map View - UPDATED: Using page-container
+        <div className="page-container">
           <div className="px-4 py-4 bg-white border-b">
             <h1 className="text-xl font-semibold">Aircraft Galley Map</h1>
             <p className="text-sm text-gray-600">12 galleys total - Tap any galley to explore</p>
           </div>
 
           <div className="px-4 py-6">
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* UPDATED: Using card */}
+            <div className="card overflow-hidden">
               <div className="p-4 border-b">
                 <h2 className="text-lg font-semibold">Boeing 777-300ER Layout</h2>
                 <p className="text-sm text-gray-600">Complete galley overview</p>
@@ -661,7 +645,7 @@ function GalleyMapContent() {
                 <button
                   key={galley.id}
                   onClick={() => setSelectedGalley(galley.id)}
-                  className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow text-left"
+                  className="card-hover p-3 text-left"
                 >
                   <div className="flex items-center space-x-2 mb-2">
                     <div className={`w-3 h-3 rounded-full ${getGalleyTypeColor(galley.type).split(' ')[0]}`}></div>
@@ -677,25 +661,27 @@ function GalleyMapContent() {
 
       {/* Enhanced Trolley Modal - UPDATED FOOTER */}
       {selectedTrolley && (
-        <div className="fixed inset-0 bg-black/50 z-[70] flex items-end">
-          <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-semibold">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="modal-title">
                     {selectedTrolley.configuration?.name || selectedTrolley.code || 'Cart'} 
                   </h2>
-                  <p className="text-sm text-gray-600">Position: {selectedTrolley.code}</p>
                 </div>
-                <button
-                  onClick={() => setSelectedTrolley(null)}
-                  className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center ml-4"
-                >
-                  <i className="ri-close-line text-gray-600"></i>
-                </button>
+                <p className="text-sm text-gray-600 font-mono">{selectedTrolley.code}</p>
               </div>
+              <button
+                onClick={() => setSelectedTrolley(null)}
+                className="modal-close"
+              >
+                <i className="ri-close-line text-gray-600"></i>
+              </button>
+            </div>
 
-              <div className="inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium bg-blue-500">
+            <div className="mb-4">
+              <div className="badge bg-blue-500 text-white">
                 <i className="ri-shopping-cart-line mr-2"></i>
                 {selectedTrolley.configuration?.type || selectedTrolley.cartType || 'Standard Cart'}
               </div>
