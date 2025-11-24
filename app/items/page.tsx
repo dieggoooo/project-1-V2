@@ -4,10 +4,12 @@
 import { useState, Suspense, useMemo, useEffect } from 'react';
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
-import Header from '../../components/Header';
-import BottomNav from '../../components/BottomNav';
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
-import { useInventory } from '../contexts/InventoryContext';
+import { useInventory } from '@/app/contexts/InventoryContext';
+// ADDED: Import design system utilities
+import { getStockLevelClass, getStockLevelBg, getSortIcon } from '@/app/utils/styling';
 
 // Define types locally since we're having import issues
 interface Position {
@@ -292,25 +294,6 @@ function ItemSearchContent() {
     }
   };
 
-  const getStockLevelColor = (percentage: number) => {
-    if (percentage === 0) return 'bg-red-100 text-red-800';
-    if (percentage <= 25) return 'bg-orange-100 text-orange-800';
-    if (percentage <= 50) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
-  };
-
-  const getStockLevelBg = (percentage: number) => {
-    if (percentage === 0) return 'bg-red-50';
-    if (percentage <= 25) return 'bg-orange-50';
-    if (percentage <= 50) return 'bg-yellow-50';
-    return '';
-  };
-
-  const getSortIcon = (column: string) => {
-    if (sortBy !== column) return 'ri-arrow-up-down-line';
-    return sortOrder === 'asc' ? 'ri-arrow-up-line' : 'ri-arrow-down-line';
-  };
-
   const handleSort = (column: 'name' | 'code' | 'availability' | 'category') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -345,16 +328,19 @@ function ItemSearchContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-         <div className="pt-32 pb-20 px-4">
+         {/* UPDATED: Using page-container */}
+         <div className="page-container">
           {/* Enhanced Search Section */}
-          <div className="mb-6" ref={searchRef}>
+          <div className="section-spacing" ref={searchRef}>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Search Items</h1>
             
-            <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            {/* UPDATED: Using card-padded */}
+            <div className="card-padded mb-4">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <i className="ri-search-line text-gray-400"></i>
                 </div>
+                {/* UPDATED: Using input class */}
                 <input 
                   type="text" 
                   placeholder="Search by name, code, or description..." 
@@ -364,7 +350,7 @@ function ItemSearchContent() {
                     setShowSuggestions(true); // Always show when typing
                   }}
                   onFocus={() => setShowSuggestions(true)} // Show all items on focus
-                  className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  className="input input-icon pr-12"
                 />
                 {searchTerm && (
                   <button
@@ -378,7 +364,7 @@ function ItemSearchContent() {
 
               {/* Enhanced Dropdown - Shows all items or filtered results */}
               {showSuggestions && (
-                <div className="absolute z-50 w-full left-0 right-0 mx-4 bg-white border border-gray-200 rounded-lg shadow-lg mt-2 max-h-96 overflow-y-auto">
+                <div className="dropdown">
                   {(() => {
                     // If no search term, show all items
                     // If search term exists, show filtered suggestions
@@ -421,6 +407,7 @@ function ItemSearchContent() {
                         )}
                         {displayItems.map((suggestion, index) => {
                           const totals = getItemTotals(suggestion.id);
+                          // UPDATED: Using design system utility function
                           const stockColor = totals.totalPercentage >= 70 ? 'text-green-600' :
                                            totals.totalPercentage >= 40 ? 'text-orange-600' : 'text-red-600';
                           
@@ -428,11 +415,12 @@ function ItemSearchContent() {
                             <button
                               key={`${suggestion.type}-${suggestion.id}-${index}`}
                               onClick={() => handleSuggestionClick(suggestion)}
-                              className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                              className="dropdown-item"
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3 flex-1">
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                  {/* UPDATED: Using icon-circle classes */}
+                                  <div className={`icon-circle icon-md flex-shrink-0 ${
                                     suggestion.type === 'category' ? 'bg-blue-100' : 
                                     suggestion.type === 'code' ? 'bg-purple-100' : 'bg-green-100'
                                   }`}>
@@ -501,13 +489,15 @@ function ItemSearchContent() {
           </div>
 
           {/* Category Grid */}
-          <div className="mb-6">
+          <div className="section-spacing">
             <h2 className="text-lg font-semibold mb-4">Browse by Category</h2>
             <div className="grid grid-cols-2 gap-4">
               {categories.map(category => (
-                <div key={category.id} className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCategorySelect(category.id)}>
+                {/* UPDATED: Using card-hover */}
+                <div key={category.id} className="card-hover p-6" onClick={() => handleCategorySelect(category.id)}>
                   <div className="text-center">
-                    <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${category.color}`}>
+                    {/* UPDATED: Using icon-circle classes */}
+                    <div className={`icon-circle icon-xl mx-auto mb-4 ${category.color}`}>
                       <i className={`${category.icon} text-2xl`}></i>
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-1">{category.name}</h3>
@@ -530,9 +520,11 @@ function ItemSearchContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="pt-32 pb-20 px-4">
+        {/* UPDATED: Using page-container */}
+        <div className="page-container">
           <div className="flex items-center mb-6">
-            <button onClick={handleBack} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3">
+            {/* UPDATED: Using btn-icon */}
+            <button onClick={handleBack} className="btn-icon bg-white shadow-sm mr-3">
               <i className="ri-arrow-left-line text-gray-600"></i>
             </button>
             <div>
@@ -542,9 +534,11 @@ function ItemSearchContent() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {category?.subcategories?.map(subcategory => (
-              <div key={subcategory.id} className="bg-white rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedSubcategory(subcategory.id)}>
+              {/* UPDATED: Using card-hover */}
+              <div key={subcategory.id} className="card-hover p-6" onClick={() => setSelectedSubcategory(subcategory.id)}>
                 <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                  {/* UPDATED: Using icon-circle classes */}
+                  <div className="icon-circle icon-xl mx-auto mb-4 bg-blue-100">
                     <i className={`${subcategory.icon} text-2xl text-blue-600`}></i>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">{subcategory.name}</h3>
@@ -562,9 +556,11 @@ function ItemSearchContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="pt-32 pb-20 px-4">
+      {/* UPDATED: Using page-container */}
+      <div className="page-container">
         <div className="flex items-center mb-6">
-          <button onClick={handleBack} className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm mr-3">
+          {/* UPDATED: Using btn-icon */}
+          <button onClick={handleBack} className="btn-icon bg-white shadow-sm mr-3">
             <i className="ri-arrow-left-line text-gray-600"></i>
           </button>
           <div className="flex-1">
@@ -578,11 +574,13 @@ function ItemSearchContent() {
         </div>
 
         {/* Enhanced Search Bar */}
-        <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
+        {/* UPDATED: Using card-padded */}
+        <div className="card-padded section-spacing">
           <div className="relative mb-4">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <i className="ri-search-line text-gray-400"></i>
             </div>
+            {/* UPDATED: Using input class */}
             <input 
               type="text" 
               placeholder="Search items..." 
@@ -592,7 +590,7 @@ function ItemSearchContent() {
                 setShowSuggestions(e.target.value.length > 1);
               }}
               onFocus={() => setShowSuggestions(searchTerm.length > 1)}
-              className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              className="input input-icon pr-12"
             />
             {searchTerm && (
               <button
@@ -617,14 +615,15 @@ function ItemSearchContent() {
                 <button
                   key={key}
                   onClick={() => handleSort(key as any)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center space-x-1 ${
+                  className={`btn-sm flex items-center space-x-1 ${
                     sortBy === key
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   <span>{label}</span>
-                  <i className={`${getSortIcon(key)} text-xs`}></i>
+                  {/* UPDATED: Using design system utility function */}
+                  <i className={`${getSortIcon(key, sortBy, sortOrder)} text-xs`}></i>
                 </button>
               ))}
             </div>
@@ -636,7 +635,8 @@ function ItemSearchContent() {
           {filteredAndSortedItems.map((item: InventoryItem) => {
             const totals = getItemTotals(item.id);
             return (
-              <div key={`item-${item.id}`} className="bg-white rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedItem(item)}>
+              {/* UPDATED: Using card-interactive */}
+              <div key={`item-${item.id}`} className="card-interactive" onClick={() => setSelectedItem(item)}>
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
@@ -650,7 +650,8 @@ function ItemSearchContent() {
                     <div className="flex items-center space-x-4 text-sm">
                       <span className="text-blue-600 font-medium">{item.code}</span>
                       <span className="text-gray-500">{item.positions?.length || 0} location{(item.positions?.length || 0) !== 1 ? 's' : ''}</span>
-                      <span className={`font-medium px-2 py-1 rounded text-xs ${getStockLevelColor(totals.totalPercentage)}`}>
+                      {/* UPDATED: Using design system badge classes */}
+                      <span className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
                         {totals.totalAvailable}/{totals.totalQuantity} ({totals.totalPercentage}%)
                       </span>
                     </div>
@@ -661,7 +662,7 @@ function ItemSearchContent() {
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Link href={`/galley?item=${item.id}`} className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Link href={`/galley?item=${item.id}`} className="icon-circle icon-sm bg-blue-100">
                       <i className="ri-map-pin-line text-blue-600 text-sm"></i>
                     </Link>
                     <i className="ri-arrow-right-s-line text-gray-400"></i>
@@ -674,7 +675,8 @@ function ItemSearchContent() {
 
         {filteredAndSortedItems.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            {/* UPDATED: Using icon-circle classes */}
+            <div className="icon-circle icon-xl mx-auto mb-4 bg-gray-100">
               <i className="ri-search-line text-gray-400 text-2xl"></i>
             </div>
             <p className="text-gray-500 mb-2">No items found</p>
@@ -687,14 +689,14 @@ function ItemSearchContent() {
 
       {/* Item Details Modal - UPDATED TABLE */}
       {selectedItem && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
               <div>
-                <h2 className="text-xl font-semibold">{selectedItem.name}</h2>
+                <h2 className="modal-title">{selectedItem.name}</h2>
                 <p className="text-sm text-gray-600 font-mono">{selectedItem.code}</p>
               </div>
-              <button onClick={() => setSelectedItem(null)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+              <button onClick={() => setSelectedItem(null)} className="modal-close">
                 <i className="ri-close-line text-gray-600"></i>
               </button>
             </div>
@@ -723,7 +725,8 @@ function ItemSearchContent() {
                   </div>
                 ) : (
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    {/* UPDATED: Using icon-circle classes */}
+                    <div className="icon-circle icon-xl mx-auto mb-4 bg-gray-100">
                       <i className="ri-image-line text-gray-400 text-2xl"></i>
                     </div>
                     <p className="text-gray-500 mb-3">No image uploaded</p>
@@ -748,7 +751,7 @@ function ItemSearchContent() {
               </div>
             </div>
 
-            {/* Position Breakdown Table - IMPROVED VERSION */}
+            {/* Position Breakdown Table - UPDATED VERSION */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900">Position Breakdown</h3>
@@ -756,10 +759,11 @@ function ItemSearchContent() {
                   Unit: {selectedItem.positions?.[0]?.unitOfMeasure || 'units'}
                 </span>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              {/* UPDATED: Using design system table classes */}
+              <div className="table-container">
                 {/* Table Header */}
-                <div className="bg-gray-800 text-white">
-                  <div className="grid grid-cols-5 gap-2 p-3 text-sm font-medium">
+                <div className="table-header">
+                  <div className="table-header-row grid-cols-5">
                     <div>Position</div>
                     <div className="text-center">QTY</div>
                     <div className="text-center">Consumed</div>
@@ -773,10 +777,10 @@ function ItemSearchContent() {
                   {selectedItem.positions && selectedItem.positions.map((position: Position) => (
                     <div 
                       key={`position-${position.id}`} 
-                      className={`grid grid-cols-5 gap-2 p-3 text-sm ${getStockLevelBg(position.percentageAvailable)}`}
+                      className={`table-row grid-cols-5 ${getStockLevelBg(position.percentageAvailable)}`}
                     >
-                      <div className="font-medium text-gray-900">{position.positionCode}</div>
-                      <div className="text-center text-gray-700">{position.quantity}</div>
+                      <div className="table-cell font-medium">{position.positionCode}</div>
+                      <div className="table-cell-center">{position.quantity}</div>
                       <div className="text-center">
                         <input
                           type="number"
@@ -790,9 +794,10 @@ function ItemSearchContent() {
                           className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
-                      <div className="text-center font-medium text-gray-900">{position.available}</div>
+                      <div className="table-cell-center font-medium">{position.available}</div>
                       <div className="text-center">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStockLevelColor(position.percentageAvailable)}`}>
+                        {/* UPDATED: Using design system badge classes */}
+                        <span className={`badge ${getStockLevelClass(position.percentageAvailable)}`}>
                           {position.percentageAvailable}%
                         </span>
                       </div>
@@ -804,13 +809,14 @@ function ItemSearchContent() {
                     const totals = getItemTotals(selectedItem.id);
                     return (
                       <div className="bg-gray-100 border-t-2 border-gray-300">
-                        <div className="grid grid-cols-5 gap-2 p-3 text-sm font-bold">
-                          <div className="text-gray-900">TOTAL</div>
-                          <div className="text-center text-gray-900">{totals.totalQuantity}</div>
-                          <div className="text-center text-gray-900">{totals.totalConsumed}</div>
-                          <div className="text-center text-gray-900">{totals.totalAvailable}</div>
+                        <div className="table-row grid-cols-5 font-bold">
+                          <div className="table-cell">TOTAL</div>
+                          <div className="table-cell-center">{totals.totalQuantity}</div>
+                          <div className="table-cell-center">{totals.totalConsumed}</div>
+                          <div className="table-cell-center">{totals.totalAvailable}</div>
                           <div className="text-center">
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${getStockLevelColor(totals.totalPercentage)}`}>
+                            {/* UPDATED: Using design system badge classes */}
+                            <span className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
                               {totals.totalPercentage}%
                             </span>
                           </div>
@@ -830,14 +836,14 @@ function ItemSearchContent() {
               </div>
             )}
 
-            {/* Action Buttons */}
+            {/* Action Buttons - UPDATED: Using design system button classes */}
             <div className="flex space-x-3">
-              <Link href={`/galley?item=${selectedItem.id}`} className="flex-1 bg-blue-600 text-white py-3 rounded-lg text-center font-medium" onClick={() => setSelectedItem(null)}>
+              <Link href={`/galley?item=${selectedItem.id}`} className="btn-primary text-center" onClick={() => setSelectedItem(null)}>
                 View on Map
               </Link>
               <Link 
                 href={`/issues?item=${selectedItem.code}&name=${encodeURIComponent(selectedItem.name)}`} 
-                className="flex-1 border-2 border-red-500 text-red-600 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors flex items-center justify-center space-x-2" 
+                className="btn-danger flex items-center justify-center space-x-2"
                 onClick={() => setSelectedItem(null)}
               >
                 <i className="ri-error-warning-line"></i>

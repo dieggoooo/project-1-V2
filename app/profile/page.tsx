@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import Header from '../../components/Header';
-import BottomNav from '../../components/BottomNav';
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 
 // Validation schemas
 const signInSchema = z.object({
@@ -95,11 +95,14 @@ export default function Profile() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         
-        <div className="pb-20 px-4 pt-32">
+        {/* UPDATED: Using page-container */}
+        <div className="page-container">
           <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            {/* UPDATED: Using card-padded */}
+            <div className="card-padded">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                {/* UPDATED: Using icon-circle classes */}
+                <div className="icon-circle icon-xl bg-blue-100 mx-auto mb-4">
                   <i className="ri-user-line text-blue-600 text-2xl"></i>
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
@@ -115,12 +118,13 @@ export default function Profile() {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <i className="ri-mail-line text-gray-400"></i>
                     </div>
+                    {/* UPDATED: Using input and input-icon classes */}
                     <input
                       {...signInForm.register('email')}
                       type="email"
                       id="email"
                       placeholder="Enter your email"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="input input-icon"
                     />
                   </div>
                   {signInForm.formState.errors.email && (
@@ -136,12 +140,13 @@ export default function Profile() {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <i className="ri-lock-line text-gray-400"></i>
                     </div>
+                    {/* UPDATED: Using input and input-icon classes */}
                     <input
                       {...signInForm.register('password')}
                       type="password"
                       id="password"
                       placeholder="Enter your password"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="input input-icon"
                     />
                   </div>
                   {signInForm.formState.errors.password && (
@@ -149,9 +154,10 @@ export default function Profile() {
                   )}
                 </div>
 
+                {/* UPDATED: Using btn-primary */}
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="btn-primary"
                 >
                   Sign In
                 </button>
@@ -175,13 +181,15 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="pb-20 px-4 pt-32">
+      {/* UPDATED: Using page-container */}
+      <div className="page-container">
         <div className="max-w-2xl mx-auto">
-          {/* Profile Header */}
-          <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+          {/* Profile Header - UPDATED: Using card-padded */}
+          <div className="card-padded section-spacing">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                {/* UPDATED: Using icon-circle classes */}
+                <div className="icon-circle icon-xl bg-blue-100">
                   <i className="ri-user-line text-blue-600 text-2xl"></i>
                 </div>
                 <div>
@@ -200,8 +208,8 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Profile Form */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          {/* Profile Form - UPDATED: Using card-padded */}
+          <div className="card-padded section-spacing">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
               {!isEditing && (
@@ -220,12 +228,13 @@ export default function Profile() {
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                     First Name
                   </label>
+                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
                     {...profileForm.register('firstName')}
                     type="text"
                     id="firstName"
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
                   />
                   {profileForm.formState.errors.firstName && (
                     <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.firstName.message}</p>
@@ -236,12 +245,13 @@ export default function Profile() {
                   <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
                     Last Name
                   </label>
+                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
                     {...profileForm.register('lastName')}
                     type="text"
                     id="lastName"
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
                   />
                   {profileForm.formState.errors.lastName && (
                     <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.lastName.message}</p>
@@ -254,12 +264,13 @@ export default function Profile() {
                   <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-2">
                     Employee ID
                   </label>
+                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
                     {...profileForm.register('employeeId')}
                     type="text"
                     id="employeeId"
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
                   />
                   {profileForm.formState.errors.employeeId && (
                     <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.employeeId.message}</p>
@@ -270,12 +281,13 @@ export default function Profile() {
                   <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-2">
                     Position
                   </label>
+                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
                     {...profileForm.register('position')}
                     type="text"
                     id="position"
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
                   />
                   {profileForm.formState.errors.position && (
                     <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.position.message}</p>
@@ -287,13 +299,14 @@ export default function Profile() {
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
+                {/* UPDATED: Using input and input-disabled classes */}
                 <input
                   {...profileForm.register('phone')}
                   type="tel"
                   id="phone"
                   disabled={!isEditing}
                   placeholder="+1 (555) 123-4567"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  className={`input ${!isEditing ? 'input-disabled' : ''}`}
                 />
               </div>
 
@@ -301,21 +314,23 @@ export default function Profile() {
                 <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700 mb-2">
                   Emergency Contact
                 </label>
+                {/* UPDATED: Using input and input-disabled classes */}
                 <input
                   {...profileForm.register('emergencyContact')}
                   type="text"
                   id="emergencyContact"
                   disabled={!isEditing}
                   placeholder="Name and phone number"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  className={`input ${!isEditing ? 'input-disabled' : ''}`}
                 />
               </div>
 
               {isEditing && (
                 <div className="flex space-x-3 pt-4">
+                  {/* UPDATED: Using btn-primary and btn-secondary */}
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    className="btn-primary"
                   >
                     Save Changes
                   </button>
@@ -325,7 +340,7 @@ export default function Profile() {
                       setIsEditing(false);
                       profileForm.reset();
                     }}
-                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                    className="btn-secondary"
                   >
                     Cancel
                   </button>
@@ -334,13 +349,15 @@ export default function Profile() {
             </form>
           </div>
 
-          {/* Account Settings */}
-          <div className="bg-white rounded-xl p-6 shadow-sm mt-6">
+          {/* Account Settings - UPDATED: Using card-padded */}
+          <div className="card-padded">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Settings</h2>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              {/* UPDATED: Using card classes */}
+              <div className="flex items-center justify-between p-4 card">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  {/* UPDATED: Using icon-circle classes */}
+                  <div className="icon-circle icon-md bg-blue-100">
                     <i className="ri-mail-line text-blue-600"></i>
                   </div>
                   <div>
@@ -353,9 +370,10 @@ export default function Profile() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between p-4 card">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  {/* UPDATED: Using icon-circle classes */}
+                  <div className="icon-circle icon-md bg-green-100">
                     <i className="ri-lock-line text-green-600"></i>
                   </div>
                   <div>
@@ -368,9 +386,10 @@ export default function Profile() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between p-4 card">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  {/* UPDATED: Using icon-circle classes */}
+                  <div className="icon-circle icon-md bg-purple-100">
                     <i className="ri-notification-line text-purple-600"></i>
                   </div>
                   <div>
