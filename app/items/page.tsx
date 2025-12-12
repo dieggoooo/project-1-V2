@@ -549,9 +549,10 @@ function ItemSearchContent() {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Sort by:</span>
-            <div className="flex space-x-2">
+          {/* UPDATED: Stacked sort buttons like inventory page */}
+          <div className="space-y-2">
+            <div className="text-sm font-medium text-gray-700">Sort by:</div>
+            <div className="flex flex-wrap gap-2">
               {[
                 { key: 'name', label: 'Name' },
                 { key: 'code', label: 'Code' },

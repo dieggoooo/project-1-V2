@@ -5,7 +5,8 @@ import Link from 'next/link';
 export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 bg-blue-600 text-white z-40">
-      <div className="pt-20 pb-3 px-4">
+      {/* Using inline style to force 80px top padding */}
+      <div style={{ paddingTop: '80px', paddingBottom: '12px', paddingLeft: '16px', paddingRight: '16px' }}>
         <div className="flex items-center justify-between">
           <Link href="/" className="text-xl font-bold">
             CrewGalley

@@ -31,9 +31,9 @@
    LAYOUT SPACING
    ====================== */
 
-/* Consistent page spacing - UPDATED for iOS safe area */
+/* Consistent page spacing - Accounts for header height + safe area */
 .page-container {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 5rem);
+  padding-top: 8rem;
   padding-bottom: 5rem;
   padding-left: 1rem;
   padding-right: 1rem;
