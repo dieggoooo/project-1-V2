@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Pacifico } from "next/font/google";
 import "./globals.css";
 import { InventoryProvider } from "./contexts/InventoryContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const pacifico = Pacifico({
   weight: '400',
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-pacifico',
-})
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,9 +37,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${pacifico.variable} antialiased`}
       >
-        <InventoryProvider>
-          {children}
-        </InventoryProvider>
+        <AuthProvider>
+          <ProtectedRoute>
+            <InventoryProvider>
+              {children}
+            </InventoryProvider>
+          </ProtectedRoute>
+        </AuthProvider>
       </body>
     </html>
   );
