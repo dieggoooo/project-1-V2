@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
 import { useInventory } from '../contexts/InventoryContext';
-// Import utility functions from the design system
 import {
   getStockLevelClass,
   getStockLevelBg,
@@ -20,11 +19,9 @@ export default function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [bottleLevels, setBottleLevels] = useState<{ [key: string]: number[] }>({});
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  
-  // Use the unified inventory system
+
   const { items, toggleItemChecked, getItemTotals, updatePositionConsumption, addItem } = useInventory();
 
-  // Form state for new item
   const [newItem, setNewItem] = useState({
     name: '',
     code: '',
@@ -38,12 +35,10 @@ export default function InventoryPage() {
     trolleyName: ''
   });
 
-  // Get unique items for dropdown (grouped by name)
   const uniqueItems = Array.from(
     new Map(items.map(item => [item.name, item])).values()
   );
 
-  // Handle item selection from dropdown
   const handleItemSelection = (itemName: string) => {
     const selectedExistingItem = items.find(item => item.name === itemName);
     if (selectedExistingItem) {
@@ -57,7 +52,6 @@ export default function InventoryPage() {
         unitOfMeasure: selectedExistingItem.positions[0]?.unitOfMeasure || 'units',
       });
     } else {
-      // Custom item - reset auto-populated fields
       setNewItem({
         ...newItem,
         name: itemName,
@@ -70,22 +64,19 @@ export default function InventoryPage() {
     }
   };
 
-  // Initialize bottle levels for a position
-const initializeBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
-  if (bottleLevels[positionId]) {
-    return bottleLevels[positionId];
-  }
-  return Array(quantity).fill(availablePercentage);
-};
-  // Update individual bottle level
+  // FIXED: No longer calls setBottleLevels during render
+  const getBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
+    return bottleLevels[positionId] || Array(quantity).fill(availablePercentage);
+  };
+
   const updateBottleLevel = (positionId: string, bottleIndex: number, newLevel: number) => {
     setBottleLevels(prev => {
       const currentLevels = prev[positionId] || [];
       const updatedLevels = [...currentLevels];
       updatedLevels[bottleIndex] = newLevel;
-      
+
       const averageLevel = Math.round(updatedLevels.reduce((sum, level) => sum + level, 0) / updatedLevels.length);
-      
+
       if (selectedItem) {
         const position = selectedItem.positions.find((p: any) => p.id === positionId);
         if (position) {
@@ -93,16 +84,15 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
           updatePositionConsumption(selectedItem.id, positionId, consumed);
         }
       }
-      
+
       return { ...prev, [positionId]: updatedLevels };
     });
   };
 
-  // Set all bottles to same level
   const setAllBottles = (positionId: string, quantity: number, level: number) => {
     const levels = Array(quantity).fill(level);
     setBottleLevels(prev => ({ ...prev, [positionId]: levels }));
-    
+
     if (selectedItem) {
       const position = selectedItem.positions.find((p: any) => p.id === positionId);
       if (position) {
@@ -112,7 +102,19 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
     }
   };
 
-  // Handle add item form submission
+  // FIXED: Pre-initializes bottle levels when opening modal
+  const openItemModal = (item: any) => {
+    const initialLevels: { [key: string]: number[] } = {};
+    item.positions.forEach((position: any) => {
+      const levelPercentage = position.quantity > 0
+        ? Math.round((position.available / position.quantity) * 100)
+        : 100;
+      initialLevels[position.id] = Array(position.quantity).fill(levelPercentage);
+    });
+    setBottleLevels(initialLevels);
+    setSelectedItem(item);
+  };
+
   const handleAddItem = () => {
     if (newItem.name === '__custom__' || !newItem.name || !newItem.code || !newItem.positionCode) {
       alert('Please fill in all required fields');
@@ -132,7 +134,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
       trolleyName: newItem.trolleyName
     });
 
-    // Reset form
     setNewItem({
       name: '',
       code: '',
@@ -163,15 +164,14 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      {/* UPDATED: Using page-container class */}
+
       <div className="page-container">
         <div className="section-spacing">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Post-Flight Inventory</h1>
           <p className="text-gray-600">Check remaining levels for alcohol, equipment, and supplies</p>
         </div>
 
-        {/* Filter Tabs - UPDATED: Using card-padded and section-spacing */}
+        {/* Filter Tabs */}
         <div className="card-padded section-spacing">
           <div className="flex flex-wrap gap-2">
             {['All', 'Alcohol', 'Equipment', 'Supplies', 'Glassware', 'Food', 'Drinks'].map((filter) => (
@@ -190,14 +190,14 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
           </div>
         </div>
 
-        {/* Progress Summary - UPDATED: Using card-padded */}
+        {/* Progress Summary */}
         <div className="card-padded section-spacing">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold">Inventory Progress</h3>
             <span className="text-sm text-gray-600">{completedItems}/{filteredItems.length} checked</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
@@ -248,7 +248,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
           </div>
         </div>
 
-        {/* Inventory List - UPDATED: Using design system classes and utility functions */}
+        {/* Inventory List */}
         <div className="space-y-3">
           {filteredItems.map((item) => {
             const totals = getItemTotals(item.id);
@@ -264,8 +264,8 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                   <button
                     onClick={() => toggleItemChecked(item.id)}
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      item.checked 
-                        ? 'bg-green-500 border-green-500' 
+                      item.checked
+                        ? 'bg-green-500 border-green-500'
                         : 'border-gray-300 hover:border-green-400'
                     }`}
                   >
@@ -294,33 +294,22 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                           <span>{totals.totalQuantity} {item.positions[0]?.unitOfMeasure || 'units'}</span>
                         </div>
                       </div>
-                      {/* UPDATED: Using design system badge classes */}
                       <div className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
                         {totals.totalPercentage}%
                       </div>
                     </div>
 
-                    {/* Level Bar - UPDATED: Using design system progress class */}
                     <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                      <div 
+                      <div
                         className={`h-2 rounded-full transition-all ${getProgressBarClass(totals.totalPercentage)}`}
                         style={{ width: `${totals.totalPercentage}%` }}
                       ></div>
                     </div>
 
                     <div className="flex items-center justify-end">
+                      {/* FIXED: Uses openItemModal instead of setSelectedItem directly */}
                       <button
-                        onClick={() => {
-  const initialLevels: { [key: string]: number[] } = {};
-  item.positions.forEach((position) => {
-    const levelPercentage = position.quantity > 0 
-      ? Math.round((position.available / position.quantity) * 100)
-      : 100;
-    initialLevels[position.id] = Array(position.quantity).fill(levelPercentage);
-  });
-  setBottleLevels(prev => ({ ...prev, ...initialLevels }));
-  setSelectedItem(item);
-}}
+                        onClick={() => openItemModal(item)}
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
                         {isAlcohol ? 'Set Levels' : 'Update Level'}
@@ -332,7 +321,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
             );
           })}
 
-          {/* Add Item Card - UPDATED: Using card classes */}
+          {/* Add Item Card */}
           <button
             onClick={() => setShowAddItemModal(true)}
             className="w-full card-padded border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all group"
@@ -349,7 +338,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
           </button>
         </div>
 
-        {/* Action Buttons - UPDATED: Using design system button classes */}
+        {/* Action Buttons */}
         <div className="mt-8 space-y-3">
           <button className="btn-primary">
             Submit Inventory Report
@@ -360,7 +349,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
         </div>
       </div>
 
-      {/* Add Item Modal - UPDATED: Using design system modal classes */}
+      {/* Add Item Modal */}
       {showAddItemModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -375,7 +364,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
             </div>
 
             <div className="space-y-4">
-              {/* Item Name - Dropdown with Custom Option */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Item Name <span className="text-red-500">*</span>
@@ -393,8 +381,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                   ))}
                   <option value="__custom__">+ Add Custom Item</option>
                 </select>
-                
-                {/* Custom Item Name Input */}
+
                 {newItem.name === '__custom__' && (
                   <input
                     type="text"
@@ -407,7 +394,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 )}
               </div>
 
-              {/* Item Code - UPDATED: Using input class */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Item Code <span className="text-red-500">*</span>
@@ -425,12 +411,9 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 )}
               </div>
 
-              {/* Category & Type - UPDATED: Using select class */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                   <select
                     value={newItem.category}
                     onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
@@ -449,9 +432,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                   <select
                     value={newItem.type}
                     onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
@@ -474,7 +455,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
               </div>
 
-              {/* Subcategory (optional for beverages) */}
               {newItem.category === 'beverages' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -500,12 +480,9 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
               )}
 
-              {/* Quantity & Unit */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quantity
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                   <input
                     type="number"
                     min="1"
@@ -516,9 +493,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Unit of Measure
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Unit of Measure</label>
                   <select
                     value={newItem.unitOfMeasure}
                     onChange={(e) => setNewItem({ ...newItem, unitOfMeasure: e.target.value })}
@@ -540,7 +515,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
               </div>
 
-              {/* Position Code */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Position Code <span className="text-red-500">*</span>
@@ -554,12 +528,9 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 />
               </div>
 
-              {/* Galley & Trolley */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Galley Name
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Galley Name</label>
                   <input
                     type="text"
                     value={newItem.galleyName}
@@ -570,9 +541,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Trolley Name
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Trolley Name</label>
                   <input
                     type="text"
                     value={newItem.trolleyName}
@@ -583,18 +552,11 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
               </div>
 
-              {/* Action Buttons - UPDATED: Using design system button classes */}
               <div className="flex space-x-3 pt-4">
-                <button
-                  onClick={() => setShowAddItemModal(false)}
-                  className="btn-secondary"
-                >
+                <button onClick={() => setShowAddItemModal(false)} className="btn-secondary">
                   Cancel
                 </button>
-                <button
-                  onClick={handleAddItem}
-                  className="btn-primary"
-                >
+                <button onClick={handleAddItem} className="btn-primary">
                   Add Item
                 </button>
               </div>
@@ -603,7 +565,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
         </div>
       )}
 
-      {/* Level Update Modal - UPDATED: Using design system classes and utilities */}
+      {/* Level Update Modal */}
       {selectedItem && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -620,14 +582,11 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                 </div>
                 <p className="text-sm text-gray-600 font-mono">{selectedItem.code}</p>
               </div>
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="modal-close"
-              >
+              <button onClick={() => setSelectedItem(null)} className="modal-close">
                 <i className="ri-close-line text-gray-600"></i>
               </button>
             </div>
-            
+
             {/* Current Level Display */}
             <div className="text-center mb-6">
               <div className="text-4xl font-bold text-blue-600 mb-2">
@@ -649,15 +608,20 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                   Unit: {selectedItem.positions?.[0]?.unitOfMeasure || 'units'}
                 </span>
               </div>
-              
+
               {isAlcoholItem(selectedItem) ? (
-                // Alcohol Items - Individual Bottle Sliders
                 <div className="space-y-6">
                   {selectedItem.positions.map((position: any) => {
-                  const currentLevels = bottleLevels[position.id] || Array(position.quantity).fill(
-                  position.quantity > 0 ? Math.round((position.available / position.quantity) * 100) : 100
-                  );
-                    const averageLevel = Math.round(currentLevels.reduce((sum: number, level: number) => sum + level, 0) / currentLevels.length);                    
+                    // FIXED: Uses getBottleLevels instead of initializeBottleLevels
+                    const currentLevels = getBottleLevels(
+                      position.id,
+                      position.quantity,
+                      position.quantity > 0 ? Math.round((position.available / position.quantity) * 100) : 100
+                    );
+                    const averageLevel = Math.round(
+                      currentLevels.reduce((sum: number, level: number) => sum + level, 0) / currentLevels.length
+                    );
+
                     return (
                       <div key={position.id} className={`card-padded border-2 ${getStockLevelBg(averageLevel)}`}>
                         <div className="flex items-center justify-between mb-4">
@@ -665,12 +629,11 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                             <div className="font-medium text-gray-900 text-lg">{position.positionCode}</div>
                             <div className="text-sm text-gray-600">{position.galleyName} - {position.trolleyName}</div>
                           </div>
-                          {/* UPDATED: Using design system badge classes */}
                           <div className={`badge text-xl font-bold ${getStockLevelClass(averageLevel)}`}>
                             {averageLevel}%
                           </div>
                         </div>
-                        
+
                         {/* Quick Set All Buttons */}
                         <div className="mb-4 flex space-x-2">
                           <button
@@ -702,7 +665,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                         {/* Individual Bottle Sliders */}
                         <div className="space-y-3">
                           {Array.from({ length: position.quantity }).map((_, index) => {
-                            const bottleLevel = currentLevels[index] || 100;
+                            const bottleLevel = currentLevels[index] ?? 100;
                             return (
                               <div key={index} className="bg-white p-3 rounded-lg border border-gray-200">
                                 <div className="flex items-center justify-between mb-2">
@@ -710,7 +673,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                                     <i className="ri-wine-bottle-line text-purple-600"></i>
                                     <span className="font-medium text-sm">Bottle {index + 1}</span>
                                   </div>
-                                  {/* UPDATED: Using design system badge classes */}
                                   <span className={`badge ${getStockLevelClass(bottleLevel)}`}>
                                     {bottleLevel}%
                                   </span>
@@ -723,10 +685,10 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                                   onChange={(e) => updateBottleLevel(position.id, index, parseInt(e.target.value))}
                                   className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                                   style={{
-                                    background: `linear-gradient(to right, 
-                                      #ef4444 0%, #ef4444 ${bottleLevel * 0.25}%, 
-                                      #f59e0b ${bottleLevel * 0.25}%, #f59e0b ${bottleLevel * 0.50}%, 
-                                      #eab308 ${bottleLevel * 0.50}%, #eab308 ${bottleLevel * 0.75}%, 
+                                    background: `linear-gradient(to right,
+                                      #ef4444 0%, #ef4444 ${bottleLevel * 0.25}%,
+                                      #f59e0b ${bottleLevel * 0.25}%, #f59e0b ${bottleLevel * 0.50}%,
+                                      #eab308 ${bottleLevel * 0.50}%, #eab308 ${bottleLevel * 0.75}%,
                                       #10b981 ${bottleLevel * 0.75}%, #10b981 ${bottleLevel}%,
                                       #e5e7eb ${bottleLevel}%, #e5e7eb 100%)`
                                   }}
@@ -761,7 +723,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                   })}
                 </div>
               ) : (
-                // Non-Alcohol Items - UPDATED: Using design system table classes
                 <div className="table-container">
                   <div className="table-header">
                     <div className="table-header-row grid-cols-5">
@@ -772,11 +733,11 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                       <div className="text-center">%</div>
                     </div>
                   </div>
-                  
+
                   <div>
                     {selectedItem.positions.map((position: any) => (
-                      <div 
-                        key={position.id} 
+                      <div
+                        key={position.id}
                         className={`table-row grid-cols-5 ${getStockLevelBg(position.percentageAvailable)}`}
                       >
                         <div className="table-cell">{position.positionCode}</div>
@@ -794,13 +755,15 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                                 if (!prev) return prev;
                                 return {
                                   ...prev,
-                                  positions: prev.positions.map((p: any) => 
-                                    p.id === position.id 
+                                  positions: prev.positions.map((p: any) =>
+                                    p.id === position.id
                                       ? {
                                           ...p,
                                           consumed: newConsumed,
                                           available: p.quantity - newConsumed,
-                                          percentageAvailable: p.quantity > 0 ? Math.round(((p.quantity - newConsumed) / p.quantity) * 100) : 0
+                                          percentageAvailable: p.quantity > 0
+                                            ? Math.round(((p.quantity - newConsumed) / p.quantity) * 100)
+                                            : 0
                                         }
                                       : p
                                   )
@@ -812,7 +775,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                         </div>
                         <div className="table-cell-center">{position.available}</div>
                         <div className="text-center">
-                          {/* UPDATED: Using design system badge classes */}
                           <span className={`badge ${getStockLevelClass(position.percentageAvailable)}`}>
                             {position.percentageAvailable}%
                           </span>
@@ -820,7 +782,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                       </div>
                     ))}
 
-                    {/* Totals Row */}
                     {(() => {
                       const totals = getItemTotals(selectedItem.id);
                       return (
@@ -831,7 +792,6 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
                             <div className="table-cell-center">{totals.totalConsumed}</div>
                             <div className="table-cell-center">{totals.totalAvailable}</div>
                             <div className="text-center">
-                              {/* UPDATED: Using design system badge classes */}
                               <span className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
                                 {totals.totalPercentage}%
                               </span>
@@ -845,7 +805,7 @@ const initializeBottleLevels = (positionId: string, quantity: number, availableP
               )}
             </div>
 
-            {/* Action Buttons - UPDATED: Using design system button classes */}
+            {/* Action Buttons */}
             <div className="flex space-x-3 mt-4">
               <Link
                 href={`/issues?item=${selectedItem.code}&name=${encodeURIComponent(selectedItem.name)}`}
