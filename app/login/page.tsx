@@ -9,7 +9,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { signIn, signUp } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,11 +18,27 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    const { error } = await signIn(email, password);
-    
-    if (error) {
-      setError(error.message);
-      setLoading(false);
+    if (isSignUp) {
+      // Sign up
+      const { error } = await signUp(email, password);
+      
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        // Success! Show message
+        alert('Account created! Please check your email to verify your account, then sign in.');
+        setIsSignUp(false);
+        setLoading(false);
+      }
+    } else {
+      // Sign in
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      }
     }
   };
 
@@ -34,10 +51,12 @@ export default function LoginPage() {
             <i className="ri-flight-takeoff-fill text-white text-3xl"></i>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">CrewGalley</h1>
-          <p className="text-gray-600 mt-2">Sign in to continue</p>
+          <p className="text-gray-600 mt-2">
+            {isSignUp ? 'Create your account' : 'Sign in to continue'}
+          </p>
         </div>
 
-        {/* Login Form */}
+        {/* Login/Signup Form */}
         <div className="bg-white rounded-2xl shadow-sm p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -75,6 +94,11 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
               />
+              {isSignUp && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Must be at least 6 characters
+                </p>
+              )}
             </div>
 
             <button
@@ -85,13 +109,28 @@ export default function LoginPage() {
               {loading ? (
                 <span className="flex items-center justify-center space-x-2">
                   <i className="ri-loader-4-line animate-spin"></i>
-                  <span>Signing in...</span>
+                  <span>{isSignUp ? 'Creating account...' : 'Signing in...'}</span>
                 </span>
               ) : (
-                'Sign In'
+                isSignUp ? 'Create Account' : 'Sign In'
               )}
             </button>
           </form>
+
+          {/* Toggle Sign In / Sign Up */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              {isSignUp 
+                ? 'Already have an account? Sign in' 
+                : "Don't have an account? Create one"}
+            </button>
+          </div>
         </div>
 
         <p className="text-center text-sm text-gray-600 mt-6">

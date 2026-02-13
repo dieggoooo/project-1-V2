@@ -1,178 +1,149 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../utils/supabase';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 
-// Validation schemas
-const signInSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
+// Validation schema
 const profileSchema = z.object({
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  employeeId: z.string().min(3, 'Employee ID must be at least 3 characters'),
-  position: z.string().min(2, 'Position must be at least 2 characters'),
+  first_name: z.string().min(2, 'First name must be at least 2 characters').optional(),
+  last_name: z.string().min(2, 'Last name must be at least 2 characters').optional(),
+  employee_id: z.string().min(3, 'Employee ID must be at least 3 characters').optional(),
+  position: z.string().min(2, 'Position must be at least 2 characters').optional(),
   phone: z.string().optional(),
-  emergencyContact: z.string().optional(),
+  emergency_contact: z.string().optional(),
 });
 
-type SignInFormData = z.infer<typeof signInSchema>;
 type ProfileFormData = z.infer<typeof profileSchema>;
 
-interface User {
+interface UserProfile {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  employeeId: string;
-  position: string;
+  first_name?: string;
+  last_name?: string;
+  employee_id?: string;
+  position?: string;
   phone?: string;
-  emergencyContact?: string;
+  emergency_contact?: string;
 }
 
 export default function Profile() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const { user: authUser, signOut } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-
-  const signInForm = useForm<SignInFormData>({
-    resolver: zodResolver(signInSchema),
-  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
   });
 
-  const onSignIn = (data: SignInFormData) => {
-    // Simulate authentication
-    const mockUser: User = {
-      id: '1',
-      email: data.email,
-      firstName: 'John',
-      lastName: 'Doe',
-      employeeId: 'EMP001',
-      position: 'Flight Attendant',
-      phone: '+1 (555) 123-4567',
-      emergencyContact: 'Jane Doe +1 (555) 987-6543',
-    };
-    
-    setUser(mockUser);
-    setIsSignedIn(true);
-    
-    // Pre-fill profile form with user data
-    profileForm.reset({
-      firstName: mockUser.firstName,
-      lastName: mockUser.lastName,
-      employeeId: mockUser.employeeId,
-      position: mockUser.position,
-      phone: mockUser.phone,
-      emergencyContact: mockUser.emergencyContact,
-    });
-  };
+  // Fetch user profile from database
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!authUser) {
+        setLoading(false);
+        return;
+      }
 
-  const onProfileUpdate = (data: ProfileFormData) => {
-    if (user) {
-      const updatedUser = { ...user, ...data };
-      setUser(updatedUser);
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setProfile(data);
+          // Pre-fill form with database values
+          profileForm.reset({
+            first_name: data.first_name || '',
+            last_name: data.last_name || '',
+            employee_id: data.employee_id || '',
+            position: data.position || '',
+            phone: data.phone || '',
+            emergency_contact: data.emergency_contact || '',
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProfile();
+  }, [authUser, profileForm]);
+
+  const onProfileUpdate = async (data: ProfileFormData) => {
+    if (!authUser) return;
+
+    setSaving(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          employee_id: data.employee_id,
+          position: data.position,
+          phone: data.phone,
+          emergency_contact: data.emergency_contact,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', authUser.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setProfile(prev => prev ? { ...prev, ...data } : null);
       setIsEditing(false);
+      setSuccessMessage('Profile updated successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleSignOut = () => {
-    setIsSignedIn(false);
-    setUser(null);
-    setIsEditing(false);
+  const handleSignOut = async () => {
+    await signOut();
   };
 
-  if (!isSignedIn) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        
-        {/* UPDATED: Using page-container */}
-        <div className="page-container">
-          <div className="max-w-md mx-auto">
-            {/* UPDATED: Using card-padded */}
-            <div className="card-padded">
-              <div className="text-center mb-6">
-                {/* UPDATED: Using icon-circle classes */}
-                <div className="icon-circle icon-xl bg-blue-100 mx-auto mb-4">
-                  <i className="ri-user-line text-blue-600 text-2xl"></i>
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
-                <p className="text-gray-600 mt-2">Access your crew profile</p>
-              </div>
-
-              <form onSubmit={signInForm.handleSubmit(onSignIn)} className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <i className="ri-mail-line text-gray-400"></i>
-                    </div>
-                    {/* UPDATED: Using input and input-icon classes */}
-                    <input
-                      {...signInForm.register('email')}
-                      type="email"
-                      id="email"
-                      placeholder="Enter your email"
-                      className="input input-icon"
-                    />
-                  </div>
-                  {signInForm.formState.errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{signInForm.formState.errors.email.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <i className="ri-lock-line text-gray-400"></i>
-                    </div>
-                    {/* UPDATED: Using input and input-icon classes */}
-                    <input
-                      {...signInForm.register('password')}
-                      type="password"
-                      id="password"
-                      placeholder="Enter your password"
-                      className="input input-icon"
-                    />
-                  </div>
-                  {signInForm.formState.errors.password && (
-                    <p className="text-red-500 text-sm mt-1">{signInForm.formState.errors.password.message}</p>
-                  )}
-                </div>
-
-                {/* UPDATED: Using btn-primary */}
-                <button
-                  type="submit"
-                  className="btn-primary"
-                >
-                  Sign In
-                </button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Demo: Use any valid email and password (6+ characters)
-                </p>
-              </div>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <i className="ri-loader-4-line text-2xl text-blue-600 animate-spin mb-2"></i>
+          <p className="text-gray-600">Loading profile...</p>
         </div>
+      </div>
+    );
+  }
 
-        <BottomNav />
+  if (!authUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Please sign in to view your profile</p>
+        </div>
       </div>
     );
   }
@@ -181,22 +152,23 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      {/* UPDATED: Using page-container */}
       <div className="page-container">
         <div className="max-w-2xl mx-auto">
-          {/* Profile Header - UPDATED: Using card-padded */}
+          {/* Profile Header */}
           <div className="card-padded section-spacing">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
-                {/* UPDATED: Using icon-circle classes */}
                 <div className="icon-circle icon-xl bg-blue-100">
                   <i className="ri-user-line text-blue-600 text-2xl"></i>
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {user?.firstName} {user?.lastName}
+                    {profile?.first_name || profile?.last_name 
+                      ? `${profile?.first_name || ''} ${profile?.last_name || ''}`
+                      : 'User'}
                   </h1>
-                  <p className="text-gray-600">{user?.position}</p>
+                  <p className="text-gray-600">{profile?.position || 'Crew Member'}</p>
+                  <p className="text-sm text-gray-500">{profile?.email}</p>
                 </div>
               </div>
               <button
@@ -208,7 +180,23 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Profile Form - UPDATED: Using card-padded */}
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center space-x-2">
+              <i className="ri-checkbox-circle-line"></i>
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center space-x-2">
+              <i className="ri-error-warning-line"></i>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Profile Form */}
           <div className="card-padded section-spacing">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
@@ -225,55 +213,52 @@ export default function Profile() {
             <form onSubmit={profileForm.handleSubmit(onProfileUpdate)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
                     First Name
                   </label>
-                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
-                    {...profileForm.register('firstName')}
+                    {...profileForm.register('first_name')}
                     type="text"
-                    id="firstName"
+                    id="first_name"
                     disabled={!isEditing}
                     className={`input ${!isEditing ? 'input-disabled' : ''}`}
                   />
-                  {profileForm.formState.errors.firstName && (
-                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.firstName.message}</p>
+                  {profileForm.formState.errors.first_name && (
+                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.first_name.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
                     Last Name
                   </label>
-                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
-                    {...profileForm.register('lastName')}
+                    {...profileForm.register('last_name')}
                     type="text"
-                    id="lastName"
+                    id="last_name"
                     disabled={!isEditing}
                     className={`input ${!isEditing ? 'input-disabled' : ''}`}
                   />
-                  {profileForm.formState.errors.lastName && (
-                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.lastName.message}</p>
+                  {profileForm.formState.errors.last_name && (
+                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.last_name.message}</p>
                   )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="employee_id" className="block text-sm font-medium text-gray-700 mb-2">
                     Employee ID
                   </label>
-                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
-                    {...profileForm.register('employeeId')}
+                    {...profileForm.register('employee_id')}
                     type="text"
-                    id="employeeId"
+                    id="employee_id"
                     disabled={!isEditing}
                     className={`input ${!isEditing ? 'input-disabled' : ''}`}
                   />
-                  {profileForm.formState.errors.employeeId && (
-                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.employeeId.message}</p>
+                  {profileForm.formState.errors.employee_id && (
+                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.employee_id.message}</p>
                   )}
                 </div>
 
@@ -281,7 +266,6 @@ export default function Profile() {
                   <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-2">
                     Position
                   </label>
-                  {/* UPDATED: Using input and input-disabled classes */}
                   <input
                     {...profileForm.register('position')}
                     type="text"
@@ -299,7 +283,6 @@ export default function Profile() {
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
-                {/* UPDATED: Using input and input-disabled classes */}
                 <input
                   {...profileForm.register('phone')}
                   type="tel"
@@ -311,14 +294,13 @@ export default function Profile() {
               </div>
 
               <div>
-                <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="emergency_contact" className="block text-sm font-medium text-gray-700 mb-2">
                   Emergency Contact
                 </label>
-                {/* UPDATED: Using input and input-disabled classes */}
                 <input
-                  {...profileForm.register('emergencyContact')}
+                  {...profileForm.register('emergency_contact')}
                   type="text"
-                  id="emergencyContact"
+                  id="emergency_contact"
                   disabled={!isEditing}
                   placeholder="Name and phone number"
                   className={`input ${!isEditing ? 'input-disabled' : ''}`}
@@ -327,20 +309,29 @@ export default function Profile() {
 
               {isEditing && (
                 <div className="flex space-x-3 pt-4">
-                  {/* UPDATED: Using btn-primary and btn-secondary */}
                   <button
                     type="submit"
+                    disabled={saving}
                     className="btn-primary"
                   >
-                    Save Changes
+                    {saving ? (
+                      <span className="flex items-center justify-center space-x-2">
+                        <i className="ri-loader-4-line animate-spin"></i>
+                        <span>Saving...</span>
+                      </span>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       setIsEditing(false);
                       profileForm.reset();
+                      setError('');
                     }}
                     className="btn-secondary"
+                    disabled={saving}
                   >
                     Cancel
                   </button>
@@ -349,57 +340,32 @@ export default function Profile() {
             </form>
           </div>
 
-          {/* Account Settings - UPDATED: Using card-padded */}
+          {/* Account Settings */}
           <div className="card-padded">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Settings</h2>
             <div className="space-y-4">
-              {/* UPDATED: Using card classes */}
               <div className="flex items-center justify-between p-4 card">
                 <div className="flex items-center space-x-3">
-                  {/* UPDATED: Using icon-circle classes */}
                   <div className="icon-circle icon-md bg-blue-100">
                     <i className="ri-mail-line text-blue-600"></i>
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">Email Address</h3>
-                    <p className="text-sm text-gray-600">{user?.email}</p>
+                    <p className="text-sm text-gray-600">{profile?.email}</p>
                   </div>
                 </div>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  Change
-                </button>
               </div>
 
               <div className="flex items-center justify-between p-4 card">
                 <div className="flex items-center space-x-3">
-                  {/* UPDATED: Using icon-circle classes */}
                   <div className="icon-circle icon-md bg-green-100">
                     <i className="ri-lock-line text-green-600"></i>
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">Password</h3>
-                    <p className="text-sm text-gray-600">Last changed 30 days ago</p>
+                    <p className="text-sm text-gray-600">Manage your password</p>
                   </div>
                 </div>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  Change
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 card">
-                <div className="flex items-center space-x-3">
-                  {/* UPDATED: Using icon-circle classes */}
-                  <div className="icon-circle icon-md bg-purple-100">
-                    <i className="ri-notification-line text-purple-600"></i>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Notifications</h3>
-                    <p className="text-sm text-gray-600">Manage your preferences</p>
-                  </div>
-                </div>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  Configure
-                </button>
               </div>
             </div>
           </div>

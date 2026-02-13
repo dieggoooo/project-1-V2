@@ -71,15 +71,12 @@ export default function InventoryPage() {
   };
 
   // Initialize bottle levels for a position
-  const initializeBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
-    if (!bottleLevels[positionId]) {
-      const levels = Array(quantity).fill(availablePercentage);
-      setBottleLevels(prev => ({ ...prev, [positionId]: levels }));
-      return levels;
-    }
+const initializeBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
+  if (bottleLevels[positionId]) {
     return bottleLevels[positionId];
-  };
-
+  }
+  return Array(quantity).fill(availablePercentage);
+};
   // Update individual bottle level
   const updateBottleLevel = (positionId: string, bottleIndex: number, newLevel: number) => {
     setBottleLevels(prev => {
@@ -313,7 +310,17 @@ export default function InventoryPage() {
 
                     <div className="flex items-center justify-end">
                       <button
-                        onClick={() => setSelectedItem(item)}
+                        onClick={() => {
+  const initialLevels: { [key: string]: number[] } = {};
+  item.positions.forEach((position) => {
+    const levelPercentage = position.quantity > 0 
+      ? Math.round((position.available / position.quantity) * 100)
+      : 100;
+    initialLevels[position.id] = Array(position.quantity).fill(levelPercentage);
+  });
+  setBottleLevels(prev => ({ ...prev, ...initialLevels }));
+  setSelectedItem(item);
+}}
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
                         {isAlcohol ? 'Set Levels' : 'Update Level'}
@@ -647,13 +654,10 @@ export default function InventoryPage() {
                 // Alcohol Items - Individual Bottle Sliders
                 <div className="space-y-6">
                   {selectedItem.positions.map((position: any) => {
-                    const currentLevels = initializeBottleLevels(
-                      position.id, 
-                      position.quantity, 
-                      Math.round((position.available / position.quantity) * 100)
-                    );
-                    const averageLevel = Math.round(currentLevels.reduce((sum: number, level: number) => sum + level, 0) / currentLevels.length);
-                    
+                  const currentLevels = bottleLevels[position.id] || Array(position.quantity).fill(
+                  position.quantity > 0 ? Math.round((position.available / position.quantity) * 100) : 100
+                  );
+                    const averageLevel = Math.round(currentLevels.reduce((sum: number, level: number) => sum + level, 0) / currentLevels.length);                    
                     return (
                       <div key={position.id} className={`card-padded border-2 ${getStockLevelBg(averageLevel)}`}>
                         <div className="flex items-center justify-between mb-4">
