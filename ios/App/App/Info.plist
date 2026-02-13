@@ -49,5 +49,8 @@
 	<string>Upload photos of inventory items and galley equipment.</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>&lt;key&gt;UIWebViewBounce&lt;/key&gt;
+&lt;key&gt;UIWebViewBounce&lt;/key&gt;</key>
+	<string>false</string>
 </dict>
 </plist>

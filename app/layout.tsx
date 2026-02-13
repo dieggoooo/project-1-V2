@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Pacifico } from "next/font/google";
 import "./globals.css";
 import { InventoryProvider } from "./contexts/InventoryContext";
@@ -25,6 +25,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Galley App",
   description: "Galley App",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
