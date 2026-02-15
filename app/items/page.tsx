@@ -7,9 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
-// Import context AND types from the same file
 import { useInventory, type InventoryItem, type Position } from '@/app/contexts/InventoryContext';
-// Import design system utilities
 import { getStockLevelClass, getStockLevelBg, getSortIcon } from '@/app/utils/styling';
  
 interface Subcategory {
@@ -27,7 +25,7 @@ interface Category {
 }
 
 interface SearchSuggestion {
-  id: number;
+  id: string;
   name: string;
   code: string;
   type: 'item' | 'category' | 'code';
@@ -40,28 +38,24 @@ function ItemSearchContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
-  const [itemImages, setItemImages] = useState<{ [key: number]: string }>({});
-  const [uploadingImage, setUploadingImage] = useState<number | null>(null);
+  const [itemImages, setItemImages] = useState<{ [key: string]: string }>({});
+  const [uploadingImage, setUploadingImage] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'name' | 'code' | 'availability' | 'category'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
-  // Ref for click outside detection
   const searchRef = React.useRef<HTMLDivElement>(null);
   
-  // Use the unified inventory system
   const { items, updatePositionConsumption, getItemTotals } = useInventory();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -107,7 +101,6 @@ function ItemSearchContent() {
     }
   ];
 
-  // Load search history from localStorage on component mount
   useEffect(() => {
     const savedHistory = localStorage.getItem('searchHistory');
     if (savedHistory) {
@@ -115,16 +108,13 @@ function ItemSearchContent() {
     }
   }, []);
 
-  // Generate search suggestions based on current input
   const searchSuggestions = useMemo(() => {
     if (!searchTerm || searchTerm.length < 2) return [];
 
     const suggestions: SearchSuggestion[] = [];
     const lowerSearchTerm = searchTerm.toLowerCase();
 
-    // Search through items
     items.forEach((item) => {
-      // Match by name
       if (item.name.toLowerCase().includes(lowerSearchTerm)) {
         suggestions.push({
           id: item.id,
@@ -133,9 +123,7 @@ function ItemSearchContent() {
           type: 'item',
           category: item.category
         });
-      }
-      // Match by code
-      else if (item.code.toLowerCase().includes(lowerSearchTerm)) {
+      } else if (item.code.toLowerCase().includes(lowerSearchTerm)) {
         suggestions.push({
           id: item.id,
           name: item.name,
@@ -146,11 +134,10 @@ function ItemSearchContent() {
       }
     });
 
-    // Search through categories
     categories.forEach(category => {
       if (category.name.toLowerCase().includes(lowerSearchTerm)) {
         suggestions.push({
-          id: 0,
+          id: category.id,
           name: category.name,
           code: category.id,
           type: 'category'
@@ -158,10 +145,9 @@ function ItemSearchContent() {
       }
     });
 
-    return suggestions.slice(0, 8); // Limit to 8 suggestions
+    return suggestions.slice(0, 8);
   }, [searchTerm, items]);
 
-  // Enhanced filtering with search, category, and sorting
   const filteredAndSortedItems = useMemo(() => {
     const filtered = items.filter((item) => {
       const matchesSearch = !searchTerm || 
@@ -177,7 +163,6 @@ function ItemSearchContent() {
       return matchesSearch && matchesFilter && matchesCategory && matchesSubcategory;
     });
 
-    // Sort the filtered results
     filtered.sort((a, b) => {
       let aValue: string | number;
       let bValue: string | number;
@@ -215,7 +200,6 @@ function ItemSearchContent() {
     setSearchTerm(term);
     setShowSuggestions(false);
     
-    // Add to search history if it's a meaningful search
     if (term.length > 2) {
       const newHistory = [term, ...searchHistory.filter(h => h !== term)].slice(0, 10);
       setSearchHistory(newHistory);
@@ -244,22 +228,18 @@ function ItemSearchContent() {
     localStorage.removeItem('searchHistory');
   };
 
-  const handleImageUpload = (itemId: number, file: File) => {
+  const handleImageUpload = (itemId: string, file: File) => {
     setUploadingImage(itemId);
-    
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      setItemImages(prev => ({
-        ...prev,
-        [itemId]: result
-      }));
+      setItemImages(prev => ({ ...prev, [itemId]: result }));
       setUploadingImage(null);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleFileSelect = (itemId: number, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (itemId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       handleImageUpload(itemId, file);
@@ -294,6 +274,13 @@ function ItemSearchContent() {
  
   const getCurrentCategory = () => categories.find(cat => cat.id === selectedCategory);
   const getCurrentSubcategory = () => getCurrentCategory()?.subcategories?.find(sub => sub.id === selectedSubcategory);
+
+  // +/- stepper for consumed quantity - no keyboard, no zoom
+  const adjustConsumed = (positionId: string, currentConsumed: number, maxQuantity: number, delta: number) => {
+    if (!selectedItem) return;
+    const newConsumed = Math.min(maxQuantity, Math.max(0, currentConsumed + delta));
+    updatePositionConsumption(selectedItem.id, positionId, newConsumed);
+  };
  
   if (!selectedCategory && !searchTerm) {
     return (
@@ -320,10 +307,7 @@ function ItemSearchContent() {
                   className="input input-icon pr-12"
                 />
                 {searchTerm && (
-                  <button
-                    onClick={clearSearch}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
+                  <button onClick={clearSearch} className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <i className="ri-close-line text-gray-400 hover:text-gray-600"></i>
                   </button>
                 )}
@@ -419,10 +403,7 @@ function ItemSearchContent() {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">Recent Searches</span>
-                    <button
-                      onClick={clearSearchHistory}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
+                    <button onClick={clearSearchHistory} className="text-xs text-blue-600 hover:text-blue-800">
                       Clear All
                     </button>
                   </div>
@@ -540,16 +521,12 @@ function ItemSearchContent() {
               className="input input-icon pr-12"
             />
             {searchTerm && (
-              <button
-                onClick={clearSearch}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
+              <button onClick={clearSearch} className="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <i className="ri-close-line text-gray-400 hover:text-gray-600"></i>
               </button>
             )}
           </div>
 
-          {/* UPDATED: Stacked sort buttons like inventory page */}
           <div className="space-y-2">
             <div className="text-sm font-medium text-gray-700">Sort by:</div>
             <div className="flex flex-wrap gap-2">
@@ -563,9 +540,7 @@ function ItemSearchContent() {
                   key={key}
                   onClick={() => handleSort(key as 'name' | 'code' | 'availability' | 'category')}
                   className={`btn-sm flex items-center space-x-1 ${
-                    sortBy === key
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    sortBy === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   <span>{label}</span>
@@ -599,9 +574,7 @@ function ItemSearchContent() {
                       </span>
                     </div>
                     {searchTerm && item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()) && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        {item.description}
-                      </div>
+                      <div className="text-xs text-gray-600 mt-1">{item.description}</div>
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
@@ -702,9 +675,9 @@ function ItemSearchContent() {
                   <div className="table-header-row grid-cols-5">
                     <div>Position</div>
                     <div className="text-center">QTY</div>
-                    <div className="text-center">Consumed</div>
+                    <div className="text-center">Used</div>
                     <div className="text-center">Available</div>
-                    <div className="text-center">% Available</div>
+                    <div className="text-center">%</div>
                   </div>
                 </div>
 
@@ -716,18 +689,21 @@ function ItemSearchContent() {
                     >
                       <div className="table-cell font-medium">{position.positionCode}</div>
                       <div className="table-cell-center">{position.quantity}</div>
-                      <div className="text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          max={position.quantity}
-                          value={position.consumed}
-                          onChange={(e) => {
-                            const newConsumed = Math.min(position.quantity, Math.max(0, parseInt(e.target.value, 10) || 0));
-                            updatePositionConsumption(selectedItem.id, position.id, newConsumed);
-                          }}
-                          className="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                      {/* +/- stepper - no keyboard, no zoom */}
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => adjustConsumed(position.id, position.consumed, position.quantity, -1)}
+                          className="w-7 h-7 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 text-lg leading-none"
+                        >
+                          −
+                        </button>
+                        <span className="w-6 text-center font-medium text-sm">{position.consumed}</span>
+                        <button
+                          onClick={() => adjustConsumed(position.id, position.consumed, position.quantity, 1)}
+                          className="w-7 h-7 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 text-lg leading-none"
+                        >
+                          +
+                        </button>
                       </div>
                       <div className="table-cell-center font-medium">{position.available}</div>
                       <div className="text-center">
