@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Pacifico } from "next/font/google";
 import "./globals.css";
 import { InventoryProvider } from "./contexts/InventoryContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { FlightProvider } from "./contexts/FlightContext";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 const pacifico = Pacifico({
@@ -46,9 +47,11 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ProtectedRoute>
-            <InventoryProvider>
-              {children}
-            </InventoryProvider>
+            <FlightProvider>
+              <InventoryProvider>
+                {children}
+              </InventoryProvider>
+            </FlightProvider>
           </ProtectedRoute>
         </AuthProvider>
       </body>

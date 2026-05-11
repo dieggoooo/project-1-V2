@@ -1,782 +1,609 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/Header';
 import BottomNav from '../../components/BottomNav';
-import { useInventory } from '../contexts/InventoryContext';
-import {
-  getStockLevelClass,
-  getStockLevelBg,
-  getProgressBarClass,
-  isAlcoholItem,
-  getStockLevelLabel
-} from '../utils/styling';
+import { useFlight } from '../contexts/FlightContext';
+import { authFetch } from '../utils/api';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface LtxFlight {
+  flightNumber: string;
+  aircraft: string;
+  from: string;
+  to: string;
+  fromDateTime: string;
+  toDateTime: string;
+  duration: number;
+}
+
+interface LtxBox {
+  type: string;
+  title: string;
+  exchange: string;
+  cartType: string | null;
+  displayText: string;
+  cartConfig: unknown | null;
+}
+
+interface LtxRoom {
+  id: string;
+  roomId: string;
+  name: string;
+  boxes: Record<string, LtxBox>;
+}
+
+interface LtxProfile {
+  id: string;
+  aircraft: string;
+  profileName: string;
+  duration: number | null;
+  rooms: LtxRoom[];
+}
+
+interface LtxItem {
+  code: string;
+  itemType: string;
+  description: string;
+  description2: string;
+  category: string;
+  subCategory: string;
+  barSource: string | null;
+}
+
+// key = "galley:ROOM:BOXKEY:LINE_INDEX" | "galley:ROOM:BOXKEY" | "item:CODE"
+type CountMap = Record<string, number>;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function currentYearMonth() {
+  const now = new Date();
+  return { year: now.getFullYear(), month: String(now.getMonth() + 1).padStart(2, '0') };
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function InventoryPage() {
-  const [selectedFilter, setSelectedFilter] = useState('All');
-  const [levelFilter, setLevelFilter] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [bottleLevels, setBottleLevels] = useState<{ [key: string]: number[] }>({});
-  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const { activeFlight } = useFlight();
 
-  const { items, toggleItemChecked, getItemTotals, updatePositionConsumption, addItem } = useInventory();
+  // Flight selection
+  const [flights, setFlights] = useState<LtxFlight[]>([]);
+  const [selectedFlight, setSelectedFlight] = useState<LtxFlight | null>(activeFlight ?? null);
+  const [flightsLoading, setFlightsLoading] = useState(false);
+  const [validAircraft, setValidAircraft] = useState<Set<string> | null>(null);
 
-  const [newItem, setNewItem] = useState({
-    name: '',
-    code: '',
-    category: 'beverages',
-    subcategory: '',
-    type: 'Supplies',
-    unitOfMeasure: 'units',
-    quantity: 1,
-    positionCode: '',
-    galleyName: '',
-    trolleyName: ''
-  });
+  // Galley profile
+  const [profile, setProfile] = useState<LtxProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
-  const uniqueItems = Array.from(
-    new Map(items.map(item => [item.name, item])).values()
-  );
+  // Items catalog
+  const [items, setItems] = useState<LtxItem[]>([]);
+  const [itemSearch, setItemSearch] = useState('');
 
-  const handleItemSelection = (itemName: string) => {
-    const selectedExistingItem = items.find(item => item.name === itemName);
-    if (selectedExistingItem) {
-      setNewItem({
-        ...newItem,
-        name: selectedExistingItem.name,
-        code: selectedExistingItem.code,
-        category: selectedExistingItem.category,
-        subcategory: selectedExistingItem.subcategory || '',
-        type: selectedExistingItem.type,
-        unitOfMeasure: selectedExistingItem.positions[0]?.unitOfMeasure || 'units',
+  // Mode
+  const [mode, setMode] = useState<'galley' | 'item'>('galley');
+
+  // Galley navigation
+  const [selectedRoom, setSelectedRoom] = useState<LtxRoom | null>(null);
+  const [selectedBox, setSelectedBox] = useState<{ key: string; box: LtxBox } | null>(null);
+
+  // Counts — shared between all modes
+  const [counts, setCounts] = useState<CountMap>({});
+
+  // Submission
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Load flights for current month
+  useEffect(() => {
+    const { year, month } = currentYearMonth();
+    setFlightsLoading(true);
+    authFetch(`/api/logintelix/flights/${year}/${month}`)
+      .then(r => r.json())
+      .then(data => setFlights(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setFlightsLoading(false));
+  }, []);
+
+  // Check which aircraft have galley profiles and filter the dropdown
+  useEffect(() => {
+    if (!flights.length) return;
+    const uniqueAircraft = [...new Set(flights.map(f => f.aircraft))];
+    Promise.all(
+      uniqueAircraft.map(ac =>
+        authFetch(`/api/logintelix/galley/${ac}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            const hasProfile = Array.isArray(data) ? data.length > 0 : !!(data?.rooms);
+            return { ac, hasProfile };
+          })
+          .catch(() => ({ ac, hasProfile: false }))
+      )
+    ).then(results => {
+      setValidAircraft(new Set(results.filter(r => r.hasProfile).map(r => r.ac)));
+    });
+  }, [flights]);
+
+  // Load items catalog
+  useEffect(() => {
+    authFetch('/api/logintelix/items')
+      .then(r => r.json())
+      .then(data => setItems(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  // Load galley profile when flight selected
+  useEffect(() => {
+    if (!selectedFlight) return;
+    setProfileLoading(true);
+    setProfile(null);
+    setSelectedRoom(null);
+    setSelectedBox(null);
+    setCounts({});
+    const url = `/api/logintelix/galley/${selectedFlight.aircraft}${
+      selectedFlight.duration > 0 ? `?duration=${selectedFlight.duration}` : ''
+    }`;
+    authFetch(url)
+      .then(r => r.json())
+      .then((data) => {
+        const p = Array.isArray(data)
+          ? (data.find((x: LtxProfile) => x.duration === null) ?? data[0])
+          : data;
+        setProfile(p?.rooms ? p : null);
+      })
+      .catch(() => {})
+      .finally(() => setProfileLoading(false));
+  }, [selectedFlight]);
+
+  const setCount = (key: string, value: number) => {
+    setCounts(prev => ({ ...prev, [key]: Math.max(0, value) }));
+  };
+
+  // Key helpers
+  const galleyKey = (roomName: string, boxKey: string) => `galley:${roomName}:${boxKey}`;
+  const galleyItemKey = (roomName: string, boxKey: string, lineIdx: number) => `galley:${roomName}:${boxKey}:${lineIdx}`;
+  const itemKey = (code: string) => `item:${code}`;
+
+  // Per-box helpers
+  const getBoxLines = (box: LtxBox) => box.displayText?.split('\n').filter(Boolean) ?? [];
+
+  const getBoxProgress = (roomName: string, boxKey: string, box: LtxBox) => {
+    const lines = getBoxLines(box);
+    if (lines.length > 0) {
+      const counted = lines.filter((_, i) => counts[galleyItemKey(roomName, boxKey, i)] !== undefined).length;
+      return { counted, total: lines.length };
+    }
+    // Fallback: single count for the whole box
+    const counted = counts[galleyKey(roomName, boxKey)] !== undefined ? 1 : 0;
+    return { counted, total: 1 };
+  };
+
+  const totalCounted = Object.keys(counts).length;
+
+  const filteredItems = useMemo(() => {
+    const q = itemSearch.toLowerCase();
+    if (!q) return items.slice(0, 80);
+    return items.filter(i =>
+      i.description.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)
+    ).slice(0, 40);
+  }, [items, itemSearch]);
+
+  const handleSubmit = async () => {
+    if (!selectedFlight) return;
+    setSubmitting(true);
+
+    const galleyEntries = Object.entries(counts)
+      .filter(([k]) => k.startsWith('galley:'))
+      .map(([k, qty]) => {
+        const parts = k.split(':');
+        const roomName = parts[1];
+        const boxKey = parts[2];
+        const lineIndex = parts.length > 3 ? parseInt(parts[3]) : null;
+        const room = profile?.rooms.find(r => r.name === roomName);
+        const box = room?.boxes[boxKey];
+        const lines = getBoxLines(box!);
+        const itemDescription = lineIndex !== null ? (lines[lineIndex] ?? '') : (box?.title ?? boxKey);
+        return { roomName, boxKey, boxTitle: box?.title ?? boxKey, itemDescription, lineIndex, quantityRemaining: qty };
       });
-    } else {
-      setNewItem({
-        ...newItem,
-        name: itemName,
-        code: '',
-        category: 'beverages',
-        subcategory: '',
-        type: 'Supplies',
-        unitOfMeasure: 'units',
+
+    const itemEntries = Object.entries(counts)
+      .filter(([k]) => k.startsWith('item:'))
+      .map(([k, qty]) => {
+        const code = k.replace('item:', '');
+        const item = items.find(i => i.code === code);
+        return { code, description: item?.description ?? code, quantityRemaining: qty };
       });
+
+    const payload = {
+      flightNumber: selectedFlight.flightNumber,
+      aircraft: selectedFlight.aircraft,
+      from: selectedFlight.from,
+      to: selectedFlight.to,
+      flightDate: selectedFlight.fromDateTime.split(' ')[0],
+      galleyProfileId: profile?.id ?? '',
+      submittedAt: new Date().toISOString(),
+      galleyCounts: galleyEntries,
+      itemCounts: itemEntries,
+    };
+
+    try {
+      await authFetch('/api/logintelix/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      setSubmitted(true);
+    } catch {
+      alert('Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const getBottleLevels = (positionId: string, quantity: number, availablePercentage: number) => {
-    return bottleLevels[positionId] || Array(quantity).fill(availablePercentage);
-  };
+  // ── Submitted confirmation ─────────────────────────────────────────────────
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="page-container flex flex-col items-center justify-center py-24 text-center px-8">
+          <div className="icon-circle icon-xl bg-green-100 mx-auto mb-4">
+            <i className="ri-checkbox-circle-line text-green-500 text-3xl"></i>
+          </div>
+          <h2 className="text-xl font-bold mb-2">Inventory Submitted</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            Flight {selectedFlight?.flightNumber} · {selectedFlight?.from} → {selectedFlight?.to}
+          </p>
+          <button
+            onClick={() => { setSubmitted(false); setSelectedFlight(null); setCounts({}); }}
+            className="btn-primary"
+          >
+            Start New Inventory
+          </button>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
-  const updateBottleLevel = (positionId: string, bottleIndex: number, newLevel: number) => {
-    setBottleLevels(prev => {
-      const currentLevels = prev[positionId] || [];
-      const updatedLevels = [...currentLevels];
-      updatedLevels[bottleIndex] = newLevel;
+  // ── Box detail: individual items ───────────────────────────────────────────
+  if (mode === 'galley' && selectedRoom && selectedBox) {
+    const lines = getBoxLines(selectedBox.box);
 
-      const averageLevel = Math.round(updatedLevels.reduce((sum, level) => sum + level, 0) / updatedLevels.length);
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="page-container">
+          <div className="px-4 py-4 bg-white border-b flex items-center">
+            <button onClick={() => setSelectedBox(null)} className="btn-icon bg-gray-100 mr-3">
+              <i className="ri-arrow-left-line text-gray-600"></i>
+            </button>
+            <div>
+              <h2 className="text-lg font-semibold">{selectedBox.box.title}</h2>
+              <p className="text-sm text-gray-500">
+                {selectedBox.key} · {selectedRoom.name}
+                {lines.length > 0 ? ` · ${lines.length} items` : ''}
+              </p>
+            </div>
+          </div>
 
-      if (selectedItem) {
-        const position = selectedItem.positions.find((p: any) => p.id === positionId);
-        if (position) {
-          const consumed = Math.round((position.quantity * (100 - averageLevel)) / 100);
-          updatePositionConsumption(selectedItem.id, positionId, consumed);
-        }
-      }
+          <div className="px-4 py-4 space-y-3">
+            {lines.length > 0 ? (
+              lines.map((line, i) => {
+                const key = galleyItemKey(selectedRoom.name, selectedBox.key, i);
+                const val = counts[key];
+                return (
+                  <div key={i} className="card p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-800 leading-snug">{line}</div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => setCount(key, (counts[key] ?? 0) - 1)}
+                          className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-700 active:scale-95"
+                        >−</button>
+                        <span className="w-8 text-center font-semibold text-sm">
+                          {val === undefined ? '—' : val}
+                        </span>
+                        <button
+                          onClick={() => setCount(key, (counts[key] ?? 0) + 1)}
+                          className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700 active:scale-95"
+                        >+</button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              // No displayText — single stepper for the whole position
+              (() => {
+                const key = galleyKey(selectedRoom.name, selectedBox.key);
+                const val = counts[key];
+                return (
+                  <div className="card p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-800">{selectedBox.box.title}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">No item breakdown available</div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => setCount(key, (counts[key] ?? 0) - 1)}
+                          className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-700 active:scale-95"
+                        >−</button>
+                        <span className="w-8 text-center font-semibold text-sm">
+                          {val === undefined ? '—' : val}
+                        </span>
+                        <button
+                          onClick={() => setCount(key, (counts[key] ?? 0) + 1)}
+                          className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700 active:scale-95"
+                        >+</button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()
+            )}
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
-      return { ...prev, [positionId]: updatedLevels };
-    });
-  };
+  // ── Room detail: list of positions ────────────────────────────────────────
+  if (mode === 'galley' && selectedRoom) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="page-container">
+          <div className="px-4 py-4 bg-white border-b flex items-center">
+            <button onClick={() => setSelectedRoom(null)} className="btn-icon bg-gray-100 mr-3">
+              <i className="ri-arrow-left-line text-gray-600"></i>
+            </button>
+            <div>
+              <h2 className="text-lg font-semibold">{selectedRoom.name}</h2>
+              <p className="text-sm text-gray-500">{Object.keys(selectedRoom.boxes).length} positions</p>
+            </div>
+          </div>
 
-  const setAllBottles = (positionId: string, quantity: number, level: number) => {
-    const levels = Array(quantity).fill(level);
-    setBottleLevels(prev => ({ ...prev, [positionId]: levels }));
+          <div className="px-4 py-4 space-y-3">
+            {Object.entries(selectedRoom.boxes).map(([boxKey, box]) => {
+              const { counted, total } = getBoxProgress(selectedRoom.name, boxKey, box);
+              const allCounted = counted === total && counted > 0;
+              const lines = getBoxLines(box);
 
-    if (selectedItem) {
-      const position = selectedItem.positions.find((p: any) => p.id === positionId);
-      if (position) {
-        const consumed = Math.round((position.quantity * (100 - level)) / 100);
-        updatePositionConsumption(selectedItem.id, positionId, consumed);
-      }
-    }
-  };
+              return (
+                <button
+                  key={boxKey}
+                  onClick={() => setSelectedBox({ key: boxKey, box })}
+                  className="card-hover w-full p-4 text-left flex items-center justify-between"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-bold text-gray-400 mb-0.5">{boxKey}</div>
+                    <div className="text-sm font-semibold text-gray-800 leading-tight">{box.title}</div>
+                    {lines.length > 0 && (
+                      <div className="text-xs text-gray-500 mt-0.5">{lines.length} items</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {counted > 0 && (
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        allCounted ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                      }`}>
+                        {counted}/{total}
+                      </span>
+                    )}
+                    <i className="ri-arrow-right-s-line text-gray-400"></i>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
-  const openItemModal = (item: any) => {
-    const initialLevels: { [key: string]: number[] } = {};
-    item.positions.forEach((position: any) => {
-      const levelPercentage = position.quantity > 0
-        ? Math.round((position.available / position.quantity) * 100)
-        : 100;
-      initialLevels[position.id] = Array(position.quantity).fill(levelPercentage);
-    });
-    setBottleLevels(initialLevels);
-    setSelectedItem(item);
-  };
-
-  // FIXED: +/- buttons instead of number input to prevent iOS zoom
-  const adjustConsumed = (positionId: string, currentConsumed: number, maxQuantity: number, delta: number) => {
-    const newConsumed = Math.min(maxQuantity, Math.max(0, currentConsumed + delta));
-    updatePositionConsumption(selectedItem.id, positionId, newConsumed);
-    setSelectedItem((prev: any) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        positions: prev.positions.map((p: any) =>
-          p.id === positionId
-            ? {
-                ...p,
-                consumed: newConsumed,
-                available: p.quantity - newConsumed,
-                percentageAvailable: p.quantity > 0
-                  ? Math.round(((p.quantity - newConsumed) / p.quantity) * 100)
-                  : 0
-              }
-            : p
-        )
-      };
-    });
-  };
-
-  const handleAddItem = () => {
-    if (newItem.name === '__custom__' || !newItem.name || !newItem.code || !newItem.positionCode) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    addItem({
-      name: newItem.name,
-      code: newItem.code,
-      category: newItem.category,
-      subcategory: newItem.subcategory,
-      type: newItem.type,
-      quantity: newItem.quantity,
-      unitOfMeasure: newItem.unitOfMeasure,
-      positionCode: newItem.positionCode,
-      galleyName: newItem.galleyName,
-      trolleyName: newItem.trolleyName
-    });
-
-    setNewItem({
-      name: '',
-      code: '',
-      category: 'beverages',
-      subcategory: '',
-      type: 'Supplies',
-      unitOfMeasure: 'units',
-      quantity: 1,
-      positionCode: '',
-      galleyName: '',
-      trolleyName: ''
-    });
-
-    setShowAddItemModal(false);
-    alert('Item added successfully!');
-  };
-
-  const filteredItems = items.filter(item => {
-    const totals = getItemTotals(item.id);
-    const typeMatch = selectedFilter === 'All' || item.type === selectedFilter;
-    const levelMatch = !levelFilter || getStockLevelLabel(totals.totalPercentage) === levelFilter;
-    return typeMatch && levelMatch;
-  });
-
-  const completedItems = filteredItems.filter(item => item.checked).length;
-  const progress = filteredItems.length > 0 ? (completedItems / filteredItems.length) * 100 : 0;
-
+  // ── Main view ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-
       <div className="page-container">
-        <div className="section-spacing">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Post-Flight Inventory</h1>
-          <p className="text-gray-600">Check remaining levels for alcohol, equipment, and supplies</p>
+
+        {/* Title */}
+        <div className="px-4 pt-4 pb-2">
+          <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
+          <p className="text-sm text-gray-500">Count remaining stock and submit</p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="card-padded section-spacing">
-          <div className="flex flex-wrap gap-2">
-            {['All', 'Alcohol', 'Equipment', 'Supplies', 'Glassware', 'Food', 'Drinks'].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setSelectedFilter(filter)}
-                className={`btn-sm ${
-                  selectedFilter === filter
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+        {/* Flight selector */}
+        <div className="px-4 py-3 bg-white border-y mb-4">
+          <label className="text-xs font-medium text-gray-500 block mb-1">Flight</label>
+          {flightsLoading ? (
+            <div className="text-sm text-gray-400">Loading flights…</div>
+          ) : (
+            <select
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+              value={selectedFlight?.flightNumber ?? ''}
+              onChange={e => {
+                const f = flights.find(fl => fl.flightNumber === e.target.value) ?? null;
+                setSelectedFlight(f);
+              }}
+            >
+              <option value="">Select a flight…</option>
+              {flights
+                .filter(f => !validAircraft || validAircraft.has(f.aircraft))
+                .map((f, i) => (
+                  <option key={`${f.flightNumber}-${i}`} value={f.flightNumber}>
+                    AM{f.flightNumber} · {f.from} → {f.to} · {f.aircraft}
+                  </option>
+                ))}
+            </select>
+          )}
+
+          {selectedFlight && (
+            <div className="mt-2 flex gap-2 flex-wrap text-xs text-gray-500">
+              <span className="bg-gray-100 rounded px-2 py-0.5">Aircraft: {selectedFlight.aircraft}</span>
+              <span className="bg-gray-100 rounded px-2 py-0.5">{selectedFlight.from} → {selectedFlight.to}</span>
+              {selectedFlight.duration > 0 && (
+                <span className="bg-gray-100 rounded px-2 py-0.5">{selectedFlight.duration} min</span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Progress Summary */}
-        <div className="card-padded section-spacing">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold">Inventory Progress</h3>
-            <span className="text-sm text-gray-600">{completedItems}/{filteredItems.length} checked</span>
+        {!selectedFlight ? (
+          <div className="text-center py-16 text-gray-400 text-sm">
+            Select a flight above to begin
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
+        ) : profileLoading ? (
+          <div className="text-center py-16 text-gray-400">
+            <i className="ri-loader-4-line text-2xl animate-spin block mb-2"></i>
+            Loading galley profile…
           </div>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <button
-              onClick={() => setLevelFilter(levelFilter === 'Good' ? null : 'Good')}
-              className={`p-2 rounded-lg transition-colors ${
-                levelFilter === 'Good' ? 'bg-green-100 border-2 border-green-300' : 'hover:bg-green-50'
-              }`}
-            >
-              <div className={`text-lg font-semibold ${levelFilter === 'Good' ? 'text-green-700' : 'text-green-600'}`}>
-                {filteredItems.filter(item => getItemTotals(item.id).totalPercentage >= 70).length}
+        ) : (
+          <>
+            {/* Progress */}
+            {totalCounted > 0 && (
+              <div className="mx-4 mb-4 card p-3 flex items-center justify-between">
+                <span className="text-sm text-gray-600">{totalCounted} position{totalCounted !== 1 ? 's' : ''} counted</span>
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="btn-primary py-1 px-4 text-sm"
+                >
+                  {submitting ? 'Submitting…' : 'Submit'}
+                </button>
               </div>
-              <div className="text-xs text-gray-600">Good Level</div>
-            </button>
-            <button
-              onClick={() => setLevelFilter(levelFilter === 'Medium' ? null : 'Medium')}
-              className={`p-2 rounded-lg transition-colors ${
-                levelFilter === 'Medium' ? 'bg-orange-100 border-2 border-orange-300' : 'hover:bg-orange-50'
-              }`}
-            >
-              <div className={`text-lg font-semibold ${levelFilter === 'Medium' ? 'text-orange-700' : 'text-orange-600'}`}>
-                {filteredItems.filter(item => {
-                  const t = getItemTotals(item.id);
-                  return t.totalPercentage >= 40 && t.totalPercentage < 70;
-                }).length}
-              </div>
-              <div className="text-xs text-gray-600">Medium Level</div>
-            </button>
-            <button
-              onClick={() => setLevelFilter(levelFilter === 'Low' ? null : 'Low')}
-              className={`p-2 rounded-lg transition-colors ${
-                levelFilter === 'Low' ? 'bg-red-100 border-2 border-red-300' : 'hover:bg-red-50'
-              }`}
-            >
-              <div className={`text-lg font-semibold ${levelFilter === 'Low' ? 'text-red-700' : 'text-red-600'}`}>
-                {filteredItems.filter(item => getItemTotals(item.id).totalPercentage < 40).length}
-              </div>
-              <div className="text-xs text-gray-600">Low Level</div>
-            </button>
-          </div>
-        </div>
+            )}
 
-        {/* Inventory List */}
-        <div className="space-y-3">
-          {filteredItems.map((item) => {
-            const totals = getItemTotals(item.id);
-            const isAlcohol = isAlcoholItem(item);
-            return (
-              <div
-                key={item.id}
-                className={`card-interactive ${item.checked ? 'bg-green-50 border border-green-200' : ''}`}
-              >
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={() => toggleItemChecked(item.id)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      item.checked ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-green-400'
-                    }`}
-                  >
-                    {item.checked && <i className="ri-check-line text-white text-sm"></i>}
-                  </button>
+            {/* Mode tabs */}
+            <div className="px-4 mb-4">
+              <div className="flex bg-gray-100 rounded-xl p-1">
+                <button
+                  onClick={() => setMode('galley')}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                    mode === 'galley' ? 'bg-white shadow text-blue-600' : 'text-gray-500'
+                  }`}
+                >
+                  <i className="ri-layout-grid-line mr-1"></i>By Galley
+                </button>
+                <button
+                  onClick={() => setMode('item')}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                    mode === 'item' ? 'bg-white shadow text-blue-600' : 'text-gray-500'
+                  }`}
+                >
+                  <i className="ri-search-line mr-1"></i>By Item
+                </button>
+              </div>
+            </div>
 
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                          {isAlcohol && (
-                            <span className="badge bg-purple-100 text-purple-700">
-                              <i className="ri-wine-glass-line mr-1"></i>
-                              Alcohol
+            {/* ── By Galley ── */}
+            {mode === 'galley' && (
+              <div className="px-4 pb-6 space-y-3">
+                {!profile ? (
+                  <div className="text-center py-8 text-gray-400 text-sm">No galley profile found for this aircraft</div>
+                ) : (
+                  profile.rooms.map(room => {
+                    const boxKeys = Object.keys(room.boxes);
+                    const startedBoxes = boxKeys.filter(k => {
+                      const { counted } = getBoxProgress(room.name, k, room.boxes[k]);
+                      return counted > 0;
+                    }).length;
+                    return (
+                      <button
+                        key={room.id}
+                        onClick={() => setSelectedRoom(room)}
+                        className="card-hover w-full p-4 text-left flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-semibold text-sm">{room.name}</div>
+                          <div className="text-xs text-gray-500">{room.roomId} · {boxKeys.length} positions</div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {startedBoxes > 0 && (
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              startedBoxes === boxKeys.length ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                            }`}>
+                              {startedBoxes}/{boxKeys.length}
                             </span>
                           )}
+                          <i className="ri-arrow-right-s-line text-gray-400"></i>
                         </div>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <span>{item.type}</span>
-                          <span>•</span>
-                          <span className="font-mono text-blue-600">{item.code}</span>
-                          <span>•</span>
-                          <span>{totals.totalQuantity} {item.positions[0]?.unitOfMeasure || 'units'}</span>
-                        </div>
-                      </div>
-                      <div className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
-                        {totals.totalPercentage}%
-                      </div>
-                    </div>
-
-                    <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                      <div
-                        className={`h-2 rounded-full transition-all ${getProgressBarClass(totals.totalPercentage)}`}
-                        style={{ width: `${totals.totalPercentage}%` }}
-                      ></div>
-                    </div>
-
-                    <div className="flex items-center justify-end">
-                      <button
-                        onClick={() => openItemModal(item)}
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        {isAlcohol ? 'Set Levels' : 'Update Level'}
                       </button>
-                    </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* ── By Item ── */}
+            {mode === 'item' && (
+              <div className="px-4 pb-6">
+                <div className="relative mb-3">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i className="ri-search-line text-gray-400"></i>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Add Item Card */}
-          <button
-            onClick={() => setShowAddItemModal(true)}
-            className="w-full card-padded border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all group"
-          >
-            <div className="flex items-center justify-center space-x-3">
-              <div className="icon-circle icon-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
-                <i className="ri-add-line text-blue-600 text-2xl"></i>
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Add New Item</div>
-                <div className="text-sm text-gray-600">Add an item to this inventory</div>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-8 space-y-3">
-          <button className="btn-primary">Submit Inventory Report</button>
-          <button className="btn-secondary">Save as Draft</button>
-        </div>
-      </div>
-
-      {/* Add Item Modal */}
-      {showAddItemModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2 className="modal-title">Add New Item</h2>
-              <button onClick={() => setShowAddItemModal(false)} className="modal-close">
-                <i className="ri-close-line text-gray-600"></i>
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Item Name <span className="text-red-500">*</span>
-                </label>
-                <select value={newItem.name} onChange={(e) => handleItemSelection(e.target.value)} className="select">
-                  <option value="">Select an item...</option>
-                  {uniqueItems.map((item) => (
-                    <option key={item.id} value={item.name}>{item.name}</option>
-                  ))}
-                  <option value="__custom__">+ Add Custom Item</option>
-                </select>
-                {newItem.name === '__custom__' && (
                   <input
                     type="text"
-                    value=""
-                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                    placeholder="Enter custom item name"
-                    className="input mt-2"
-                    autoFocus
+                    placeholder="Search items…"
+                    value={itemSearch}
+                    onChange={e => setItemSearch(e.target.value)}
+                    className="input input-icon"
                   />
+                </div>
+
+                {!itemSearch && (
+                  <p className="text-xs text-gray-400 mb-3">Showing first 80 items — search to narrow down</p>
                 )}
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Item Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newItem.code}
-                  onChange={(e) => setNewItem({ ...newItem, code: e.target.value.toUpperCase() })}
-                  placeholder="e.g., COF0001"
-                  className={`input ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
-                  disabled={newItem.name !== '' && newItem.name !== '__custom__'}
-                />
-                {newItem.name !== '' && newItem.name !== '__custom__' && (
-                  <p className="text-xs text-gray-500 mt-1">Auto-populated from selected item</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                  <select
-                    value={newItem.category}
-                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
-                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
-                  >
-                    <option value="beverages">Beverages</option>
-                    <option value="snacks">Snacks</option>
-                    <option value="meals">Meals</option>
-                    <option value="supplies">Supplies</option>
-                    <option value="equipment">Equipment</option>
-                  </select>
-                  {newItem.name !== '' && newItem.name !== '__custom__' && (
-                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                  <select
-                    value={newItem.type}
-                    onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
-                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
-                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
-                  >
-                    <option value="Supplies">Supplies</option>
-                    <option value="Alcohol">Alcohol</option>
-                    <option value="Champagne">Champagne</option>
-                    <option value="Cognac">Cognac</option>
-                    <option value="Whisky">Whisky</option>
-                    <option value="Vodka">Vodka</option>
-                    <option value="Drinks">Drinks</option>
-                    <option value="Food">Food</option>
-                    <option value="Equipment">Equipment</option>
-                  </select>
-                  {newItem.name !== '' && newItem.name !== '__custom__' && (
-                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
-                  )}
-                </div>
-              </div>
-
-              {newItem.category === 'beverages' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory (Optional)</label>
-                  <select
-                    value={newItem.subcategory}
-                    onChange={(e) => setNewItem({ ...newItem, subcategory: e.target.value })}
-                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
-                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
-                  >
-                    <option value="">None</option>
-                    <option value="alcoholic">Alcoholic</option>
-                    <option value="non-alcoholic">Non-Alcoholic</option>
-                    <option value="hot-drinks">Hot Drinks</option>
-                    <option value="juice">Juice</option>
-                    <option value="soda">Soda</option>
-                    <option value="water">Water</option>
-                  </select>
-                  {newItem.name !== '' && newItem.name !== '__custom__' && (
-                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
-                  )}
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={newItem.quantity}
-                    onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-                    className="input"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Unit of Measure</label>
-                  <select
-                    value={newItem.unitOfMeasure}
-                    onChange={(e) => setNewItem({ ...newItem, unitOfMeasure: e.target.value })}
-                    className={`select ${newItem.name !== '' && newItem.name !== '__custom__' ? 'input-disabled' : ''}`}
-                    disabled={newItem.name !== '' && newItem.name !== '__custom__'}
-                  >
-                    <option value="bottles">Bottles</option>
-                    <option value="cans">Cans</option>
-                    <option value="bags">Bags</option>
-                    <option value="boxes">Boxes</option>
-                    <option value="servings">Servings</option>
-                    <option value="units">Units</option>
-                    <option value="pieces">Pieces</option>
-                    <option value="packs">Packs</option>
-                  </select>
-                  {newItem.name !== '' && newItem.name !== '__custom__' && (
-                    <p className="text-xs text-gray-500 mt-1">Auto-populated</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Position Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newItem.positionCode}
-                  onChange={(e) => setNewItem({ ...newItem, positionCode: e.target.value.toUpperCase() })}
-                  placeholder="e.g., 1F1C01"
-                  className="input"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Galley Name</label>
-                  <input
-                    type="text"
-                    value={newItem.galleyName}
-                    onChange={(e) => setNewItem({ ...newItem, galleyName: e.target.value })}
-                    placeholder="e.g., Forward Galley"
-                    className="input"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Trolley Name</label>
-                  <input
-                    type="text"
-                    value={newItem.trolleyName}
-                    onChange={(e) => setNewItem({ ...newItem, trolleyName: e.target.value })}
-                    placeholder="e.g., Trolley 1/1"
-                    className="input"
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-3 pt-4">
-                <button onClick={() => setShowAddItemModal(false)} className="btn-secondary">Cancel</button>
-                <button onClick={handleAddItem} className="btn-primary">Add Item</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Level Update Modal */}
-      {selectedItem && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h2 className="modal-title">{selectedItem.name}</h2>
-                  {isAlcoholItem(selectedItem) && (
-                    <span className="badge bg-purple-100 text-purple-700">
-                      <i className="ri-wine-glass-line mr-1"></i>
-                      Alcohol
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 font-mono">{selectedItem.code}</p>
-              </div>
-              <button onClick={() => setSelectedItem(null)} className="modal-close">
-                <i className="ri-close-line text-gray-600"></i>
-              </button>
-            </div>
-
-          {/* Current Level Display */}
-          <div className="text-center mb-6">
-             <div className="text-4xl font-bold text-blue-600 mb-2">
-              {isAlcoholItem(selectedItem)
-                ? (() => {
-                const allLevels = selectedItem.positions.flatMap((position: any) =>
-            bottleLevels[position.id] || Array(position.quantity).fill(
-              position.quantity > 0 ? Math.round((position.available / position.quantity) * 100) : 100
-            )
-          );
-          return allLevels.length > 0
-            ? Math.round(allLevels.reduce((sum: number, l: number) => sum + l, 0) / allLevels.length)
-            : 0;
-        })()
-      : getItemTotals(selectedItem.id).totalPercentage
-    }%
-  </div>
-  <p className="text-gray-600">Overall Level</p>
-</div>
-
-            {/* Position Breakdown */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">
-                  {isAlcoholItem(selectedItem) ? 'Individual Bottle Levels' : 'Update by Position'}
-                </h3>
-                <span className="text-xs text-gray-600">
-                  Unit: {selectedItem.positions?.[0]?.unitOfMeasure || 'units'}
-                </span>
-              </div>
-
-              {isAlcoholItem(selectedItem) ? (
-                <div className="space-y-6">
-                  {selectedItem.positions.map((position: any) => {
-                    const currentLevels = getBottleLevels(
-                      position.id,
-                      position.quantity,
-                      position.quantity > 0 ? Math.round((position.available / position.quantity) * 100) : 100
-                    );
-                    const averageLevel = Math.round(
-                      currentLevels.reduce((sum: number, level: number) => sum + level, 0) / currentLevels.length
-                    );
-
+                <div className="space-y-2">
+                  {filteredItems.map(item => {
+                    const key = itemKey(item.code);
+                    const val = counts[key];
                     return (
-                      <div key={position.id} className={`card-padded border-2 ${getStockLevelBg(averageLevel)}`}>
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <div className="font-medium text-gray-900 text-lg">{position.positionCode}</div>
-                            <div className="text-sm text-gray-600">{position.galleyName} - {position.trolleyName}</div>
-                          </div>
-                          <div className={`badge text-xl font-bold ${getStockLevelClass(averageLevel)}`}>
-                            {averageLevel}%
-                          </div>
+                      <div key={item.code} className="card p-3 flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-800 truncate">{item.description}</div>
+                          <div className="text-xs text-blue-600 font-mono">{item.code}</div>
                         </div>
-
-                        <div className="mb-4 flex space-x-2">
-                          <button onClick={() => setAllBottles(position.id, position.quantity, 0)} className="btn-sm flex-1 bg-red-100 text-red-700 hover:bg-red-200">All Empty</button>
-                          <button onClick={() => setAllBottles(position.id, position.quantity, 50)} className="btn-sm flex-1 bg-orange-100 text-orange-700 hover:bg-orange-200">All Half</button>
-                          <button onClick={() => setAllBottles(position.id, position.quantity, 75)} className="btn-sm flex-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200">All Mostly</button>
-                          <button onClick={() => setAllBottles(position.id, position.quantity, 100)} className="btn-sm flex-1 bg-green-100 text-green-700 hover:bg-green-200">All Full</button>
-                        </div>
-
-                        <div className="space-y-3">
-                          {Array.from({ length: position.quantity }).map((_, index) => {
-                            const bottleLevel = currentLevels[index] ?? 100;
-                            return (
-                              <div key={index} className="bg-white p-3 rounded-lg border border-gray-200">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center space-x-2">
-                                    <i className="ri-wine-bottle-line text-purple-600"></i>
-                                    <span className="font-medium text-sm">Bottle {index + 1}</span>
-                                  </div>
-                                  <span className={`badge ${getStockLevelClass(bottleLevel)}`}>{bottleLevel}%</span>
-                                </div>
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  value={bottleLevel}
-                                  onChange={(e) => updateBottleLevel(position.id, index, parseInt(e.target.value))}
-                                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
-                                  style={{
-                                    background: `linear-gradient(to right,
-                                      #ef4444 0%, #ef4444 ${bottleLevel * 0.25}%,
-                                      #f59e0b ${bottleLevel * 0.25}%, #f59e0b ${bottleLevel * 0.50}%,
-                                      #eab308 ${bottleLevel * 0.50}%, #eab308 ${bottleLevel * 0.75}%,
-                                      #10b981 ${bottleLevel * 0.75}%, #10b981 ${bottleLevel}%,
-                                      #e5e7eb ${bottleLevel}%, #e5e7eb 100%)`
-                                  }}
-                                />
-                                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                  <span>Empty</span>
-                                  <span>Half</span>
-                                  <span>Full</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-3 gap-4 text-center text-sm bg-gray-50 p-3 rounded">
-                          <div>
-                            <div className="font-medium text-gray-900">{position.quantity}</div>
-                            <div className="text-gray-600">Total Bottles</div>
-                          </div>
-                          <div>
-                            <div className="font-medium text-blue-600">{position.available.toFixed(1)}</div>
-                            <div className="text-gray-600">Equivalent Available</div>
-                          </div>
-                          <div>
-                            <div className="font-medium text-orange-600">{position.consumed.toFixed(1)}</div>
-                            <div className="text-gray-600">Equivalent Consumed</div>
-                          </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => setCount(key, (counts[key] ?? 0) - 1)}
+                            className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-700"
+                          >−</button>
+                          <span className="w-8 text-center font-semibold text-sm">
+                            {val === undefined ? '—' : val}
+                          </span>
+                          <button
+                            onClick={() => setCount(key, (counts[key] ?? 0) + 1)}
+                            className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700"
+                          >+</button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              ) : (
-                /* FIXED: +/- buttons instead of number input - no keyboard, no zoom */
-                <div className="table-container">
-                  <div className="table-header">
-                    <div className="table-header-row grid-cols-5">
-                      <div>Position</div>
-                      <div className="text-center">QTY</div>
-                      <div className="text-center">Used</div>
-                      <div className="text-center">Avail</div>
-                      <div className="text-center">%</div>
-                    </div>
-                  </div>
+              </div>
+            )}
 
-                  <div>
-                    {selectedItem.positions.map((position: any) => (
-                      <div
-                        key={position.id}
-                        className={`table-row grid-cols-5 ${getStockLevelBg(position.percentageAvailable)}`}
-                      >
-                        <div className="table-cell">{position.positionCode}</div>
-                        <div className="table-cell-center">{position.quantity}</div>
-                        {/* FIXED: +/- stepper instead of input */}
-                        <div className="flex items-center justify-center space-x-2">
-                          <button
-                            onClick={() => adjustConsumed(position.id, position.consumed, position.quantity, -1)}
-                            className="w-7 h-7 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 text-lg leading-none"
-                          >
-                            −
-                          </button>
-                          <span className="w-6 text-center font-medium text-sm">{position.consumed}</span>
-                          <button
-                            onClick={() => adjustConsumed(position.id, position.consumed, position.quantity, 1)}
-                            className="w-7 h-7 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 text-lg leading-none"
-                          >
-                            +
-                          </button>
-                        </div>
-                        <div className="table-cell-center">{position.available}</div>
-                        <div className="text-center">
-                          <span className={`badge ${getStockLevelClass(position.percentageAvailable)}`}>
-                            {position.percentageAvailable}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-
-                    {(() => {
-                      const totals = getItemTotals(selectedItem.id);
-                      return (
-                        <div className="bg-gray-100 border-t-2 border-gray-300">
-                          <div className="table-row grid-cols-5 font-bold">
-                            <div className="table-cell">TOTAL</div>
-                            <div className="table-cell-center">{totals.totalQuantity}</div>
-                            <div className="table-cell-center">{totals.totalConsumed}</div>
-                            <div className="table-cell-center">{totals.totalAvailable}</div>
-                            <div className="text-center">
-                              <span className={`badge ${getStockLevelClass(totals.totalPercentage)}`}>
-                                {totals.totalPercentage}%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-3 mt-4">
-              <Link
-                href={`/issues?item=${selectedItem.code}&name=${encodeURIComponent(selectedItem.name)}`}
-                className="btn-danger flex items-center justify-center space-x-2"
+            {/* Submit button at bottom */}
+            <div className="px-4 pb-8">
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || totalCounted === 0}
+                className="btn-primary w-full disabled:opacity-40"
               >
-                <i className="ri-error-warning-line"></i>
-                <span>Report Issue</span>
-              </Link>
-              <button onClick={() => setSelectedItem(null)} className="btn-primary">
-                Save Changes
+                {submitting ? 'Submitting…' : `Submit Inventory${totalCounted > 0 ? ` (${totalCounted} counted)` : ''}`}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
+          </>
+        )}
+      </div>
       <BottomNav />
     </div>
   );

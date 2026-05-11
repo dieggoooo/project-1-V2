@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@capacitor/android": "^7.6.2",
     "@capacitor/app": "^7.1.0",
     "@capacitor/camera": "^7.0.2",
     "@capacitor/cli": "^7.4.4",
@@ -31,6 +34,10 @@
   "devDependencies": {
     "@eslint/js": "^9.31.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.19.9",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -38,6 +45,8 @@
     "cross-env": "^7.0.3",
     "eslint": "^9.31.0",
     "eslint-config-next": "^15.4.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",

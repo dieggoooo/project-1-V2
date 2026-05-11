@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CrewGalley</string>
+    <string name="title_activity_main">CrewGalley</string>
+    <string name="package_name">com.crewgalley.app</string>
+    <string name="custom_url_scheme">com.crewgalley.app</string>
+</resources>

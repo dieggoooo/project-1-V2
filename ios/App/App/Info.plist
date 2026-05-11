@@ -43,14 +43,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos of inventory items and galley equipment.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Upload photos of inventory items and galley equipment.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Upload photos of inventory items and galley equipment.</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>&lt;key&gt;UIWebViewBounce&lt;/key&gt;
-&lt;key&gt;UIWebViewBounce&lt;/key&gt;</key>
+	<key>UIWebViewBounce</key>
 	<string>false</string>
 </dict>
 </plist>

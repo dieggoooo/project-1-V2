@@ -1,335 +1,253 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../utils/supabase';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import { useRouter } from 'next/navigation';
 
-// Validation schema
-const profileSchema = z.object({
-  first_name: z.string().min(2, 'First name must be at least 2 characters').optional(),
-  last_name: z.string().min(2, 'Last name must be at least 2 characters').optional(),
-  employee_id: z.string().min(3, 'Employee ID must be at least 3 characters').optional(),
-  position: z.string().min(2, 'Position must be at least 2 characters').optional(),
-  phone: z.string().optional(),
-  emergency_contact: z.string().optional(),
-});
+export default function ProfilePage() {
+  const { user, profile, session, signOut } = useAuth();
+  const router = useRouter();
 
-type ProfileFormData = z.infer<typeof profileSchema>;
-
-interface UserProfile {
-  id: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  employee_id?: string;
-  position?: string;
-  phone?: string;
-  emergency_contact?: string;
-}
-
-export default function Profile() {
-  const { user: authUser, signOut } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const profileForm = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
-  });
+  // Editable fields
+  const [firstName, setFirstName] = useState(profile?.first_name ?? '');
+  const [lastName, setLastName] = useState(profile?.last_name ?? '');
+  const [position, setPosition] = useState(profile?.position ?? '');
 
-  // Fetch user profile from database
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!authUser) {
-        setLoading(false);
-        return;
-      }
+  // Sync fields when editing starts
+  const startEditing = () => {
+    setFirstName(profile?.first_name ?? '');
+    setLastName(profile?.last_name ?? '');
+    setPosition(profile?.position ?? '');
+    setIsEditing(true);
+    setError('');
+  };
 
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', authUser.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          setProfile(data);
-          // Pre-fill form with database values
-          profileForm.reset({
-            first_name: data.first_name || '',
-            last_name: data.last_name || '',
-            employee_id: data.employee_id || '',
-            position: data.position || '',
-            phone: data.phone || '',
-            emergency_contact: data.emergency_contact || '',
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchProfile();
-  }, [authUser, profileForm]);
-
-  const onProfileUpdate = async (data: ProfileFormData) => {
-    if (!authUser) return;
-
+  const handleSave = async () => {
+    if (!user) return;
     setSaving(true);
     setError('');
-    setSuccessMessage('');
 
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          first_name: data.first_name,
-          last_name: data.last_name,
-          employee_id: data.employee_id,
-          position: data.position,
-          phone: data.phone,
-          emergency_contact: data.emergency_contact,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', authUser.id);
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        position,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
 
-      if (error) throw error;
+    setSaving(false);
 
-      // Update local state
-      setProfile(prev => prev ? { ...prev, ...data } : null);
+    if (error) {
+      setError(error.message);
+    } else {
       setIsEditing(false);
       setSuccessMessage('Profile updated successfully!');
-      
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
-    } finally {
-      setSaving(false);
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!user || deleteConfirmText !== 'DELETE') return;
+    setIsDeleting(true);
+    setError('');
+
+    try {
+      const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+      const deleteUrl = isNative
+        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`
+        : '/api/delete-account';
+
+      const response = await fetch(deleteUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to delete account');
+
+      await signOut();
+      router.push('/login');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete account. Please contact support.');
+      setIsDeleting(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <i className="ri-loader-4-line text-2xl text-blue-600 animate-spin mb-2"></i>
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
+  const displayName = profile
+    ? `${profile.first_name} ${profile.last_name}`.trim() || 'Crew Member'
+    : 'Crew Member';
 
-  if (!authUser) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Please sign in to view your profile</p>
-        </div>
-      </div>
-    );
-  }
+  const initials = profile
+    ? `${profile.first_name?.[0] ?? ''}${profile.last_name?.[0] ?? ''}`.toUpperCase()
+    : '?';
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="page-container">
-        <div className="max-w-2xl mx-auto">
-          {/* Profile Header */}
-          <div className="card-padded section-spacing">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-4">
-                <div className="icon-circle icon-xl bg-blue-100">
-                  <i className="ri-user-line text-blue-600 text-2xl"></i>
+        <div className="max-w-2xl mx-auto space-y-4">
+
+          {/* ── Profile hero card ── */}
+          <div className="card p-6">
+            <div className="flex items-start justify-between mb-4">
+              {/* Avatar + name */}
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                  {initials}
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {profile?.first_name || profile?.last_name 
-                      ? `${profile?.first_name || ''} ${profile?.last_name || ''}`
-                      : 'User'}
-                  </h1>
-                  <p className="text-gray-600">{profile?.position || 'Crew Member'}</p>
-                  <p className="text-sm text-gray-500">{profile?.email}</p>
+                  <h1 className="text-xl font-bold text-gray-900">{displayName}</h1>
+                  <p className="text-sm text-gray-500">{profile?.position || 'Crew Member'}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{user?.email}</p>
                 </div>
               </div>
+
               <button
-                onClick={handleSignOut}
-                className="text-red-600 hover:text-red-700 text-sm font-medium"
+                onClick={signOut}
+                className="text-sm text-red-500 hover:text-red-600 font-medium"
               >
                 Sign Out
               </button>
             </div>
+
+            {/* Airline badge */}
+            {profile?.airline_name && (
+              <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                <i className="ri-flight-takeoff-line text-blue-500 text-lg"></i>
+                <div>
+                  <div className="text-sm font-semibold text-blue-800">{profile.airline_name}</div>
+                  <div className="text-xs text-blue-500">
+                    {profile.airline_code} · Employee {profile.employee_id}
+                  </div>
+                </div>
+                <div className="ml-auto">
+                  <span className="text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                    {profile.role?.replace('_', ' ')}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Success Message */}
+          {/* ── Feedback messages ── */}
           {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center space-x-2">
+            <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center gap-2">
               <i className="ri-checkbox-circle-line"></i>
               <span>{successMessage}</span>
             </div>
           )}
-
-          {/* Error Message */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center space-x-2">
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2">
               <i className="ri-error-warning-line"></i>
               <span>{error}</span>
             </div>
           )}
 
-          {/* Profile Form */}
-          <div className="card-padded section-spacing">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
+          {/* ── Profile information ── */}
+          <div className="card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900">Profile Information</h2>
               {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  Edit Profile
+                <button onClick={startEditing} className="text-sm text-blue-600 font-medium">
+                  Edit
                 </button>
               )}
             </div>
 
-            <form onSubmit={profileForm.handleSubmit(onProfileUpdate)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name
-                  </label>
-                  <input
-                    {...profileForm.register('first_name')}
-                    type="text"
-                    id="first_name"
-                    disabled={!isEditing}
-                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
-                  />
-                  {profileForm.formState.errors.first_name && (
-                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.first_name.message}</p>
+                  <label className="text-xs font-medium text-gray-500 block mb-1">First Name</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      className="input"
+                    />
+                  ) : (
+                    <p className="text-sm font-medium text-gray-800">{profile?.first_name || '—'}</p>
                   )}
                 </div>
-
                 <div>
-                  <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name
-                  </label>
-                  <input
-                    {...profileForm.register('last_name')}
-                    type="text"
-                    id="last_name"
-                    disabled={!isEditing}
-                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
-                  />
-                  {profileForm.formState.errors.last_name && (
-                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.last_name.message}</p>
+                  <label className="text-xs font-medium text-gray-500 block mb-1">Last Name</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      className="input"
+                    />
+                  ) : (
+                    <p className="text-sm font-medium text-gray-800">{profile?.last_name || '—'}</p>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="employee_id" className="block text-sm font-medium text-gray-700 mb-2">
-                    Employee ID
-                  </label>
-                  <input
-                    {...profileForm.register('employee_id')}
-                    type="text"
-                    id="employee_id"
-                    disabled={!isEditing}
-                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
-                  />
-                  {profileForm.formState.errors.employee_id && (
-                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.employee_id.message}</p>
-                  )}
+                  <label className="text-xs font-medium text-gray-500 block mb-1">Employee ID</label>
+                  <p className="text-sm font-medium text-gray-800">{profile?.employee_id || '—'}</p>
+                  <p className="text-[10px] text-gray-400">Contact admin to change</p>
                 </div>
-
                 <div>
-                  <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-2">
-                    Position
-                  </label>
-                  <input
-                    {...profileForm.register('position')}
-                    type="text"
-                    id="position"
-                    disabled={!isEditing}
-                    className={`input ${!isEditing ? 'input-disabled' : ''}`}
-                  />
-                  {profileForm.formState.errors.position && (
-                    <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.position.message}</p>
+                  <label className="text-xs font-medium text-gray-500 block mb-1">Position</label>
+                  {isEditing ? (
+                    <select
+                      value={position}
+                      onChange={e => setPosition(e.target.value)}
+                      className="input"
+                    >
+                      <option value="Flight Attendant">Flight Attendant</option>
+                      <option value="Purser">Purser</option>
+                      <option value="Senior Flight Attendant">Senior FA</option>
+                      <option value="Galley Manager">Galley Manager</option>
+                    </select>
+                  ) : (
+                    <p className="text-sm font-medium text-gray-800">{profile?.position || '—'}</p>
                   )}
                 </div>
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <input
-                  {...profileForm.register('phone')}
-                  type="tel"
-                  id="phone"
-                  disabled={!isEditing}
-                  placeholder="+1 (555) 123-4567"
-                  className={`input ${!isEditing ? 'input-disabled' : ''}`}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="emergency_contact" className="block text-sm font-medium text-gray-700 mb-2">
-                  Emergency Contact
-                </label>
-                <input
-                  {...profileForm.register('emergency_contact')}
-                  type="text"
-                  id="emergency_contact"
-                  disabled={!isEditing}
-                  placeholder="Name and phone number"
-                  className={`input ${!isEditing ? 'input-disabled' : ''}`}
-                />
+                <label className="text-xs font-medium text-gray-500 block mb-1">Email</label>
+                <p className="text-sm font-medium text-gray-800">{user?.email}</p>
+                <p className="text-[10px] text-gray-400">Managed via account settings</p>
               </div>
 
               {isEditing && (
-                <div className="flex space-x-3 pt-4">
+                <div className="flex gap-3 pt-2">
                   <button
-                    type="submit"
+                    onClick={handleSave}
                     disabled={saving}
                     className="btn-primary"
                   >
                     {saving ? (
-                      <span className="flex items-center justify-center space-x-2">
-                        <i className="ri-loader-4-line animate-spin"></i>
-                        <span>Saving...</span>
+                      <span className="flex items-center justify-center gap-2">
+                        <i className="ri-loader-4-line animate-spin"></i>Saving…
                       </span>
-                    ) : (
-                      'Save Changes'
-                    )}
+                    ) : 'Save Changes'}
                   </button>
                   <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditing(false);
-                      profileForm.reset();
-                      setError('');
-                    }}
+                    onClick={() => { setIsEditing(false); setError(''); }}
                     className="btn-secondary"
                     disabled={saving}
                   >
@@ -337,40 +255,84 @@ export default function Profile() {
                   </button>
                 </div>
               )}
-            </form>
+            </div>
           </div>
 
-          {/* Account Settings */}
-          <div className="card-padded">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Settings</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 card">
-                <div className="flex items-center space-x-3">
-                  <div className="icon-circle icon-md bg-blue-100">
-                    <i className="ri-mail-line text-blue-600"></i>
-                  </div>
+          {/* ── Danger zone ── */}
+          <div className="card p-5 border-2 border-red-200">
+            <h2 className="font-semibold text-red-600 mb-1">Danger Zone</h2>
+            <p className="text-sm text-gray-500 mb-4">Once you delete your account, there is no going back.</p>
+            <button onClick={() => setShowDeleteModal(true)} className="btn-danger">
+              <i className="ri-delete-bin-line mr-2"></i>Delete Account
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Delete modal ── */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2 className="modal-title text-red-600">Delete Account</h2>
+              <button onClick={() => setShowDeleteModal(false)} className="modal-close">
+                <i className="ri-close-line text-gray-600"></i>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <i className="ri-error-warning-line text-red-600 text-xl mt-0.5"></i>
                   <div>
-                    <h3 className="font-medium text-gray-900">Email Address</h3>
-                    <p className="text-sm text-gray-600">{profile?.email}</p>
+                    <h3 className="font-semibold text-red-900 mb-1">This action cannot be undone</h3>
+                    <ul className="text-sm text-red-800 list-disc list-inside space-y-1">
+                      <li>Your profile information</li>
+                      <li>All inventory data</li>
+                      <li>Issue reports</li>
+                    </ul>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 card">
-                <div className="flex items-center space-x-3">
-                  <div className="icon-circle icon-md bg-green-100">
-                    <i className="ri-lock-line text-green-600"></i>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Password</h3>
-                    <p className="text-sm text-gray-600">Manage your password</p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-gray-700 mb-3 text-sm">
+                Type <span className="font-mono font-bold">DELETE</span> to confirm:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="input"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }}
+                className="btn-secondary"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                className="btn-danger"
+              >
+                {isDeleting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <i className="ri-loader-4-line animate-spin"></i>Deleting…
+                  </span>
+                ) : (
+                  <><i className="ri-delete-bin-line mr-2"></i>Permanently Delete</>
+                )}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <BottomNav />
     </div>
