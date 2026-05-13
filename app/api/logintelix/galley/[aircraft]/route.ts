@@ -1,5 +1,3 @@
-export const dynamic = 'force-static';
-export async function generateStaticParams() { return []; }
 import { NextRequest, NextResponse } from 'next/server';
 import { logintelix, pickGalleyProfile } from '@/app/lib/logintelix';
 import { getAirlineCredentials } from '@/app/lib/supabase-server';

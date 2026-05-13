@@ -114,10 +114,11 @@ export default function Home() {
       <Header />
 
       <div className="page-container">
+        <div className="max-w-2xl mx-auto space-y-4">
 
         {/* Active flight banner */}
         {activeFlight && (
-          <div className="mx-4 mt-4 bg-green-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <i className="ri-checkbox-circle-fill text-green-500"></i>
               <div>
@@ -137,7 +138,7 @@ export default function Home() {
         )}
 
         {/* Flight search */}
-        <div className="card-padded mx-4 mt-4" onClick={() => setOpenField(null)}>
+        <div className="card-padded" onClick={() => setOpenField(null)}>
           <h2 className="text-lg font-semibold mb-4">
             {activeFlight ? 'Change Flight' : 'Load Flight Data'}
           </h2>
@@ -281,7 +282,7 @@ export default function Home() {
         </div>
 
         {/* Quick Actions */}
-        <div className="section-spacing px-4">
+        <div className="section-spacing">
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-4">
             <Link href="/galley" className="card-hover p-4">
@@ -322,6 +323,7 @@ export default function Home() {
           </div>
         </div>
 
+        </div>
       </div>
       <BottomNav />
     </div>

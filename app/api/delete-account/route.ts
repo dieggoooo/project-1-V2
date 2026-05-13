@@ -1,4 +1,3 @@
-export const dynamic = 'force-static';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
@@ -22,14 +21,12 @@ export async function POST(request: Request) {
       }
     );
 
-    // Verify the token and get the user
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Delete user data from public.users table
     const { error: dbError } = await supabaseAdmin
       .from('users')
       .delete()
@@ -40,7 +37,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to delete user data' }, { status: 500 });
     }
 
-    // Delete the auth user from Supabase Auth
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
 
     if (authError) {
