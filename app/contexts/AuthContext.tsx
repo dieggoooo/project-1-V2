@@ -71,39 +71,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    let active = true;
+
+    const withTimeout = <T,>(promise: Promise<T>, ms: number, fallback: T): Promise<T> =>
+      Promise.race([promise, new Promise<T>(resolve => setTimeout(() => resolve(fallback), ms))]);
+
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await withTimeout(
+          supabase.auth.getSession(),
+          5000,
+          { data: { session: null }, error: null } as any
+        );
         if (error) console.error('Error getting session:', error);
 
-        if (session) {
+        if (active && session) {
           setSession(session);
           setUser(session.user);
-          const p = await fetchProfile(session.user.id);
-          setProfile(p);
+          const p = await withTimeout(fetchProfile(session.user.id), 5000, null);
+          if (active) setProfile(p);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!active) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        const p = await fetchProfile(session.user.id);
-        setProfile(p);
+        const p = await withTimeout(fetchProfile(session.user.id), 5000, null);
+        if (active) setProfile(p);
       } else {
         setProfile(null);
       }
-      setLoading(false);
+      if (active) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
